@@ -673,26 +673,33 @@ export default function TippingHQ() {
     setOfficialResults(prev => prev.filter(r => r.id !== existing.id));
   };
 
-  // Reset my tips for unlocked matches
+  // Reset my tips for all unlocked matches (group + KO) that haven't kicked off and have no official result
   const onResetTips = async () => {
     if (!window.confirm("Are you sure you want to reset all your tips for unlocked matches? This cannot be undone.")) return;
+    if (poolSettings?.globalLockTipping) return;
+
     const myPredsCurrent = predictionsRef.current.filter(p => p.playerId === player.id);
     const toDelete = myPredsCurrent.filter(p => {
-      if (poolSettings?.globalLockTipping) return false;
       const official = officialResults.find(r => r.matchId === p.matchId);
-      if (official && official.homeScore != null) return false;
+      if (official && official.homeScore != null) return false; // result already in, locked
       const ko = kickoffs[p.matchId];
-      return !ko || Date.now() < ko;
+      if (ko && Date.now() >= ko) return false; // already kicked off, locked
+      return true;
     });
-    // Clear any pending debounced saves for these matches
+
+    // Clear any pending debounced saves for these matches immediately
     toDelete.forEach(p => {
       clearTimeout(saveTimers.current[p.matchId]);
       delete saveTimers.current[p.matchId];
     });
-    await Promise.all(toDelete.map(p => base44.entities.Prediction.delete(p.id)));
-    const deletedIds = new Set(toDelete.map(d => d.id));
+
+    // Only delete records that exist in DB (have an id)
+    const toDeleteInDB = toDelete.filter(p => p.id);
+    await Promise.all(toDeleteInDB.map(p => base44.entities.Prediction.delete(p.id)));
+
+    const deletedMatchIds = new Set(toDelete.map(d => d.matchId));
     setPredictions(prev => {
-      const next = prev.filter(p => !deletedIds.has(p.id));
+      const next = prev.filter(p => !(p.playerId === player.id && deletedMatchIds.has(p.matchId)));
       predictionsRef.current = next;
       return next;
     });
