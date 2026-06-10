@@ -345,7 +345,8 @@ const CSS = `
 `;
 
 // First KO kick-off time = predictor lock
-const PREDICTOR_LOCK_UTC = 1781431200000; // Jun 12 2026 18:00 UTC (first kickoff)
+// GA0: Fri 12 Jun 05:00 Sydney = Thu 11 Jun 19:00 UTC
+const PREDICTOR_LOCK_UTC = new Date("2026-06-12T05:00:00+10:00").getTime();
 
 function fmtKick(ms) {
   if (!ms) return "TBC";
@@ -846,7 +847,6 @@ function buildKOWinners(officialResults) {
   for (const res of officialResults) {
     if (res.homeScore == null || res.awayScore == null) continue;
     const h = +res.homeScore, a = +res.awayScore;
-    // find match
     const m = KO_MATCHES.find(x => x.id === res.matchId);
     if (!m) continue;
     if (h > a) winners[res.matchId] = "h";
@@ -871,7 +871,8 @@ function buildKOTeams(gp, tp, ap) {
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
   const thirds = Object.entries(tp).filter(([,v]) => v).map(([L,t]) => ({ L, t }));
-  const thirdSlots = ["3DEF","3ADEF","3ABEF","3ABCF","3ABCG","3BCGH","3CDGH","3EFGH","3JKL","3IKL","3IJL","3IJK"];
+  // third-place slot keys must match KO_MATCHES h/a values
+  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
   thirds.forEach((tr, i) => { if (thirdSlots[i]) slotTeams[thirdSlots[i]] = tr.t; });
 
   const teamOf = {};
@@ -879,8 +880,9 @@ function buildKOTeams(gp, tp, ap) {
     const home = slotTeams[m.h] || null;
     const away = slotTeams[m.a] || null;
     teamOf[m.id] = { home, away };
-    if (ap[m.id] === "h" && home) slotTeams[`W${m.id.slice(1)}`] = home;
-    if (ap[m.id] === "a" && away) slotTeams[`W${m.id.slice(1)}`] = away;
+    // winner slot key: e.g. M73 → WM73
+    if (ap[m.id] === "h" && home) slotTeams[`W${m.id}`] = home;
+    if (ap[m.id] === "a" && away) slotTeams[`W${m.id}`] = away;
   }
   return teamOf;
 }

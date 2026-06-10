@@ -1,278 +1,379 @@
 // =============================================
 // FIFA WORLD CUP 2026 — Full fixture data
+// Source: Official schedule, times in Sydney (AEST UTC+10)
+// UTC = Sydney time - 10 hours
 // =============================================
 
 export const ADMIN_NAME = "Luke McCosker";
 
-export const GROUPS = {
-  A: ["Mexico","Uruguay","South Africa","Ecuador"],
-  B: ["USA","Panama","Ghana","Cameroon"],
-  C: ["Canada","Honduras","Morocco","Portugal"],
-  D: ["Germany","Japan","Peru","Saudi Arabia"],
-  E: ["Spain","Senegal","Costa Rica","Serbia"],
-  F: ["France","Nigeria","Argentina","Australia"],
-  G: ["England","Netherlands","Algeria","DR Congo"],
-  H: ["Brazil","Colombia","Switzerland","Italy"],
-  I: ["Croatia","Belgium","Iran","Paraguay"],
-  J: ["Portugal","Poland","New Zealand","Egypt"],
-  K: ["Mexico","Ecuador","Cameroon","Uganda"],
-  L: ["USA","Bolivia","Jamaica","South Korea"],
-};
-
-// Corrected group list
-export const GROUPS_FIXED = {
-  A: ["Mexico","Uruguay","South Africa","Ecuador"],
-  B: ["USA","Panama","Ghana","Cameroon"],
-  C: ["Canada","Honduras","Morocco","Portugal"],
-  D: ["Germany","Japan","Peru","Saudi Arabia"],
-  E: ["Spain","Senegal","Costa Rica","Serbia"],
-  F: ["France","Nigeria","Brazil","Australia"],
-  G: ["England","Netherlands","Algeria","Argentina"],
-  H: ["Colombia","Switzerland","Italy","Japan"],
-  I: ["Croatia","Belgium","Iran","Paraguay"],
-  J: ["Poland","New Zealand","Egypt","Uruguay"],
-  K: ["Portugal","Ghana","South Korea","Bolivia"],
-  L: ["USA","Mexico","Germany","Ecuador"],
-};
-
-// Actual WC2026 groups (corrected)
+// Groups derived from the official schedule fixtures
 export const WC_GROUPS = {
-  A: ["Mexico","Uruguay","South Africa","Ecuador"],
-  B: ["USA","Panama","Ghana","Cameroon"],
-  C: ["Canada","Honduras","Morocco","Portugal"],
-  D: ["Germany","Japan","Peru","Saudi Arabia"],
-  E: ["Spain","Senegal","Costa Rica","Serbia"],
-  F: ["France","Argentina","Nigeria","Australia"],
-  G: ["England","Netherlands","Algeria","DR Congo"],
-  H: ["Brazil","Colombia","Switzerland","Italy"],
-  I: ["Croatia","Belgium","Iran","Paraguay"],
-  J: ["Poland","Portugal","New Zealand","Egypt"],
-  K: ["Mexico","Ecuador","Cameroon","South Korea"],
-  L: ["USA","Bolivia","Jamaica","Uruguay"],
+  A: ["Mexico","South Korea","South Africa","Czechia"],
+  B: ["Canada","Qatar","Switzerland","Bosnia & Herz."],
+  C: ["Brazil","Scotland","Morocco","Haiti"],
+  D: ["USA","Australia","Türkiye","Paraguay"],
+  E: ["Germany","Côte d'Ivoire","Ecuador","Curaçao"],
+  F: ["Netherlands","Sweden","Japan","Tunisia"],
+  G: ["Belgium","Iran","Egypt","New Zealand"],
+  H: ["Spain","Saudi Arabia","Uruguay","Cabo Verde"],
+  I: ["France","Norway","Senegal","Iraq"],
+  J: ["Argentina","Austria","Algeria","Jordan"],
+  K: ["Portugal","Colombia","Uzbekistan","DR Congo"],
+  L: ["England","Ghana","Croatia","Panama"],
 };
 
 export const GL = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
-// Group stage matches — 4 per group × 12 groups = 48 total
+// Group stage matches — 6 per group × 12 groups = 72 total
+// IDs match the schedule: GA0, GA1, GA2, ... etc (lowercased)
 export const GROUP_MATCHES = [
   // Group A
-  {id:"g1a",group:"A",home:"Mexico",away:"Uruguay",matchday:1,venue:"SoFi Stadium, LA"},
-  {id:"g1b",group:"A",home:"South Africa",away:"Ecuador",matchday:1,venue:"AT&T Stadium, Dallas"},
-  {id:"g2a",group:"A",home:"Mexico",away:"South Africa",matchday:2,venue:"SoFi Stadium, LA"},
-  {id:"g2b",group:"A",home:"Ecuador",away:"Uruguay",matchday:2,venue:"Rose Bowl, LA"},
-  {id:"g3a",group:"A",home:"Ecuador",away:"Mexico",matchday:3,venue:"Rose Bowl, LA"},
-  {id:"g3b",group:"A",home:"Uruguay",away:"South Africa",matchday:3,venue:"SoFi Stadium, LA"},
+  {id:"GA0",group:"A",home:"Mexico",away:"South Africa",matchday:1,venue:""},
+  {id:"GA1",group:"A",home:"South Korea",away:"Czechia",matchday:1,venue:""},
+  {id:"GA2",group:"A",home:"Czechia",away:"South Africa",matchday:2,venue:""},
+  {id:"GA3",group:"A",home:"Mexico",away:"South Korea",matchday:2,venue:""},
+  {id:"GA4",group:"A",home:"Czechia",away:"Mexico",matchday:3,venue:""},
+  {id:"GA5",group:"A",home:"South Africa",away:"South Korea",matchday:3,venue:""},
   // Group B
-  {id:"g4a",group:"B",home:"USA",away:"Panama",matchday:1,venue:"MetLife Stadium, NY"},
-  {id:"g4b",group:"B",home:"Ghana",away:"Cameroon",matchday:1,venue:"Levi's Stadium, SF"},
-  {id:"g5a",group:"B",home:"USA",away:"Ghana",matchday:2,venue:"MetLife Stadium, NY"},
-  {id:"g5b",group:"B",home:"Cameroon",away:"Panama",matchday:2,venue:"Levi's Stadium, SF"},
-  {id:"g6a",group:"B",home:"Cameroon",away:"USA",matchday:3,venue:"Levi's Stadium, SF"},
-  {id:"g6b",group:"B",home:"Panama",away:"Ghana",matchday:3,venue:"MetLife Stadium, NY"},
+  {id:"GB0",group:"B",home:"Canada",away:"Bosnia & Herz.",matchday:1,venue:""},
+  {id:"GB1",group:"B",home:"Qatar",away:"Switzerland",matchday:1,venue:""},
+  {id:"GB2",group:"B",home:"Switzerland",away:"Bosnia & Herz.",matchday:2,venue:""},
+  {id:"GB3",group:"B",home:"Canada",away:"Qatar",matchday:2,venue:""},
+  {id:"GB4",group:"B",home:"Switzerland",away:"Canada",matchday:3,venue:""},
+  {id:"GB5",group:"B",home:"Bosnia & Herz.",away:"Qatar",matchday:3,venue:""},
   // Group C
-  {id:"g7a",group:"C",home:"Canada",away:"Honduras",matchday:1,venue:"BMO Field, Toronto"},
-  {id:"g7b",group:"C",home:"Morocco",away:"Portugal",matchday:1,venue:"Estadio Azteca, Mexico City"},
-  {id:"g8a",group:"C",home:"Canada",away:"Morocco",matchday:2,venue:"BMO Field, Toronto"},
-  {id:"g8b",group:"C",home:"Portugal",away:"Honduras",matchday:2,venue:"Estadio Azteca, Mexico City"},
-  {id:"g9a",group:"C",home:"Portugal",away:"Canada",matchday:3,venue:"Estadio Azteca, Mexico City"},
-  {id:"g9b",group:"C",home:"Honduras",away:"Morocco",matchday:3,venue:"BMO Field, Toronto"},
+  {id:"GC0",group:"C",home:"Brazil",away:"Morocco",matchday:1,venue:""},
+  {id:"GC1",group:"C",home:"Haiti",away:"Scotland",matchday:1,venue:""},
+  {id:"GC2",group:"C",home:"Scotland",away:"Morocco",matchday:2,venue:""},
+  {id:"GC3",group:"C",home:"Brazil",away:"Haiti",matchday:2,venue:""},
+  {id:"GC4",group:"C",home:"Scotland",away:"Brazil",matchday:3,venue:""},
+  {id:"GC5",group:"C",home:"Morocco",away:"Haiti",matchday:3,venue:""},
   // Group D
-  {id:"g10a",group:"D",home:"Germany",away:"Japan",matchday:1,venue:"MetLife Stadium, NY"},
-  {id:"g10b",group:"D",home:"Peru",away:"Saudi Arabia",matchday:1,venue:"Hard Rock Stadium, Miami"},
-  {id:"g11a",group:"D",home:"Germany",away:"Peru",matchday:2,venue:"MetLife Stadium, NY"},
-  {id:"g11b",group:"D",home:"Saudi Arabia",away:"Japan",matchday:2,venue:"Hard Rock Stadium, Miami"},
-  {id:"g12a",group:"D",home:"Saudi Arabia",away:"Germany",matchday:3,venue:"Hard Rock Stadium, Miami"},
-  {id:"g12b",group:"D",home:"Japan",away:"Peru",matchday:3,venue:"MetLife Stadium, NY"},
+  {id:"GD0",group:"D",home:"USA",away:"Paraguay",matchday:1,venue:""},
+  {id:"GD1",group:"D",home:"Australia",away:"Türkiye",matchday:1,venue:""},
+  {id:"GD2",group:"D",home:"USA",away:"Australia",matchday:2,venue:""},
+  {id:"GD3",group:"D",home:"Türkiye",away:"Paraguay",matchday:2,venue:""},
+  {id:"GD4",group:"D",home:"Türkiye",away:"USA",matchday:3,venue:""},
+  {id:"GD5",group:"D",home:"Paraguay",away:"Australia",matchday:3,venue:""},
   // Group E
-  {id:"g13a",group:"E",home:"Spain",away:"Senegal",matchday:1,venue:"AT&T Stadium, Dallas"},
-  {id:"g13b",group:"E",home:"Costa Rica",away:"Serbia",matchday:1,venue:"Gillette Stadium, Boston"},
-  {id:"g14a",group:"E",home:"Spain",away:"Costa Rica",matchday:2,venue:"AT&T Stadium, Dallas"},
-  {id:"g14b",group:"E",home:"Serbia",away:"Senegal",matchday:2,venue:"Gillette Stadium, Boston"},
-  {id:"g15a",group:"E",home:"Serbia",away:"Spain",matchday:3,venue:"Gillette Stadium, Boston"},
-  {id:"g15b",group:"E",home:"Senegal",away:"Costa Rica",matchday:3,venue:"AT&T Stadium, Dallas"},
+  {id:"GE0",group:"E",home:"Germany",away:"Curaçao",matchday:1,venue:""},
+  {id:"GE1",group:"E",home:"Côte d'Ivoire",away:"Ecuador",matchday:1,venue:""},
+  {id:"GE2",group:"E",home:"Germany",away:"Côte d'Ivoire",matchday:2,venue:""},
+  {id:"GE3",group:"E",home:"Ecuador",away:"Curaçao",matchday:2,venue:""},
+  {id:"GE4",group:"E",home:"Curaçao",away:"Côte d'Ivoire",matchday:3,venue:""},
+  {id:"GE5",group:"E",home:"Ecuador",away:"Germany",matchday:3,venue:""},
   // Group F
-  {id:"g16a",group:"F",home:"France",away:"Argentina",matchday:1,venue:"AT&T Stadium, Dallas"},
-  {id:"g16b",group:"F",home:"Nigeria",away:"Australia",matchday:1,venue:"SoFi Stadium, LA"},
-  {id:"g17a",group:"F",home:"France",away:"Nigeria",matchday:2,venue:"AT&T Stadium, Dallas"},
-  {id:"g17b",group:"F",home:"Australia",away:"Argentina",matchday:2,venue:"SoFi Stadium, LA"},
-  {id:"g18a",group:"F",home:"Australia",away:"France",matchday:3,venue:"SoFi Stadium, LA"},
-  {id:"g18b",group:"F",home:"Argentina",away:"Nigeria",matchday:3,venue:"AT&T Stadium, Dallas"},
+  {id:"GF0",group:"F",home:"Netherlands",away:"Japan",matchday:1,venue:""},
+  {id:"GF1",group:"F",home:"Sweden",away:"Tunisia",matchday:1,venue:""},
+  {id:"GF2",group:"F",home:"Netherlands",away:"Sweden",matchday:2,venue:""},
+  {id:"GF3",group:"F",home:"Tunisia",away:"Japan",matchday:2,venue:""},
+  {id:"GF4",group:"F",home:"Japan",away:"Sweden",matchday:3,venue:""},
+  {id:"GF5",group:"F",home:"Tunisia",away:"Netherlands",matchday:3,venue:""},
   // Group G
-  {id:"g19a",group:"G",home:"England",away:"Netherlands",matchday:1,venue:"MetLife Stadium, NY"},
-  {id:"g19b",group:"G",home:"Algeria",away:"DR Congo",matchday:1,venue:"Gillette Stadium, Boston"},
-  {id:"g20a",group:"G",home:"England",away:"Algeria",matchday:2,venue:"MetLife Stadium, NY"},
-  {id:"g20b",group:"G",home:"DR Congo",away:"Netherlands",matchday:2,venue:"Gillette Stadium, Boston"},
-  {id:"g21a",group:"G",home:"DR Congo",away:"England",matchday:3,venue:"Gillette Stadium, Boston"},
-  {id:"g21b",group:"G",home:"Netherlands",away:"Algeria",matchday:3,venue:"MetLife Stadium, NY"},
+  {id:"GG0",group:"G",home:"Belgium",away:"Egypt",matchday:1,venue:""},
+  {id:"GG1",group:"G",home:"Iran",away:"New Zealand",matchday:1,venue:""},
+  {id:"GG2",group:"G",home:"Belgium",away:"Iran",matchday:2,venue:""},
+  {id:"GG3",group:"G",home:"New Zealand",away:"Egypt",matchday:2,venue:""},
+  {id:"GG4",group:"G",home:"Egypt",away:"Iran",matchday:3,venue:""},
+  {id:"GG5",group:"G",home:"New Zealand",away:"Belgium",matchday:3,venue:""},
   // Group H
-  {id:"g22a",group:"H",home:"Brazil",away:"Colombia",matchday:1,venue:"Hard Rock Stadium, Miami"},
-  {id:"g22b",group:"H",home:"Switzerland",away:"Italy",matchday:1,venue:"SoFi Stadium, LA"},
-  {id:"g23a",group:"H",home:"Brazil",away:"Switzerland",matchday:2,venue:"Hard Rock Stadium, Miami"},
-  {id:"g23b",group:"H",home:"Italy",away:"Colombia",matchday:2,venue:"SoFi Stadium, LA"},
-  {id:"g24a",group:"H",home:"Italy",away:"Brazil",matchday:3,venue:"SoFi Stadium, LA"},
-  {id:"g24b",group:"H",home:"Colombia",away:"Switzerland",matchday:3,venue:"Hard Rock Stadium, Miami"},
+  {id:"GH0",group:"H",home:"Spain",away:"Cabo Verde",matchday:1,venue:""},
+  {id:"GH1",group:"H",home:"Saudi Arabia",away:"Uruguay",matchday:1,venue:""},
+  {id:"GH2",group:"H",home:"Spain",away:"Saudi Arabia",matchday:2,venue:""},
+  {id:"GH3",group:"H",home:"Uruguay",away:"Cabo Verde",matchday:2,venue:""},
+  {id:"GH4",group:"H",home:"Cabo Verde",away:"Saudi Arabia",matchday:3,venue:""},
+  {id:"GH5",group:"H",home:"Uruguay",away:"Spain",matchday:3,venue:""},
   // Group I
-  {id:"g25a",group:"I",home:"Croatia",away:"Belgium",matchday:1,venue:"AT&T Stadium, Dallas"},
-  {id:"g25b",group:"I",home:"Iran",away:"Paraguay",matchday:1,venue:"Rose Bowl, LA"},
-  {id:"g26a",group:"I",home:"Croatia",away:"Iran",matchday:2,venue:"AT&T Stadium, Dallas"},
-  {id:"g26b",group:"I",home:"Paraguay",away:"Belgium",matchday:2,venue:"Rose Bowl, LA"},
-  {id:"g27a",group:"I",home:"Paraguay",away:"Croatia",matchday:3,venue:"Rose Bowl, LA"},
-  {id:"g27b",group:"I",home:"Belgium",away:"Iran",matchday:3,venue:"AT&T Stadium, Dallas"},
+  {id:"GI0",group:"I",home:"France",away:"Senegal",matchday:1,venue:""},
+  {id:"GI1",group:"I",home:"Iraq",away:"Norway",matchday:1,venue:""},
+  {id:"GI2",group:"I",home:"France",away:"Iraq",matchday:2,venue:""},
+  {id:"GI3",group:"I",home:"Norway",away:"Senegal",matchday:2,venue:""},
+  {id:"GI4",group:"I",home:"Norway",away:"France",matchday:3,venue:""},
+  {id:"GI5",group:"I",home:"Senegal",away:"Iraq",matchday:3,venue:""},
   // Group J
-  {id:"g28a",group:"J",home:"Poland",away:"Portugal",matchday:1,venue:"Levi's Stadium, SF"},
-  {id:"g28b",group:"J",home:"New Zealand",away:"Egypt",matchday:1,venue:"Estadio Akron, Guadalajara"},
-  {id:"g29a",group:"J",home:"Poland",away:"New Zealand",matchday:2,venue:"Levi's Stadium, SF"},
-  {id:"g29b",group:"J",home:"Egypt",away:"Portugal",matchday:2,venue:"Estadio Akron, Guadalajara"},
-  {id:"g30a",group:"J",home:"Egypt",away:"Poland",matchday:3,venue:"Estadio Akron, Guadalajara"},
-  {id:"g30b",group:"J",home:"Portugal",away:"New Zealand",matchday:3,venue:"Levi's Stadium, SF"},
+  {id:"GJ0",group:"J",home:"Argentina",away:"Algeria",matchday:1,venue:""},
+  {id:"GJ1",group:"J",home:"Austria",away:"Jordan",matchday:1,venue:""},
+  {id:"GJ2",group:"J",home:"Argentina",away:"Austria",matchday:2,venue:""},
+  {id:"GJ3",group:"J",home:"Jordan",away:"Algeria",matchday:2,venue:""},
+  {id:"GJ4",group:"J",home:"Jordan",away:"Argentina",matchday:3,venue:""},
+  {id:"GJ5",group:"J",home:"Algeria",away:"Austria",matchday:3,venue:""},
   // Group K
-  {id:"g31a",group:"K",home:"Mexico",away:"Ecuador",matchday:1,venue:"Estadio Azteca, Mexico City"},
-  {id:"g31b",group:"K",home:"Cameroon",away:"South Korea",matchday:1,venue:"Estadio BBVA, Monterrey"},
-  {id:"g32a",group:"K",home:"Mexico",away:"Cameroon",matchday:2,venue:"Estadio Azteca, Mexico City"},
-  {id:"g32b",group:"K",home:"South Korea",away:"Ecuador",matchday:2,venue:"Estadio BBVA, Monterrey"},
-  {id:"g33a",group:"K",home:"South Korea",away:"Mexico",matchday:3,venue:"Estadio BBVA, Monterrey"},
-  {id:"g33b",group:"K",home:"Ecuador",away:"Cameroon",matchday:3,venue:"Estadio Azteca, Mexico City"},
+  {id:"GK0",group:"K",home:"Portugal",away:"DR Congo",matchday:1,venue:""},
+  {id:"GK1",group:"K",home:"Uzbekistan",away:"Colombia",matchday:1,venue:""},
+  {id:"GK2",group:"K",home:"Portugal",away:"Uzbekistan",matchday:2,venue:""},
+  {id:"GK3",group:"K",home:"Colombia",away:"DR Congo",matchday:2,venue:""},
+  {id:"GK4",group:"K",home:"Colombia",away:"Portugal",matchday:3,venue:""},
+  {id:"GK5",group:"K",home:"DR Congo",away:"Uzbekistan",matchday:3,venue:""},
   // Group L
-  {id:"g34a",group:"L",home:"USA",away:"Bolivia",matchday:1,venue:"SoFi Stadium, LA"},
-  {id:"g34b",group:"L",home:"Jamaica",away:"Uruguay",matchday:1,venue:"MetLife Stadium, NY"},
-  {id:"g35a",group:"L",home:"USA",away:"Jamaica",matchday:2,venue:"SoFi Stadium, LA"},
-  {id:"g35b",group:"L",home:"Uruguay",away:"Bolivia",matchday:2,venue:"MetLife Stadium, NY"},
-  {id:"g36a",group:"L",home:"Uruguay",away:"USA",matchday:3,venue:"MetLife Stadium, NY"},
-  {id:"g36b",group:"L",home:"Bolivia",away:"Jamaica",matchday:3,venue:"SoFi Stadium, LA"},
+  {id:"GL0",group:"L",home:"England",away:"Croatia",matchday:1,venue:""},
+  {id:"GL1",group:"L",home:"Ghana",away:"Panama",matchday:1,venue:""},
+  {id:"GL2",group:"L",home:"England",away:"Ghana",matchday:2,venue:""},
+  {id:"GL3",group:"L",home:"Panama",away:"Croatia",matchday:2,venue:""},
+  {id:"GL4",group:"L",home:"Panama",away:"England",matchday:3,venue:""},
+  {id:"GL5",group:"L",home:"Croatia",away:"Ghana",matchday:3,venue:""},
 ];
 
 export const ROUND_ORDER = ["R32","R16","QF","SF","3rd","F"];
 export const ROUND_NAME = {R32:"Round of 32",R16:"Round of 16",QF:"Quarter-finals",SF:"Semi-finals","3rd":"3rd Place Play-off",F:"Final"};
 
-// Knockout slots — bracket structure
+// Knockout matches using official match IDs from schedule (M73–M104)
 export const KO_MATCHES = [
   // Round of 32
-  {id:"m1",round:"R32",h:"1A",a:"3DEF",venue:"MetLife Stadium, NY"},
-  {id:"m2",round:"R32",h:"1B",a:"3ADEF",venue:"SoFi Stadium, LA"},
-  {id:"m3",round:"R32",h:"1C",a:"3ABEF",venue:"AT&T Stadium, Dallas"},
-  {id:"m4",round:"R32",h:"1D",a:"3ABCF",venue:"Hard Rock Stadium, Miami"},
-  {id:"m5",round:"R32",h:"1E",a:"3ABCG",venue:"Gillette Stadium, Boston"},
-  {id:"m6",round:"R32",h:"1F",a:"3BCGH",venue:"Rose Bowl, LA"},
-  {id:"m7",round:"R32",h:"1G",a:"3CDGH",venue:"Levi's Stadium, SF"},
-  {id:"m8",round:"R32",h:"1H",a:"3EFGH",venue:"Estadio Azteca, Mexico City"},
-  {id:"m9",round:"R32",h:"2A",a:"2C",venue:"BMO Field, Toronto"},
-  {id:"m10",round:"R32",h:"2B",a:"2D",venue:"Estadio Akron, Guadalajara"},
-  {id:"m11",round:"R32",h:"2E",a:"2G",venue:"Estadio BBVA, Monterrey"},
-  {id:"m12",round:"R32",h:"2F",a:"2H",venue:"MetLife Stadium, NY"},
-  {id:"m13",round:"R32",h:"1I",a:"3JKL",venue:"SoFi Stadium, LA"},
-  {id:"m14",round:"R32",h:"1J",a:"3IKL",venue:"AT&T Stadium, Dallas"},
-  {id:"m15",round:"R32",h:"1K",a:"3IJL",venue:"Hard Rock Stadium, Miami"},
-  {id:"m16",round:"R32",h:"1L",a:"3IJK",venue:"Levi's Stadium, SF"},
+  {id:"M73",round:"R32",h:"2A",a:"2B",venue:""},
+  {id:"M74",round:"R32",h:"1E",a:"3ABCDF",venue:""},
+  {id:"M75",round:"R32",h:"1C",a:"2F",venue:""},
+  {id:"M76",round:"R32",h:"1F",a:"2C",venue:""},
+  {id:"M77",round:"R32",h:"1I",a:"3CDFGH",venue:""},
+  {id:"M78",round:"R32",h:"2E",a:"2I",venue:""},
+  {id:"M79",round:"R32",h:"1A",a:"3CEFHI",venue:""},
+  {id:"M80",round:"R32",h:"1L",a:"3EHIJK",venue:""},
+  {id:"M81",round:"R32",h:"1D",a:"3BEFIJ",venue:""},
+  {id:"M82",round:"R32",h:"1G",a:"3AEHIJ",venue:""},
+  {id:"M83",round:"R32",h:"2K",a:"2L",venue:""},
+  {id:"M84",round:"R32",h:"1H",a:"2J",venue:""},
+  {id:"M85",round:"R32",h:"1B",a:"3EFGIJ",venue:""},
+  {id:"M86",round:"R32",h:"1J",a:"2H",venue:""},
+  {id:"M87",round:"R32",h:"1K",a:"3DEIJL",venue:""},
+  {id:"M88",round:"R32",h:"2D",a:"2G",venue:""},
   // Round of 16
-  {id:"m17",round:"R16",h:"W1",a:"W2",venue:"MetLife Stadium, NY"},
-  {id:"m18",round:"R16",h:"W3",a:"W4",venue:"SoFi Stadium, LA"},
-  {id:"m19",round:"R16",h:"W5",a:"W6",venue:"AT&T Stadium, Dallas"},
-  {id:"m20",round:"R16",h:"W7",a:"W8",venue:"Hard Rock Stadium, Miami"},
-  {id:"m21",round:"R16",h:"W9",a:"W10",venue:"Gillette Stadium, Boston"},
-  {id:"m22",round:"R16",h:"W11",a:"W12",venue:"Rose Bowl, LA"},
-  {id:"m23",round:"R16",h:"W13",a:"W14",venue:"Levi's Stadium, SF"},
-  {id:"m24",round:"R16",h:"W15",a:"W16",venue:"Estadio Azteca, Mexico City"},
+  {id:"M89",round:"R16",h:"WM74",a:"WM77",venue:""},
+  {id:"M90",round:"R16",h:"WM73",a:"WM75",venue:""},
+  {id:"M91",round:"R16",h:"WM76",a:"WM78",venue:""},
+  {id:"M92",round:"R16",h:"WM79",a:"WM80",venue:""},
+  {id:"M93",round:"R16",h:"WM83",a:"WM84",venue:""},
+  {id:"M94",round:"R16",h:"WM81",a:"WM82",venue:""},
+  {id:"M95",round:"R16",h:"WM86",a:"WM88",venue:""},
+  {id:"M96",round:"R16",h:"WM85",a:"WM87",venue:""},
   // Quarter-finals
-  {id:"m25",round:"QF",h:"W17",a:"W18",venue:"MetLife Stadium, NY"},
-  {id:"m26",round:"QF",h:"W19",a:"W20",venue:"SoFi Stadium, LA"},
-  {id:"m27",round:"QF",h:"W21",a:"W22",venue:"AT&T Stadium, Dallas"},
-  {id:"m28",round:"QF",h:"W23",a:"W24",venue:"Hard Rock Stadium, Miami"},
+  {id:"M97",round:"QF",h:"WM89",a:"WM90",venue:""},
+  {id:"M98",round:"QF",h:"WM93",a:"WM94",venue:""},
+  {id:"M99",round:"QF",h:"WM91",a:"WM92",venue:""},
+  {id:"M100",round:"QF",h:"WM95",a:"WM96",venue:""},
   // Semi-finals
-  {id:"m29",round:"SF",h:"W25",a:"W26",venue:"MetLife Stadium, NY"},
-  {id:"m30",round:"SF",h:"W27",a:"W28",venue:"SoFi Stadium, LA"},
+  {id:"M101",round:"SF",h:"WM97",a:"WM98",venue:""},
+  {id:"M102",round:"SF",h:"WM99",a:"WM100",venue:""},
   // 3rd Place
-  {id:"m31",round:"3rd",h:"L29",a:"L30",venue:"Hard Rock Stadium, Miami"},
+  {id:"M103",round:"3rd",h:"LM101",a:"LM102",venue:""},
   // Final
-  {id:"m32",round:"F",h:"W29",a:"W30",venue:"MetLife Stadium, NY"},
+  {id:"M104",round:"F",h:"WM101",a:"WM102",venue:""},
 ];
 
-// Default kick-off times in UTC (ms) — WC2026 starts June 12 2026
-// All timestamps verified for 2026 (epoch ~1781000000000 range)
+// ── Kickoff times ──────────────────────────────────────────────
+// Sydney times from schedule converted to UTC (Sydney = UTC+10, so UTC = Sydney - 10h)
+// Format: new Date("YYYY-MM-DDTHH:MM:00+10:00").getTime()
+
 export const DEFAULT_KICKOFFS = {
-  // Group A
-  "g1a":  1781431200000, // Jun 12 18:00 UTC
-  "g1b":  1781438400000, // Jun 12 20:00 UTC
-  "g2a":  1781949600000, // Jun 18 18:00 UTC
-  "g2b":  1781956800000, // Jun 18 20:00 UTC
-  "g3a":  1782468000000, // Jun 24 18:00 UTC
-  "g3b":  1782475200000, // Jun 24 20:00 UTC
-  // Group B
-  "g4a":  1781517600000, // Jun 13 16:00 UTC
-  "g4b":  1781524800000, // Jun 13 18:00 UTC
-  "g5a":  1782036000000, // Jun 19 16:00 UTC
-  "g5b":  1782043200000, // Jun 19 18:00 UTC
-  "g6a":  1782554400000, // Jun 25 16:00 UTC
-  "g6b":  1782561600000, // Jun 25 18:00 UTC
-  // Group C
-  "g7a":  1781604000000, // Jun 14 16:00 UTC
-  "g7b":  1781611200000, // Jun 14 18:00 UTC
-  "g8a":  1782122400000, // Jun 20 16:00 UTC
-  "g8b":  1782129600000, // Jun 20 18:00 UTC
-  "g9a":  1782640800000, // Jun 26 16:00 UTC
-  "g9b":  1782648000000, // Jun 26 18:00 UTC
-  // Group D
-  "g10a": 1781690400000, // Jun 15 16:00 UTC
-  "g10b": 1781697600000, // Jun 15 18:00 UTC
-  "g11a": 1782208800000, // Jun 21 16:00 UTC
-  "g11b": 1782216000000, // Jun 21 18:00 UTC
-  "g12a": 1782727200000, // Jun 27 16:00 UTC
-  "g12b": 1782734400000, // Jun 27 18:00 UTC
-  // Group E
-  "g13a": 1781776800000, // Jun 16 16:00 UTC
-  "g13b": 1781784000000, // Jun 16 18:00 UTC
-  "g14a": 1782295200000, // Jun 22 16:00 UTC
-  "g14b": 1782302400000, // Jun 22 18:00 UTC
-  "g15a": 1782813600000, // Jun 28 16:00 UTC
-  "g15b": 1782820800000, // Jun 28 18:00 UTC
-  // Group F
-  "g16a": 1781863200000, // Jun 17 16:00 UTC
-  "g16b": 1781870400000, // Jun 17 18:00 UTC
-  "g17a": 1782381600000, // Jun 23 16:00 UTC
-  "g17b": 1782388800000, // Jun 23 18:00 UTC
-  "g18a": 1782900000000, // Jun 29 16:00 UTC
-  "g18b": 1782907200000, // Jun 29 18:00 UTC
-  // Group G
-  "g19a": 1781949600000, // Jun 18 18:00 UTC (shared slot)
-  "g19b": 1781956800000, // Jun 18 20:00 UTC
-  "g20a": 1782468000000, // Jun 24 18:00 UTC
-  "g20b": 1782475200000, // Jun 24 20:00 UTC
-  "g21a": 1782986400000, // Jun 30 16:00 UTC
-  "g21b": 1782993600000, // Jun 30 18:00 UTC
-  // Group H
-  "g22a": 1782036000000, // Jun 19 16:00 UTC
-  "g22b": 1782043200000, // Jun 19 18:00 UTC
-  "g23a": 1782554400000, // Jun 25 16:00 UTC
-  "g23b": 1782561600000, // Jun 25 18:00 UTC
-  "g24a": 1783072800000, // Jul 1 16:00 UTC
-  "g24b": 1783080000000, // Jul 1 18:00 UTC
-  // Group I
-  "g25a": 1782122400000, // Jun 20 16:00 UTC
-  "g25b": 1782129600000, // Jun 20 18:00 UTC
-  "g26a": 1782640800000, // Jun 26 16:00 UTC
-  "g26b": 1782648000000, // Jun 26 18:00 UTC
-  "g27a": 1783159200000, // Jul 2 16:00 UTC
-  "g27b": 1783166400000, // Jul 2 18:00 UTC
-  // Group J
-  "g28a": 1782208800000, // Jun 21 16:00 UTC
-  "g28b": 1782216000000, // Jun 21 18:00 UTC
-  "g29a": 1782727200000, // Jun 27 16:00 UTC
-  "g29b": 1782734400000, // Jun 27 18:00 UTC
-  "g30a": 1783245600000, // Jul 3 16:00 UTC
-  "g30b": 1783252800000, // Jul 3 18:00 UTC
-  // Group K
-  "g31a": 1782295200000, // Jun 22 16:00 UTC
-  "g31b": 1782302400000, // Jun 22 18:00 UTC
-  "g32a": 1782813600000, // Jun 28 16:00 UTC
-  "g32b": 1782820800000, // Jun 28 18:00 UTC
-  "g33a": 1783332000000, // Jul 4 16:00 UTC
-  "g33b": 1783339200000, // Jul 4 18:00 UTC
-  // Group L
-  "g34a": 1782381600000, // Jun 23 16:00 UTC
-  "g34b": 1782388800000, // Jun 23 18:00 UTC
-  "g35a": 1782900000000, // Jun 29 16:00 UTC
-  "g35b": 1782907200000, // Jun 29 18:00 UTC
-  "g36a": 1783418400000, // Jul 5 16:00 UTC
-  "g36b": 1783425600000, // Jul 5 18:00 UTC
+  // ── Group Stage ─────────────────────────────────────────────
+  // Match 1: GA0  Fri 12 Jun  05:00 Sydney → Thu 11 Jun 19:00 UTC
+  "GA0":  new Date("2026-06-12T05:00:00+10:00").getTime(),
+  // Match 2: GA1  Fri 12 Jun  12:00 Sydney
+  "GA1":  new Date("2026-06-12T12:00:00+10:00").getTime(),
+  // Match 3: GB0  Sat 13 Jun  05:00 Sydney
+  "GB0":  new Date("2026-06-13T05:00:00+10:00").getTime(),
+  // Match 4: GD0  Sat 13 Jun  11:00 Sydney
+  "GD0":  new Date("2026-06-13T11:00:00+10:00").getTime(),
+  // Match 5: GB1  Sun 14 Jun  05:00 Sydney
+  "GB1":  new Date("2026-06-14T05:00:00+10:00").getTime(),
+  // Match 6: GC0  Sun 14 Jun  08:00 Sydney
+  "GC0":  new Date("2026-06-14T08:00:00+10:00").getTime(),
+  // Match 7: GC1  Sun 14 Jun  11:00 Sydney
+  "GC1":  new Date("2026-06-14T11:00:00+10:00").getTime(),
+  // Match 8: GD1  Sun 14 Jun  14:00 Sydney
+  "GD1":  new Date("2026-06-14T14:00:00+10:00").getTime(),
+  // Match 9: GE0  Mon 15 Jun  03:00 Sydney
+  "GE0":  new Date("2026-06-15T03:00:00+10:00").getTime(),
+  // Match 10: GF0  Mon 15 Jun  06:00 Sydney
+  "GF0":  new Date("2026-06-15T06:00:00+10:00").getTime(),
+  // Match 11: GE1  Mon 15 Jun  09:00 Sydney
+  "GE1":  new Date("2026-06-15T09:00:00+10:00").getTime(),
+  // Match 12: GF1  Mon 15 Jun  12:00 Sydney
+  "GF1":  new Date("2026-06-15T12:00:00+10:00").getTime(),
+  // Match 13: GH0  Tue 16 Jun  02:00 Sydney
+  "GH0":  new Date("2026-06-16T02:00:00+10:00").getTime(),
+  // Match 14: GG0  Tue 16 Jun  05:00 Sydney
+  "GG0":  new Date("2026-06-16T05:00:00+10:00").getTime(),
+  // Match 15: GH1  Tue 16 Jun  08:00 Sydney
+  "GH1":  new Date("2026-06-16T08:00:00+10:00").getTime(),
+  // Match 16: GG1  Tue 16 Jun  11:00 Sydney
+  "GG1":  new Date("2026-06-16T11:00:00+10:00").getTime(),
+  // Match 17: GI0  Wed 17 Jun  05:00 Sydney
+  "GI0":  new Date("2026-06-17T05:00:00+10:00").getTime(),
+  // Match 18: GI1  Wed 17 Jun  08:00 Sydney
+  "GI1":  new Date("2026-06-17T08:00:00+10:00").getTime(),
+  // Match 19: GJ0  Wed 17 Jun  11:00 Sydney
+  "GJ0":  new Date("2026-06-17T11:00:00+10:00").getTime(),
+  // Match 20: GJ1  Wed 17 Jun  14:00 Sydney
+  "GJ1":  new Date("2026-06-17T14:00:00+10:00").getTime(),
+  // Match 21: GK0  Thu 18 Jun  03:00 Sydney
+  "GK0":  new Date("2026-06-18T03:00:00+10:00").getTime(),
+  // Match 22: GL0  Thu 18 Jun  06:00 Sydney
+  "GL0":  new Date("2026-06-18T06:00:00+10:00").getTime(),
+  // Match 23: GL1  Thu 18 Jun  09:00 Sydney
+  "GL1":  new Date("2026-06-18T09:00:00+10:00").getTime(),
+  // Match 24: GK1  Thu 18 Jun  12:00 Sydney
+  "GK1":  new Date("2026-06-18T12:00:00+10:00").getTime(),
+  // Match 25: GA2  Fri 19 Jun  02:00 Sydney
+  "GA2":  new Date("2026-06-19T02:00:00+10:00").getTime(),
+  // Match 26: GB2  Fri 19 Jun  05:00 Sydney
+  "GB2":  new Date("2026-06-19T05:00:00+10:00").getTime(),
+  // Match 27: GB3  Fri 19 Jun  08:00 Sydney
+  "GB3":  new Date("2026-06-19T08:00:00+10:00").getTime(),
+  // Match 28: GA3  Fri 19 Jun  11:00 Sydney
+  "GA3":  new Date("2026-06-19T11:00:00+10:00").getTime(),
+  // Match 29: GD2  Sat 20 Jun  05:00 Sydney
+  "GD2":  new Date("2026-06-20T05:00:00+10:00").getTime(),
+  // Match 30: GC2  Sat 20 Jun  08:00 Sydney
+  "GC2":  new Date("2026-06-20T08:00:00+10:00").getTime(),
+  // Match 31: GC3  Sat 20 Jun  10:30 Sydney
+  "GC3":  new Date("2026-06-20T10:30:00+10:00").getTime(),
+  // Match 32: GD3  Sat 20 Jun  13:00 Sydney
+  "GD3":  new Date("2026-06-20T13:00:00+10:00").getTime(),
+  // Match 33: GF2  Sun 21 Jun  03:00 Sydney
+  "GF2":  new Date("2026-06-21T03:00:00+10:00").getTime(),
+  // Match 34: GE2  Sun 21 Jun  06:00 Sydney
+  "GE2":  new Date("2026-06-21T06:00:00+10:00").getTime(),
+  // Match 35: GE3  Sun 21 Jun  10:00 Sydney
+  "GE3":  new Date("2026-06-21T10:00:00+10:00").getTime(),
+  // Match 36: GF3  Sun 21 Jun  14:00 Sydney
+  "GF3":  new Date("2026-06-21T14:00:00+10:00").getTime(),
+  // Match 37: GH2  Mon 22 Jun  02:00 Sydney
+  "GH2":  new Date("2026-06-22T02:00:00+10:00").getTime(),
+  // Match 38: GG2  Mon 22 Jun  05:00 Sydney
+  "GG2":  new Date("2026-06-22T05:00:00+10:00").getTime(),
+  // Match 39: GH3  Mon 22 Jun  08:00 Sydney
+  "GH3":  new Date("2026-06-22T08:00:00+10:00").getTime(),
+  // Match 40: GG3  Mon 22 Jun  11:00 Sydney
+  "GG3":  new Date("2026-06-22T11:00:00+10:00").getTime(),
+  // Match 41: GJ2  Tue 23 Jun  03:00 Sydney
+  "GJ2":  new Date("2026-06-23T03:00:00+10:00").getTime(),
+  // Match 42: GI2  Tue 23 Jun  07:00 Sydney
+  "GI2":  new Date("2026-06-23T07:00:00+10:00").getTime(),
+  // Match 43: GI3  Tue 23 Jun  10:00 Sydney
+  "GI3":  new Date("2026-06-23T10:00:00+10:00").getTime(),
+  // Match 44: GJ3  Tue 23 Jun  13:00 Sydney
+  "GJ3":  new Date("2026-06-23T13:00:00+10:00").getTime(),
+  // Match 45: GK2  Wed 24 Jun  03:00 Sydney
+  "GK2":  new Date("2026-06-24T03:00:00+10:00").getTime(),
+  // Match 46: GL2  Wed 24 Jun  06:00 Sydney
+  "GL2":  new Date("2026-06-24T06:00:00+10:00").getTime(),
+  // Match 47: GL3  Wed 24 Jun  09:00 Sydney
+  "GL3":  new Date("2026-06-24T09:00:00+10:00").getTime(),
+  // Match 48: GK3  Wed 24 Jun  12:00 Sydney
+  "GK3":  new Date("2026-06-24T12:00:00+10:00").getTime(),
+  // Match 49: GB4  Thu 25 Jun  05:00 Sydney
+  "GB4":  new Date("2026-06-25T05:00:00+10:00").getTime(),
+  // Match 50: GB5  Thu 25 Jun  05:00 Sydney (simultaneous)
+  "GB5":  new Date("2026-06-25T05:00:00+10:00").getTime(),
+  // Match 51: GC4  Thu 25 Jun  08:00 Sydney
+  "GC4":  new Date("2026-06-25T08:00:00+10:00").getTime(),
+  // Match 52: GC5  Thu 25 Jun  08:00 Sydney (simultaneous)
+  "GC5":  new Date("2026-06-25T08:00:00+10:00").getTime(),
+  // Match 53: GA4  Thu 25 Jun  11:00 Sydney
+  "GA4":  new Date("2026-06-25T11:00:00+10:00").getTime(),
+  // Match 54: GA5  Thu 25 Jun  11:00 Sydney (simultaneous)
+  "GA5":  new Date("2026-06-25T11:00:00+10:00").getTime(),
+  // Match 55: GE4  Fri 26 Jun  06:00 Sydney
+  "GE4":  new Date("2026-06-26T06:00:00+10:00").getTime(),
+  // Match 56: GE5  Fri 26 Jun  06:00 Sydney (simultaneous)
+  "GE5":  new Date("2026-06-26T06:00:00+10:00").getTime(),
+  // Match 57: GF4  Fri 26 Jun  09:00 Sydney
+  "GF4":  new Date("2026-06-26T09:00:00+10:00").getTime(),
+  // Match 58: GF5  Fri 26 Jun  09:00 Sydney (simultaneous)
+  "GF5":  new Date("2026-06-26T09:00:00+10:00").getTime(),
+  // Match 59: GD4  Fri 26 Jun  12:00 Sydney
+  "GD4":  new Date("2026-06-26T12:00:00+10:00").getTime(),
+  // Match 60: GD5  Fri 26 Jun  12:00 Sydney (simultaneous)
+  "GD5":  new Date("2026-06-26T12:00:00+10:00").getTime(),
+  // Match 61: GI4  Sat 27 Jun  05:00 Sydney
+  "GI4":  new Date("2026-06-27T05:00:00+10:00").getTime(),
+  // Match 62: GI5  Sat 27 Jun  05:00 Sydney (simultaneous)
+  "GI5":  new Date("2026-06-27T05:00:00+10:00").getTime(),
+  // Match 63: GH4  Sat 27 Jun  10:00 Sydney
+  "GH4":  new Date("2026-06-27T10:00:00+10:00").getTime(),
+  // Match 64: GH5  Sat 27 Jun  10:00 Sydney (simultaneous)
+  "GH5":  new Date("2026-06-27T10:00:00+10:00").getTime(),
+  // Match 65: GG4  Sat 27 Jun  13:00 Sydney
+  "GG4":  new Date("2026-06-27T13:00:00+10:00").getTime(),
+  // Match 66: GG5  Sat 27 Jun  13:00 Sydney (simultaneous)
+  "GG5":  new Date("2026-06-27T13:00:00+10:00").getTime(),
+  // Match 67: GL4  Sun 28 Jun  07:00 Sydney
+  "GL4":  new Date("2026-06-28T07:00:00+10:00").getTime(),
+  // Match 68: GL5  Sun 28 Jun  07:00 Sydney (simultaneous)
+  "GL5":  new Date("2026-06-28T07:00:00+10:00").getTime(),
+  // Match 69: GK4  Sun 28 Jun  09:30 Sydney
+  "GK4":  new Date("2026-06-28T09:30:00+10:00").getTime(),
+  // Match 70: GK5  Sun 28 Jun  09:30 Sydney (simultaneous)
+  "GK5":  new Date("2026-06-28T09:30:00+10:00").getTime(),
+  // Match 71: GJ4  Sun 28 Jun  12:00 Sydney
+  "GJ4":  new Date("2026-06-28T12:00:00+10:00").getTime(),
+  // Match 72: GJ5  Sun 28 Jun  12:00 Sydney (simultaneous)
+  "GJ5":  new Date("2026-06-28T12:00:00+10:00").getTime(),
+
+  // ── Knockouts ───────────────────────────────────────────────
+  // M73  Mon 29 Jun  05:00 Sydney
+  "M73":  new Date("2026-06-29T05:00:00+10:00").getTime(),
+  // M76  Tue 30 Jun  03:00 Sydney
+  "M76":  new Date("2026-06-30T03:00:00+10:00").getTime(),
+  // M74  Tue 30 Jun  06:30 Sydney
+  "M74":  new Date("2026-06-30T06:30:00+10:00").getTime(),
+  // M75  Tue 30 Jun  11:00 Sydney
+  "M75":  new Date("2026-06-30T11:00:00+10:00").getTime(),
+  // M78  Wed 01 Jul  03:00 Sydney
+  "M78":  new Date("2026-07-01T03:00:00+10:00").getTime(),
+  // M77  Wed 01 Jul  07:00 Sydney
+  "M77":  new Date("2026-07-01T07:00:00+10:00").getTime(),
+  // M79  Wed 01 Jul  11:00 Sydney
+  "M79":  new Date("2026-07-01T11:00:00+10:00").getTime(),
+  // M80  Thu 02 Jul  02:00 Sydney
+  "M80":  new Date("2026-07-02T02:00:00+10:00").getTime(),
+  // M82  Thu 02 Jul  06:00 Sydney
+  "M82":  new Date("2026-07-02T06:00:00+10:00").getTime(),
+  // M81  Thu 02 Jul  10:00 Sydney
+  "M81":  new Date("2026-07-02T10:00:00+10:00").getTime(),
+  // M84  Fri 03 Jul  05:00 Sydney
+  "M84":  new Date("2026-07-03T05:00:00+10:00").getTime(),
+  // M83  Fri 03 Jul  09:00 Sydney
+  "M83":  new Date("2026-07-03T09:00:00+10:00").getTime(),
+  // M85  Fri 03 Jul  13:00 Sydney
+  "M85":  new Date("2026-07-03T13:00:00+10:00").getTime(),
+  // M88  Sat 04 Jul  04:00 Sydney
+  "M88":  new Date("2026-07-04T04:00:00+10:00").getTime(),
+  // M86  Sat 04 Jul  08:00 Sydney
+  "M86":  new Date("2026-07-04T08:00:00+10:00").getTime(),
+  // M87  Sat 04 Jul  11:30 Sydney
+  "M87":  new Date("2026-07-04T11:30:00+10:00").getTime(),
+  // M90  Sun 05 Jul  03:00 Sydney
+  "M90":  new Date("2026-07-05T03:00:00+10:00").getTime(),
+  // M89  Sun 05 Jul  07:00 Sydney
+  "M89":  new Date("2026-07-05T07:00:00+10:00").getTime(),
+  // M91  Mon 06 Jul  06:00 Sydney
+  "M91":  new Date("2026-07-06T06:00:00+10:00").getTime(),
+  // M92  Mon 06 Jul  10:00 Sydney
+  "M92":  new Date("2026-07-06T10:00:00+10:00").getTime(),
+  // M93  Tue 07 Jul  05:00 Sydney
+  "M93":  new Date("2026-07-07T05:00:00+10:00").getTime(),
+  // M94  Tue 07 Jul  10:00 Sydney
+  "M94":  new Date("2026-07-07T10:00:00+10:00").getTime(),
+  // M95  Wed 08 Jul  02:00 Sydney
+  "M95":  new Date("2026-07-08T02:00:00+10:00").getTime(),
+  // M96  Wed 08 Jul  06:00 Sydney
+  "M96":  new Date("2026-07-08T06:00:00+10:00").getTime(),
+  // M97  Fri 10 Jul  06:00 Sydney
+  "M97":  new Date("2026-07-10T06:00:00+10:00").getTime(),
+  // M98  Sat 11 Jul  05:00 Sydney
+  "M98":  new Date("2026-07-11T05:00:00+10:00").getTime(),
+  // M99  Sun 12 Jul  07:00 Sydney
+  "M99":  new Date("2026-07-12T07:00:00+10:00").getTime(),
+  // M100 Sun 12 Jul  11:00 Sydney
+  "M100": new Date("2026-07-12T11:00:00+10:00").getTime(),
+  // M101 Wed 15 Jul  05:00 Sydney
+  "M101": new Date("2026-07-15T05:00:00+10:00").getTime(),
+  // M102 Thu 16 Jul  05:00 Sydney
+  "M102": new Date("2026-07-16T05:00:00+10:00").getTime(),
+  // M103 Sun 19 Jul  07:00 Sydney
+  "M103": new Date("2026-07-19T07:00:00+10:00").getTime(),
+  // M104 Mon 20 Jul  05:00 Sydney
+  "M104": new Date("2026-07-20T05:00:00+10:00").getTime(),
 };
 
 // Default predictor settings

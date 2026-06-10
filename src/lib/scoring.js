@@ -47,7 +47,7 @@ export function computePlayerScore(predictions, officialResults, settings) {
     else counts.miss++;
 
     // stage
-    const stage = pred.matchId?.startsWith("g") ? "group" : (pred.round || "R32");
+    const stage = pred.matchId?.startsWith("G") ? "group" : (pred.round || "R32");
     if (byStage[stage] !== undefined) byStage[stage] += result.pts;
     else byStage.group += result.pts;
   }
@@ -101,9 +101,8 @@ export function buildOfficialKOTeamsFromResults(officialResults) {
   }).filter(Boolean).sort((a, b) =>
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
   );
-  // WC2026 3rd-place slot assignments (by which groups they come from)
-  // Simplified: assign to the slots in the KO_MATCHES h/a fields positionally
-  const thirdSlots = ["3DEF","3ADEF","3ABEF","3ABCF","3ABCG","3BCGH","3CDGH","3EFGH","3JKL","3IKL","3IJL","3IJK"];
+  // WC2026 3rd-place slot keys must match KO_MATCHES h/a values
+  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
   thirds.slice(0, 8).forEach((t, i) => { slotTeams[thirdSlots[i]] = t.team; });
 
   // Resolve KO matches round by round using official results
@@ -122,8 +121,8 @@ export function buildOfficialKOTeamsFromResults(officialResults) {
       else if (h < a) { winner = away; loser = home; }
       else if (res.penaltyWinner === "h") { winner = home; loser = away; }
       else if (res.penaltyWinner === "a") { winner = away; loser = home; }
-      if (winner) slotTeams[`W${m.id.slice(1)}`] = winner;
-      if (loser) slotTeams[`L${m.id.slice(1)}`] = loser;
+      if (winner) slotTeams[`W${m.id}`] = winner;
+      if (loser) slotTeams[`L${m.id}`] = loser;
     }
   }
   return teamOf;
@@ -250,9 +249,9 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
     // Champion prediction
     const ap = bp?.advancePicks ? JSON.parse(bp.advancePicks) : {};
     const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
-    const m32Teams = officialKOTeams["m32"];
-    const champion = m32Teams
-      ? (ap["m32"] === "h" ? m32Teams.home : ap["m32"] === "a" ? m32Teams.away : null)
+    const m104Teams = officialKOTeams["M104"];
+    const champion = m104Teams
+      ? (ap["M104"] === "h" ? m104Teams.home : ap["M104"] === "a" ? m104Teams.away : null)
       : null;
 
     return { ...player, groupPts, bracketPts, awardPts, total, champion };
