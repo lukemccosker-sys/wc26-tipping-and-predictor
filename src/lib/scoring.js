@@ -1,5 +1,91 @@
 import { DEFAULT_SETTINGS, DEFAULT_PRED_SETTINGS, scoreTip, GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER } from "./wc2026data";
 
+// Third-place slot constraints (which groups are eligible for each R32 slot)
+const THIRD_SLOT_GROUPS = {
+  "3CEFHI": ["C","E","F","H","I"],
+  "3ABCDF": ["A","B","C","D","F"],
+  "3EFGIJ": ["E","F","G","I","J"],
+  "3DEIJL": ["D","E","I","J","L"],
+  "3AEHIJ": ["A","E","H","I","J"],
+  "3CDFGH": ["C","D","F","G","H"],
+  "3BEFIJ": ["B","E","F","I","J"],
+  "3EHIJK": ["E","H","I","J","K"],
+};
+const THIRD_SLOT_KEYS = Object.keys(THIRD_SLOT_GROUPS);
+
+// Assign best-3rd teams (tp: { groupLetter: team }) into slotTeams using backtracking
+// so that all picked teams are placed — moving teams around to maximise fit.
+export function assignThirdPlaceTeams(tp, slotTeams) {
+  const picks = GL.map(L => tp[L]).filter(Boolean); // teams to place, in group order
+  const slots = THIRD_SLOT_KEYS.slice(); // 8 slot keys
+  const assignment = new Array(slots.length).fill(null);
+
+  // For each pick, which slots are eligible?
+  const eligibleSlots = picks.map(team => {
+    const groupL = GL.find(L => tp[L] === team);
+    return slots.reduce((acc, sk, i) => {
+      if (THIRD_SLOT_GROUPS[sk].includes(groupL)) acc.push(i);
+      return acc;
+    }, []);
+  });
+
+  // Backtrack to find assignment that places the most teams
+  let bestAssignment = null;
+  let bestCount = 0;
+
+  function backtrack(pickIdx, usedSlots) {
+    if (pickIdx === picks.length) {
+      const count = assignment.filter(x => x !== null).length;
+      if (count > bestCount) {
+        bestCount = count;
+        bestAssignment = assignment.slice();
+      }
+      return;
+    }
+    // Try eligible slots first
+    const tried = new Set();
+    for (const si of eligibleSlots[pickIdx]) {
+      if (!usedSlots.has(si)) {
+        tried.add(si);
+        assignment[pickIdx] = si;
+        usedSlots.add(si);
+        backtrack(pickIdx + 1, usedSlots);
+        usedSlots.delete(si);
+        assignment[pickIdx] = null;
+      }
+    }
+    // Also try skipping this pick (leave unplaced) so earlier picks don't block later ones
+    assignment[pickIdx] = -1; // sentinel: skip
+    backtrack(pickIdx + 1, usedSlots);
+    assignment[pickIdx] = null;
+  }
+
+  backtrack(0, new Set());
+
+  // Apply best assignment
+  if (bestAssignment) {
+    for (let i = 0; i < picks.length; i++) {
+      const si = bestAssignment[i];
+      if (si != null && si !== -1) {
+        slotTeams[slots[si]] = picks[i];
+      }
+    }
+  }
+
+  // Fallback: any still-unplaced picks go into remaining empty slots (unconstrained)
+  const placed = new Set(
+    (bestAssignment || [])
+      .map((si, i) => (si != null && si !== -1 ? picks[i] : null))
+      .filter(Boolean)
+  );
+  const emptySlots = slots.filter(sk => !slotTeams[sk]);
+  for (const team of picks) {
+    if (!placed.has(team) && emptySlots.length > 0) {
+      slotTeams[emptySlots.shift()] = team;
+    }
+  }
+}
+
 // ---- Group table calculation (uses GROUP_MATCHES fixture data) ----
 export function calcGroupTable(group, officialResults) {
   const teams = WC_GROUPS[group] || [];
@@ -119,27 +205,10 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
       if (team) slotTeams[slotKey] = team;
     }
   } else {
-    const thirdSlotGroups = {
-      "3CEFHI": ["C","E","F","H","I"],
-      "3ABCDF": ["A","B","C","D","F"],
-      "3EFGIJ": ["E","F","G","I","J"],
-      "3DEIJL": ["D","E","I","J","L"],
-      "3AEHIJ": ["A","E","H","I","J"],
-      "3CDFGH": ["C","D","F","G","H"],
-      "3BEFIJ": ["B","E","F","I","J"],
-      "3EHIJK": ["E","H","I","J","K"],
-    };
-    const filledSlots = new Set();
-    const top8Thirds = thirds.slice(0, 8);
-    for (const t of top8Thirds) {
-      for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
-        if (!filledSlots.has(slotKey) && allowedGroups.includes(t.group)) {
-          slotTeams[slotKey] = t.team;
-          filledSlots.add(slotKey);
-          break;
-        }
-      }
-    }
+    // Build a tp-style map { groupLetter: teamName } from the top 8 thirds
+    const tpMap = {};
+    for (const t of thirds.slice(0, 8)) tpMap[t.group] = t.team;
+    assignThirdPlaceTeams(tpMap, slotTeams);
   }
 
   // Resolve KO matches round by round using official results
@@ -267,44 +336,7 @@ function buildPredKOTeams(gp, tp, ap) {
     slotTeams[`1${L}`] = gp[L]?.first || null;
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
-  const thirdSlotGroups = {
-    "3CEFHI": ["C","E","F","H","I"],
-    "3ABCDF": ["A","B","C","D","F"],
-    "3EFGIJ": ["E","F","G","I","J"],
-    "3DEIJL": ["D","E","I","J","L"],
-    "3AEHIJ": ["A","E","H","I","J"],
-    "3CDFGH": ["C","D","F","G","H"],
-    "3BEFIJ": ["B","E","F","I","J"],
-    "3EHIJK": ["E","H","I","J","K"],
-  };
-  const filledSlots = new Set();
-  const allSlotKeys = Object.keys(thirdSlotGroups);
-  // First pass: constrained assignment by group eligibility
-  for (const groupL of GL) {
-    const team = tp[groupL];
-    if (!team) continue;
-    for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
-      if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
-        slotTeams[slotKey] = team;
-        filledSlots.add(slotKey);
-        break;
-      }
-    }
-  }
-  // Second pass: unconstrained fallback — fill remaining slots with any unplaced picks
-  for (const groupL of GL) {
-    const team = tp[groupL];
-    if (!team) continue;
-    const alreadyPlaced = [...filledSlots].some(sk => slotTeams[sk] === team);
-    if (alreadyPlaced) continue;
-    for (const slotKey of allSlotKeys) {
-      if (!filledSlots.has(slotKey)) {
-        slotTeams[slotKey] = team;
-        filledSlots.add(slotKey);
-        break;
-      }
-    }
-  }
+  assignThirdPlaceTeams(tp, slotTeams);
 
   const teamOf = {};
   for (const m of KO_MATCHES) {

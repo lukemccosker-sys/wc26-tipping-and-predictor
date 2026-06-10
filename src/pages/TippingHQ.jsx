@@ -1350,6 +1350,73 @@ export default function TippingHQ() {
   );
 }
 
+// Third-place slot constraints
+const THIRD_SLOT_GROUPS = {
+  "3CEFHI": ["C","E","F","H","I"],
+  "3ABCDF": ["A","B","C","D","F"],
+  "3EFGIJ": ["E","F","G","I","J"],
+  "3DEIJL": ["D","E","I","J","L"],
+  "3AEHIJ": ["A","E","H","I","J"],
+  "3CDFGH": ["C","D","F","G","H"],
+  "3BEFIJ": ["B","E","F","I","J"],
+  "3EHIJK": ["E","H","I","J","K"],
+};
+const THIRD_SLOT_KEYS = Object.keys(THIRD_SLOT_GROUPS);
+
+function assignThirdPlaceTeams(tp, slotTeams) {
+  const picks = GL.map(L => tp[L]).filter(Boolean);
+  const slots = THIRD_SLOT_KEYS.slice();
+  const assignment = new Array(slots.length).fill(null);
+
+  const eligibleSlots = picks.map(team => {
+    const groupL = GL.find(L => tp[L] === team);
+    return slots.reduce((acc, sk, i) => {
+      if (THIRD_SLOT_GROUPS[sk].includes(groupL)) acc.push(i);
+      return acc;
+    }, []);
+  });
+
+  let bestAssignment = null;
+  let bestCount = 0;
+
+  function backtrack(pickIdx, usedSlots) {
+    if (pickIdx === picks.length) {
+      const count = assignment.filter(x => x !== null && x !== -1).length;
+      if (count > bestCount) { bestCount = count; bestAssignment = assignment.slice(); }
+      return;
+    }
+    for (const si of eligibleSlots[pickIdx]) {
+      if (!usedSlots.has(si)) {
+        assignment[pickIdx] = si;
+        usedSlots.add(si);
+        backtrack(pickIdx + 1, usedSlots);
+        usedSlots.delete(si);
+        assignment[pickIdx] = null;
+      }
+    }
+    assignment[pickIdx] = -1;
+    backtrack(pickIdx + 1, usedSlots);
+    assignment[pickIdx] = null;
+  }
+
+  backtrack(0, new Set());
+
+  if (bestAssignment) {
+    for (let i = 0; i < picks.length; i++) {
+      const si = bestAssignment[i];
+      if (si != null && si !== -1) slotTeams[slots[si]] = picks[i];
+    }
+  }
+
+  const placed = new Set(
+    (bestAssignment || []).map((si, i) => (si != null && si !== -1 ? picks[i] : null)).filter(Boolean)
+  );
+  const emptySlots = slots.filter(sk => !slotTeams[sk]);
+  for (const team of picks) {
+    if (!placed.has(team) && emptySlots.length > 0) slotTeams[emptySlots.shift()] = team;
+  }
+}
+
 function buildKOWinners(officialResults) {
   const winners = {};
   for (const res of officialResults) {
@@ -1382,45 +1449,7 @@ function buildKOTeams(gp, tp, ap) {
   // Each R32 "best 3rd" slot accepts one team from a specific set of groups.
   // tp is { [groupLetter]: teamName } — assign each group's best-3rd to exactly one slot.
   // We iterate the user's picks and place each into the first unoccupied slot that accepts their group.
-  const thirdSlotGroups = {
-    "3CEFHI": ["C","E","F","H","I"],
-    "3ABCDF": ["A","B","C","D","F"],
-    "3EFGIJ": ["E","F","G","I","J"],
-    "3DEIJL": ["D","E","I","J","L"],
-    "3AEHIJ": ["A","E","H","I","J"],
-    "3CDFGH": ["C","D","F","G","H"],
-    "3BEFIJ": ["B","E","F","I","J"],
-    "3EHIJK": ["E","H","I","J","K"],
-  };
-  const filledSlots = new Set();
-  const allSlotKeys = Object.keys(thirdSlotGroups);
-  // First pass: assign to the first eligible slot for each group (constrained)
-  for (const groupL of GL) {
-    const team = tp[groupL];
-    if (!team) continue;
-    for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
-      if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
-        slotTeams[slotKey] = team;
-        filledSlots.add(slotKey);
-        break;
-      }
-    }
-  }
-  // Second pass: any remaining picked teams fill leftover slots (unconstrained fallback)
-  for (const groupL of GL) {
-    const team = tp[groupL];
-    if (!team) continue;
-    // Skip if already placed in first pass
-    const alreadyPlaced = [...filledSlots].some(sk => slotTeams[sk] === team);
-    if (alreadyPlaced) continue;
-    for (const slotKey of allSlotKeys) {
-      if (!filledSlots.has(slotKey)) {
-        slotTeams[slotKey] = team;
-        filledSlots.add(slotKey);
-        break;
-      }
-    }
-  }
+  assignThirdPlaceTeams(tp, slotTeams);
 
   const teamOf = {};
   for (const m of KO_MATCHES) {
