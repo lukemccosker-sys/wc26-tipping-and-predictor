@@ -77,19 +77,19 @@ export default function KOBracket({
             <span className="ko-team">
               {team ? <><Flag name={team} size={16} /><span>{team}</span></> : <span className="ko-ph">{slotLabel(slot)}</span>}
             </span>
-            {hasOfficial ? (
-              <span className="ko-osc">{official[side]}</span>
-            ) : isAdmin && adminEditing && teamsKnown ? (
-              <ScoreInput value={official?.[side]} onChange={v => onSetOfficial(m.id, side, v)} locked={false} active />
-            ) : teamsKnown ? (
+            {!teamsKnown ? (
+              <span className="ko-osc" style={{ color: "var(--muted2)" }}>–</span>
+            ) : hasOfficial ? (
+              <span className="ko-osc">{official[side === "h" ? "homeScore" : "awayScore"]}</span>
+            ) : isAdmin && adminEditing ? (
+              <ScoreInput value={official?.[side === "h" ? "homeScore" : "awayScore"]} onChange={v => onSetOfficial(m.id, side, v)} locked={false} active />
+            ) : (
               <ScoreInput
                 value={pred?.[side === "h" ? "homeScore" : "awayScore"]}
                 onChange={v => onSetScore(m.id, side, v)}
                 locked={locked}
                 active={hasTip}
               />
-            ) : (
-              <span className="ko-osc" style={{ color: "var(--muted2)" }}>–</span>
             )}
           </div>
         ))}
