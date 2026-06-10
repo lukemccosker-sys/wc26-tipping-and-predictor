@@ -904,7 +904,6 @@ export default function TippingHQ() {
           <div className="hdr-meta">
             <div className="picks">{tipCount}/{totalGroupMatches} tips in</div>
             <div className="ctrls">
-              <span className="live"><span className="live-dot" />Live</span>
               {isAdmin && (
                 <button
                   className={`toggle${adminEditing ? " on" : ""}`}
@@ -920,6 +919,7 @@ export default function TippingHQ() {
                 <a href="/admin" className="mini" style={{ textDecoration: "none" }}>⚙️ Admin</a>
               )}
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
+              <a href="/live" className="live" style={{ textDecoration: "none" }}><span className="live-dot" />Live</a>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
               {mode === "pred" && !predLocked && <button className="mini danger" onClick={onResetPredictor}>🗑 Reset predictor</button>}
               <button className="mini" onClick={handleLogout}>Log out</button>
