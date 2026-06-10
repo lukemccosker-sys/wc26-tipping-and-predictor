@@ -812,15 +812,17 @@ export default function TippingHQ() {
 
     clearTimeout(bracketSaveTimer.current);
     bracketSaveTimer.current = setTimeout(async () => {
+      // Always save the FULL current bracketRef state so no pick is lost in a race
       const current = bracketRef.current;
-      const existing = current?.id ? current : null;
-      if (existing) {
-        await base44.entities.BracketPrediction.update(existing.id, partialData);
+      if (!current) return;
+      const { id, playerId, ...fullData } = current;
+      if (id) {
+        await base44.entities.BracketPrediction.update(id, fullData);
       } else {
-        const saved = await base44.entities.BracketPrediction.create({ playerId: player.id, ...partialData });
+        const saved = await base44.entities.BracketPrediction.create({ playerId: player.id, ...fullData });
+        bracketRef.current = saved;
         setBracketPredictions(prev => {
           const next = prev.map(b => b.playerId === player.id && !b.id ? saved : b);
-          bracketRef.current = saved;
           return next;
         });
       }
