@@ -32,6 +32,9 @@
     "globalLockTipping": {
       "type": "boolean",
       "default": false
+    },
+    "thirdPlaceSlots": {
+      "type": "string"
     }
   },
   "required": []

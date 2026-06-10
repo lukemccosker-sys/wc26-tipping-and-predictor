@@ -633,7 +633,8 @@ export default function TippingHQ() {
   const myPredScore = myPredRow?.total ?? 0;
 
   // KO team resolution from official results
-  const koTeams = buildOfficialKOTeamsFromResults(officialResults);
+  const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
+  const koTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots);
   const koWinners = buildKOWinners(officialResults);
 
   // predictionsRef is kept in sync inside onSetScore's functional setter for accuracy during rapid clicks

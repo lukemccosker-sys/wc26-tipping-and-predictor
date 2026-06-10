@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { calcGroupTable } from "@/lib/scoring";
+import { KO_MATCHES, GL } from "@/lib/wc2026data";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -7,6 +9,7 @@ export default function AdminPanel() {
   });
   const [players, setPlayers] = useState([]);
   const [poolSettings, setPoolSettings] = useState(null);
+  const [officialResults, setOfficialResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
 
@@ -14,12 +17,14 @@ export default function AdminPanel() {
     if (!player || !player.isAdmin) return; // don't load data for non-admins
     async function load() {
       setLoading(true);
-      const [pl, ps] = await Promise.all([
+      const [pl, ps, or_] = await Promise.all([
         base44.entities.Player.list(),
         base44.entities.PoolSettings.list(),
+        base44.entities.OfficialResult.list(),
       ]);
       setPlayers(pl || []);
       setPoolSettings(ps?.[0] || null);
+      setOfficialResults(or_ || []);
       setLoading(false);
     }
     load();
@@ -54,6 +59,36 @@ export default function AdminPanel() {
     const results = await base44.entities.OfficialResult.list();
     await Promise.all(results.map(r => base44.entities.OfficialResult.delete(r.id)));
   };
+
+  const savePoolSettings = async (data) => {
+    if (poolSettings) {
+      const updated = await base44.entities.PoolSettings.update(poolSettings.id, data);
+      setPoolSettings(ps => ({ ...ps, ...data }));
+    } else {
+      const saved = await base44.entities.PoolSettings.create(data);
+      setPoolSettings(saved);
+    }
+  };
+
+  const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
+
+  const setThirdSlot = async (slotKey, team) => {
+    const next = { ...thirdPlaceSlots, [slotKey]: team || null };
+    // remove null entries
+    Object.keys(next).forEach(k => { if (!next[k]) delete next[k]; });
+    await savePoolSettings({ thirdPlaceSlots: JSON.stringify(next) });
+  };
+
+  // Build list of all 3rd-place teams from finished groups
+  const thirdPlaceTeams = GL.map(group => {
+    const table = calcGroupTable(group, officialResults);
+    const totalPld = table.reduce((s, r) => s + r.pld, 0);
+    if (totalPld < 6) return null;
+    return table[2] ? { team: table[2].team, group, pts: table[2].pts, gd: table[2].gd } : null;
+  }).filter(Boolean).sort((a, b) => b.pts - a.pts || b.gd - a.gd);
+
+  // The 8 R32 slots that require a best-3rd team
+  const thirdSlotMatches = KO_MATCHES.filter(m => m.round === "R32" && (m.h.startsWith("3") || m.a.startsWith("3")));
 
   const removePlayer = async (p) => {
     if (!window.confirm(`Remove ${p.name}? This permanently deletes all their tips and predictions.`)) return;
@@ -165,6 +200,50 @@ export default function AdminPanel() {
         >
           🗑 Reset All Entered Results
         </button>
+      </div>
+
+      {/* 3rd Place Slot Assignment */}
+      <div className="ap-card">
+        <div className="ap-section-title">3️⃣ 3rd Place R32 Slots</div>
+        <div className="ap-section-sub">
+          Once group stage is complete, assign the correct best-3rd-placed team to each Round of 32 fixture. These override the automatic assignment.
+        </div>
+        {thirdPlaceTeams.length === 0 ? (
+          <div style={{ fontSize: 13, color: "#9aa0ad", fontStyle: "italic" }}>No completed groups yet — come back once group stage results are entered.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {thirdSlotMatches.map(m => {
+              const isHome = m.h.startsWith("3");
+              const slotKey = isHome ? m.h : m.a;
+              const fixedSide = isHome ? m.a : m.h; // the non-3rd side (e.g. "1E")
+              const currentTeam = thirdPlaceSlots[slotKey] || "";
+              return (
+                <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "10px 0", borderBottom: "1px solid #f4ebdf" }}>
+                  <div style={{ minWidth: 60, fontSize: 11, fontWeight: 800, color: "#9aa0ad", textTransform: "uppercase", letterSpacing: ".04em" }}>{m.id}</div>
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#222a3d" }}>
+                    <span style={{ color: "#6c7384" }}>{fixedSide}</span> vs <span style={{ color: "#7b54f0" }}>{slotKey}</span>
+                  </div>
+                  <select
+                    value={currentTeam}
+                    onChange={e => setThirdSlot(slotKey, e.target.value)}
+                    style={{ border: "2px solid #efe3d2", borderRadius: 9, padding: "7px 10px", fontSize: 13, fontWeight: 700, color: "#222a3d", background: "#fff", fontFamily: "inherit", minWidth: 180, cursor: "pointer" }}
+                  >
+                    <option value="">— Unassigned —</option>
+                    {thirdPlaceTeams.map(t => (
+                      <option key={t.team} value={t.team}>{t.team} (Group {t.group}, {t.pts}pts)</option>
+                    ))}
+                  </select>
+                  {currentTeam && (
+                    <button
+                      onClick={() => setThirdSlot(slotKey, null)}
+                      style={{ background: "#fff0f2", border: "1.5px solid #ff3d7f", color: "#ff3d7f", borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
+                    >✕</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Players list */}
