@@ -377,7 +377,7 @@ function fmtKick(ms) {
 
 export default function TippingHQ() {
   const [player, setPlayer] = useState(() => {
-    try { return JSON.parse(sessionStorage.getItem("wc_player") || "null"); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem("wc_player") || "null"); } catch { return null; }
   });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("groups");
@@ -510,7 +510,7 @@ export default function TippingHQ() {
   }, [player, fetchAll, flushPendingSaves]);
 
   const handleLogin = (p) => {
-    sessionStorage.setItem("wc_player", JSON.stringify(p));
+    localStorage.setItem("wc_player", JSON.stringify(p));
     setPlayer(p);
     // Show help modal only on first ever login (tracked in localStorage per player)
     const seenKey = `wc_help_seen_${p.id}`;
@@ -520,7 +520,7 @@ export default function TippingHQ() {
   };
   const handleLogout = async () => {
     await flushPendingSaves();
-    sessionStorage.removeItem("wc_player");
+    localStorage.removeItem("wc_player");
     setPlayer(null);
   };
 
