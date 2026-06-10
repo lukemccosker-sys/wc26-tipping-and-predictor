@@ -388,16 +388,36 @@ export const DEFAULT_SETTINGS = {
 };
 
 // ---- Scoring helpers ----
+// penaltyWinner: "h" or "a" — set by admin for KO draws. If the prediction picked the
+// team that won on penalties (i.e. pred side matches penaltyWinner), award 1 result point.
 export function scoreTip(pred, official, settings) {
   const s = settings || DEFAULT_SETTINGS;
   if (!official || official.homeScore == null || official.awayScore == null) return null;
   if (pred == null || pred.homeScore == null || pred.awayScore == null) return { pts: 0, tier: "miss" };
   const ph = +pred.homeScore, pa = +pred.awayScore;
   const oh = +official.homeScore, oa = +official.awayScore;
+
+  // Exact scoreline
   if (ph === oh && pa === oa) return { pts: +s.exact || 5, tier: "exact" };
+
   const pdiff = ph - pa, odiff = oh - oa;
   const pwin = ph > pa ? "h" : ph < pa ? "a" : "d";
   const owin = oh > oa ? "h" : oh < oa ? "a" : "d";
+
+  // KO match decided by penalties (official score is a draw, penaltyWinner set)
+  // Score the 90-min scoreline normally, but also award result points if the player
+  // picked the team that advanced (either by predicting a draw, or by picking that side to win).
+  if (owin === "d" && official.penaltyWinner) {
+    const pen = official.penaltyWinner; // "h" or "a"
+    // Correct scoreline (already caught exact above, check GD: same diff, both drew)
+    if (pwin === "d" && pdiff === odiff) return { pts: +s.gd || 3, tier: "gd" };
+    // Predicted a draw (any draw score) — correct outcome, 1 pt
+    if (pwin === "d") return { pts: +s.result || 1, tier: "result" };
+    // Predicted one side to win outright — award result pt if they picked the penalty winner
+    if (pwin === pen) return { pts: +s.result || 1, tier: "result" };
+    return { pts: 0, tier: "miss" };
+  }
+
   if (pdiff === odiff && pwin === owin) return { pts: +s.gd || 3, tier: "gd" };
   if (pwin === owin) return { pts: +s.result || 1, tier: "result" };
   return { pts: 0, tier: "miss" };
