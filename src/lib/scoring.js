@@ -252,7 +252,6 @@ function buildPredKOTeams(gp, tp, ap) {
     slotTeams[`1${L}`] = gp[L]?.first || null;
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
-  // Each slot key lists exactly which groups can fill it — match by source group letter
   const thirdSlotGroups = {
     "3CEFHI": ["C","E","F","H","I"],
     "3ABCDF": ["A","B","C","D","F"],
@@ -263,10 +262,14 @@ function buildPredKOTeams(gp, tp, ap) {
     "3BEFIJ": ["B","E","F","I","J"],
     "3EHIJK": ["E","H","I","J","K"],
   };
-  for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
-    for (const groupL of allowedGroups) {
-      if (tp[groupL]) {
-        slotTeams[slotKey] = tp[groupL];
+  const filledSlots = new Set();
+  for (const groupL of GL) {
+    const team = tp[groupL];
+    if (!team) continue;
+    for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
+      if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
+        slotTeams[slotKey] = team;
+        filledSlots.add(slotKey);
         break;
       }
     }

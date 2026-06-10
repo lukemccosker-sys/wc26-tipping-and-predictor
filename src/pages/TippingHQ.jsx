@@ -1378,9 +1378,9 @@ function buildKOTeams(gp, tp, ap) {
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
 
-  // Each R32 "best 3rd" slot lists exactly which groups can fill it.
-  // Match the user's picked best-3rd teams to slots by their source group letter.
-  // Slot key format: "3CEFHI" means "best-3rd from one of groups C, E, F, H, or I".
+  // Each R32 "best 3rd" slot accepts one team from a specific set of groups.
+  // tp is { [groupLetter]: teamName } — assign each group's best-3rd to exactly one slot.
+  // We iterate the user's picks and place each into the first unoccupied slot that accepts their group.
   const thirdSlotGroups = {
     "3CEFHI": ["C","E","F","H","I"],
     "3ABCDF": ["A","B","C","D","F"],
@@ -1391,12 +1391,16 @@ function buildKOTeams(gp, tp, ap) {
     "3BEFIJ": ["B","E","F","I","J"],
     "3EHIJK": ["E","H","I","J","K"],
   };
-  // tp is { [groupLetter]: teamName } — assign each picked best-3rd to the slot whose
-  // group list contains that team's source group.
-  for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
-    for (const groupL of allowedGroups) {
-      if (tp[groupL]) {
-        slotTeams[slotKey] = tp[groupL];
+  const filledSlots = new Set();
+  // Iterate picks in a stable order (group A→L) to keep placement deterministic
+  for (const groupL of GL) {
+    const team = tp[groupL];
+    if (!team) continue;
+    // Find the first slot that accepts this group and isn't already filled
+    for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
+      if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
+        slotTeams[slotKey] = team;
+        filledSlots.add(slotKey);
         break;
       }
     }
