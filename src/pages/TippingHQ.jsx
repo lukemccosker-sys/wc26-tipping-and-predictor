@@ -405,6 +405,7 @@ export default function TippingHQ() {
   const [loading, setLoading] = useState(false);
   const [resultNotification, setResultNotification] = useState(null);
   const [suggestionKey, setSuggestionKey] = useState(0);
+  const [predictorResetKey, setPredictorResetKey] = useState(0);
 
   // Refs must be declared before any early returns (Rules of Hooks)
   const predictionsRef = useRef([]);
@@ -707,6 +708,7 @@ export default function TippingHQ() {
       await base44.entities.BracketPrediction.delete(myBracket.id);
       bracketRef.current = null;
       setBracketPredictions(prev => prev.filter(b => b.id !== myBracket.id));
+      setPredictorResetKey(k => k + 1);
     }
   };
 
@@ -1154,6 +1156,7 @@ export default function TippingHQ() {
           {ptab === "pg" && (
             <>
               <PredictorGroups
+                key={predictorResetKey}
                 bracketPred={myBracket}
                 locked={predLocked}
                 onPickPos={onPickPos}
@@ -1181,6 +1184,7 @@ export default function TippingHQ() {
           {ptab === "pb" && (
             <>
               <PredictorBracket
+                key={predictorResetKey}
                 bracketPred={myBracket}
                 locked={predLocked}
                 koTeams={predKOTeams}
