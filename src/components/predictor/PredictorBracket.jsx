@@ -55,7 +55,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
 
   const goRound = (r) => {
     setRound(r);
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const groupPicks = bracketPred?.groupPicks ? JSON.parse(bracketPred.groupPicks) : {};

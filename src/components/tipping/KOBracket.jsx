@@ -46,7 +46,7 @@ export default function KOBracket({
 
   const goRound = (r) => {
     setRound(r);
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderMatch = (m) => {
