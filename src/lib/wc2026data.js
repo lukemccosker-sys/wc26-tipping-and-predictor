@@ -136,26 +136,26 @@ export const KO_MATCHES = [
   {id:"M87",round:"R32",h:"1K",a:"3DEIJL",venue:"Kansas City Stadium"},
   {id:"M88",round:"R32",h:"2D",a:"2G",venue:"Dallas Stadium"},
   // Round of 16
-  {id:"M89",round:"R16",h:"WM74",a:"WM77",venue:""},
-  {id:"M90",round:"R16",h:"WM73",a:"WM75",venue:""},
-  {id:"M91",round:"R16",h:"WM76",a:"WM78",venue:""},
-  {id:"M92",round:"R16",h:"WM79",a:"WM80",venue:""},
-  {id:"M93",round:"R16",h:"WM83",a:"WM84",venue:""},
-  {id:"M94",round:"R16",h:"WM81",a:"WM82",venue:""},
-  {id:"M95",round:"R16",h:"WM86",a:"WM88",venue:""},
-  {id:"M96",round:"R16",h:"WM85",a:"WM87",venue:""},
+  {id:"M89",round:"R16",h:"WM74",a:"WM77",venue:"Philadelphia Stadium"},
+  {id:"M90",round:"R16",h:"WM73",a:"WM75",venue:"Houston Stadium"},
+  {id:"M91",round:"R16",h:"WM76",a:"WM78",venue:"New York New Jersey Stadium"},
+  {id:"M92",round:"R16",h:"WM79",a:"WM80",venue:"Mexico City Stadium"},
+  {id:"M93",round:"R16",h:"WM83",a:"WM84",venue:"Dallas Stadium"},
+  {id:"M94",round:"R16",h:"WM81",a:"WM82",venue:"Seattle Stadium"},
+  {id:"M95",round:"R16",h:"WM86",a:"WM88",venue:"Atlanta Stadium"},
+  {id:"M96",round:"R16",h:"WM85",a:"WM87",venue:"BC Place Vancouver"},
   // Quarter-finals
-  {id:"M97",round:"QF",h:"WM89",a:"WM90",venue:""},
-  {id:"M98",round:"QF",h:"WM93",a:"WM94",venue:""},
-  {id:"M99",round:"QF",h:"WM91",a:"WM92",venue:""},
-  {id:"M100",round:"QF",h:"WM95",a:"WM96",venue:""},
+  {id:"M97",round:"QF",h:"WM89",a:"WM90",venue:"Boston Stadium"},
+  {id:"M98",round:"QF",h:"WM93",a:"WM94",venue:"Los Angeles Stadium"},
+  {id:"M99",round:"QF",h:"WM91",a:"WM92",venue:"Miami Stadium"},
+  {id:"M100",round:"QF",h:"WM95",a:"WM96",venue:"Kansas City Stadium"},
   // Semi-finals
-  {id:"M101",round:"SF",h:"WM97",a:"WM98",venue:""},
-  {id:"M102",round:"SF",h:"WM99",a:"WM100",venue:""},
+  {id:"M101",round:"SF",h:"WM97",a:"WM98",venue:"Dallas Stadium"},
+  {id:"M102",round:"SF",h:"WM99",a:"WM100",venue:"Atlanta Stadium"},
   // 3rd Place
-  {id:"M103",round:"3rd",h:"LM101",a:"LM102",venue:""},
+  {id:"M103",round:"3rd",h:"LM101",a:"LM102",venue:"Miami Stadium"},
   // Final
-  {id:"M104",round:"F",h:"WM101",a:"WM102",venue:""},
+  {id:"M104",round:"F",h:"WM101",a:"WM102",venue:"New York New Jersey Stadium"},
 ];
 
 // ── Kickoff times ──────────────────────────────────────────────
@@ -342,38 +342,38 @@ export const DEFAULT_KICKOFFS = {
   "M86":  new Date("2026-07-04T08:00:00+10:00").getTime(),
   // M87  Sat 04 Jul  11:30 Sydney
   "M87":  new Date("2026-07-04T11:30:00+10:00").getTime(),
-  // M90  Sun 05 Jul  03:00 Sydney
-  "M90":  new Date("2026-07-05T03:00:00+10:00").getTime(),
-  // M89  Sun 05 Jul  07:00 Sydney
-  "M89":  new Date("2026-07-05T07:00:00+10:00").getTime(),
-  // M91  Mon 06 Jul  06:00 Sydney
-  "M91":  new Date("2026-07-06T06:00:00+10:00").getTime(),
-  // M92  Mon 06 Jul  10:00 Sydney
-  "M92":  new Date("2026-07-06T10:00:00+10:00").getTime(),
-  // M93  Tue 07 Jul  05:00 Sydney
-  "M93":  new Date("2026-07-07T05:00:00+10:00").getTime(),
-  // M94  Tue 07 Jul  10:00 Sydney
-  "M94":  new Date("2026-07-07T10:00:00+10:00").getTime(),
-  // M95  Wed 08 Jul  02:00 Sydney
-  "M95":  new Date("2026-07-08T02:00:00+10:00").getTime(),
-  // M96  Wed 08 Jul  06:00 Sydney
-  "M96":  new Date("2026-07-08T06:00:00+10:00").getTime(),
-  // M97  Fri 10 Jul  06:00 Sydney
-  "M97":  new Date("2026-07-10T06:00:00+10:00").getTime(),
-  // M98  Sat 11 Jul  05:00 Sydney
-  "M98":  new Date("2026-07-11T05:00:00+10:00").getTime(),
-  // M99  Sun 12 Jul  07:00 Sydney
-  "M99":  new Date("2026-07-12T07:00:00+10:00").getTime(),
-  // M100 Sun 12 Jul  11:00 Sydney
-  "M100": new Date("2026-07-12T11:00:00+10:00").getTime(),
-  // M101 Wed 15 Jul  05:00 Sydney
-  "M101": new Date("2026-07-15T05:00:00+10:00").getTime(),
-  // M102 Thu 16 Jul  05:00 Sydney
-  "M102": new Date("2026-07-16T05:00:00+10:00").getTime(),
-  // M103 Sun 19 Jul  07:00 Sydney
-  "M103": new Date("2026-07-19T07:00:00+10:00").getTime(),
-  // M104 Mon 20 Jul  05:00 Sydney
-  "M104": new Date("2026-07-20T05:00:00+10:00").getTime(),
+  // M89  Sat 04 Jul  Sydney (Philadelphia - Sat 5 Jul local = ~midnight Sydney)
+  "M89":  new Date("2026-07-05T00:00:00+10:00").getTime(),
+  // M90  Sat 04 Jul  Sydney (Houston - Sat 5 Jul local)
+  "M90":  new Date("2026-07-05T04:00:00+10:00").getTime(),
+  // M91  Sun 05 Jul  Sydney (New York NJ - Sun 6 Jul local)
+  "M91":  new Date("2026-07-06T00:00:00+10:00").getTime(),
+  // M92  Sun 05 Jul  Sydney (Mexico City - Sun 6 Jul local)
+  "M92":  new Date("2026-07-06T04:00:00+10:00").getTime(),
+  // M93  Mon 06 Jul  Sydney (Dallas - Mon 7 Jul local)
+  "M93":  new Date("2026-07-07T00:00:00+10:00").getTime(),
+  // M94  Mon 06 Jul  Sydney (Seattle - Mon 7 Jul local)
+  "M94":  new Date("2026-07-07T04:00:00+10:00").getTime(),
+  // M95  Tue 07 Jul  Sydney (Atlanta - Tue 8 Jul local)
+  "M95":  new Date("2026-07-08T00:00:00+10:00").getTime(),
+  // M96  Tue 07 Jul  Sydney (Vancouver - Tue 8 Jul local)
+  "M96":  new Date("2026-07-08T04:00:00+10:00").getTime(),
+  // M97  Thu 09 Jul  Sydney (Boston - Thu 10 Jul local)
+  "M97":  new Date("2026-07-10T00:00:00+10:00").getTime(),
+  // M98  Fri 10 Jul  Sydney (Los Angeles - Fri 11 Jul local)
+  "M98":  new Date("2026-07-11T00:00:00+10:00").getTime(),
+  // M99  Sat 11 Jul  Sydney (Miami - Sat 12 Jul local)
+  "M99":  new Date("2026-07-12T00:00:00+10:00").getTime(),
+  // M100 Sat 11 Jul  Sydney (Kansas City - Sat 12 Jul local)
+  "M100": new Date("2026-07-12T04:00:00+10:00").getTime(),
+  // M101 Tue 14 Jul  Sydney (Dallas - Tue 15 Jul local)
+  "M101": new Date("2026-07-15T00:00:00+10:00").getTime(),
+  // M102 Wed 15 Jul  Sydney (Atlanta - Wed 16 Jul local)
+  "M102": new Date("2026-07-16T00:00:00+10:00").getTime(),
+  // M103 Sat 18 Jul  Sydney (Miami - Sat 19 Jul local)
+  "M103": new Date("2026-07-19T00:00:00+10:00").getTime(),
+  // M104 Sun 19 Jul  Sydney (New York NJ Final - Sun 20 Jul local)
+  "M104": new Date("2026-07-20T00:00:00+10:00").getTime(),
 };
 
 // Default predictor settings
