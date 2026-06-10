@@ -161,8 +161,11 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   const tp = bracketPred.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {};
 
   // Group picks scoring — compare against official standings
+  // Only score groups where ALL 3 matchdays are complete (6 matches played)
   for (const group of GL) {
     const table = calcGroupTable(group, officialResults);
+    const totalPld = table.reduce((s, r) => s + r.pld, 0);
+    if (totalPld < 6) continue; // group not finished, don't score yet
     const actual1st = table[0]?.team;
     const actual2nd = table[1]?.team;
     const actual3rd = table[2]?.team;

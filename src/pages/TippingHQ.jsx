@@ -502,7 +502,7 @@ export default function TippingHQ() {
     return r && r.homeScore != null && r.awayScore != null;
   });
 
-  // My score
+  // My tipping score
   const myScore = computePlayerScore(
     predictions.filter(p => p.playerId === player.id),
     officialResults,
@@ -519,6 +519,10 @@ export default function TippingHQ() {
 
   // Predictor leaderboard (real scoring)
   const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
+
+  // My predictor score (from leaderboard which includes award pts)
+  const myPredRow = predLB.find(r => r.id === player.id);
+  const myPredScore = myPredRow?.total ?? 0;
 
   // KO team resolution from official results
   const koTeams = buildOfficialKOTeamsFromResults(officialResults);
@@ -755,7 +759,7 @@ export default function TippingHQ() {
         </div>
         <div className="hdr-r">
           <div className={`ptotal${mode === "pred" ? " pred" : ""}`}>
-            <div className="pt-num">{myScore.total}</div>
+            <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
             <div className="pt-lab">{mode === "tip" ? "tipping pts" : "predictor pts"}</div>
           </div>
           <div className="hdr-meta">
