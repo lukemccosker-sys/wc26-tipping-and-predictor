@@ -111,19 +111,28 @@ export function buildOfficialKOTeamsFromResults(officialResults) {
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
   );
 
-  // Official FIFA 2026 third-place slot assignment:
-  // Each slot key (e.g. "3CEFHI") covers the matches where a 3rd from one of those groups goes.
-  // The team from group X is placed into the slot whose key contains X.
-  // Slot keys per R32 match (who the group winner faces):
-  const thirdSlotKeys = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
-  // Map each slot key to a set of eligible groups
-  const slotEligible = thirdSlotKeys.map(k => new Set(k.slice(1).split("")));
-  // Top 8 thirds qualify; assign each to the slot that contains their group letter
+  // Official FIFA 2026 third-place slot assignment.
+  // Each slot accepts one team from a specific set of groups.
+  // Assign each qualifying 3rd-place team to the first unoccupied slot that accepts their group.
+  const thirdSlotGroups = {
+    "3CEFHI": ["C","E","F","H","I"],
+    "3ABCDF": ["A","B","C","D","F"],
+    "3EFGIJ": ["E","F","G","I","J"],
+    "3DEIJL": ["D","E","I","J","L"],
+    "3AEHIJ": ["A","E","H","I","J"],
+    "3CDFGH": ["C","D","F","G","H"],
+    "3BEFIJ": ["B","E","F","I","J"],
+    "3EHIJK": ["E","H","I","J","K"],
+  };
+  const filledSlots = new Set();
   const top8Thirds = thirds.slice(0, 8);
   for (const t of top8Thirds) {
-    const slotIdx = slotEligible.findIndex(eligible => eligible.has(t.group));
-    if (slotIdx !== -1) {
-      slotTeams[thirdSlotKeys[slotIdx]] = t.team;
+    for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
+      if (!filledSlots.has(slotKey) && allowedGroups.includes(t.group)) {
+        slotTeams[slotKey] = t.team;
+        filledSlots.add(slotKey);
+        break;
+      }
     }
   }
 
