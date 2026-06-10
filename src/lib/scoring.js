@@ -278,11 +278,27 @@ function buildPredKOTeams(gp, tp, ap) {
     "3EHIJK": ["E","H","I","J","K"],
   };
   const filledSlots = new Set();
+  const allSlotKeys = Object.keys(thirdSlotGroups);
+  // First pass: constrained assignment by group eligibility
   for (const groupL of GL) {
     const team = tp[groupL];
     if (!team) continue;
     for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
       if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
+        slotTeams[slotKey] = team;
+        filledSlots.add(slotKey);
+        break;
+      }
+    }
+  }
+  // Second pass: unconstrained fallback — fill remaining slots with any unplaced picks
+  for (const groupL of GL) {
+    const team = tp[groupL];
+    if (!team) continue;
+    const alreadyPlaced = [...filledSlots].some(sk => slotTeams[sk] === team);
+    if (alreadyPlaced) continue;
+    for (const slotKey of allSlotKeys) {
+      if (!filledSlots.has(slotKey)) {
         slotTeams[slotKey] = team;
         filledSlots.add(slotKey);
         break;

@@ -1393,13 +1393,28 @@ function buildKOTeams(gp, tp, ap) {
     "3EHIJK": ["E","H","I","J","K"],
   };
   const filledSlots = new Set();
-  // Iterate picks in a stable order (group A→L) to keep placement deterministic
+  const allSlotKeys = Object.keys(thirdSlotGroups);
+  // First pass: assign to the first eligible slot for each group (constrained)
   for (const groupL of GL) {
     const team = tp[groupL];
     if (!team) continue;
-    // Find the first slot that accepts this group and isn't already filled
     for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
       if (!filledSlots.has(slotKey) && allowedGroups.includes(groupL)) {
+        slotTeams[slotKey] = team;
+        filledSlots.add(slotKey);
+        break;
+      }
+    }
+  }
+  // Second pass: any remaining picked teams fill leftover slots (unconstrained fallback)
+  for (const groupL of GL) {
+    const team = tp[groupL];
+    if (!team) continue;
+    // Skip if already placed in first pass
+    const alreadyPlaced = [...filledSlots].some(sk => slotTeams[sk] === team);
+    if (alreadyPlaced) continue;
+    for (const slotKey of allSlotKeys) {
+      if (!filledSlots.has(slotKey)) {
         slotTeams[slotKey] = team;
         filledSlots.add(slotKey);
         break;
