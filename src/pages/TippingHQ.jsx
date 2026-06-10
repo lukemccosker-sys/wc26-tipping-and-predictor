@@ -805,8 +805,8 @@ export default function TippingHQ() {
       groupScores[L] = { matchScores, sorted };
     }
 
-    // best-3rd: only from fully-tipped groups, pick top 8
-    const tp = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
+    // best-3rd: only from fully-tipped groups, pick top 8 — always start fresh to avoid >8
+    const tp = {};
     const thirds = Object.entries(groupScores).map(([L, { matchScores, sorted }]) => ({
       group: L, team: sorted[2], ...matchScores[sorted[2]]
     }));
