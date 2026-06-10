@@ -99,19 +99,25 @@ export default function KOBracket({
         {isDraw && home && away && (
           <div className="pen-row off">
             <div className="pen-lbl">Penalty winner</div>
-            <div className="pen-btns">
-              {[["h", home], ["a", away]].map(([side, team]) => (
-                <button
-                  key={side}
-                  className={`pen-b${pen === side ? " on" : ""}`}
-                  disabled={!adminEditing && !isAdmin}
-                  onClick={() => (adminEditing || isAdmin) && onSetOfficialPen(m.id, side)}
-                >
-                  <Flag name={team} size={16} /> {team}
-                  {koWinners?.[m.id] === team && <b style={{ marginLeft: 6, fontSize: 10 }}>through</b>}
-                </button>
-              ))}
-            </div>
+            {isAdmin && adminEditing ? (
+              <div className="pen-btns">
+                {[["h", home], ["a", away]].map(([side, team]) => (
+                  <button
+                    key={side}
+                    className={`pen-b${pen === side ? " on" : ""}`}
+                    onClick={() => onSetOfficialPen(m.id, side)}
+                  >
+                    <Flag name={team} size={16} /> {team}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, fontWeight: 700, color: pen ? "var(--green)" : "var(--muted2)" }}>
+                {pen === "h" ? <><Flag name={home} size={14} /> {home} won on pens</> :
+                 pen === "a" ? <><Flag name={away} size={14} /> {away} won on pens</> :
+                 "Pending penalty result"}
+              </div>
+            )}
           </div>
         )}
 
