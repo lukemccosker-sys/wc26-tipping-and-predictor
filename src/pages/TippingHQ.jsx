@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import Flag from "@/lib/flags";
 import GroupCard from "@/components/tipping/GroupCard";
@@ -396,8 +396,34 @@ export default function TippingHQ() {
   const [loading, setLoading] = useState(false);
 
   // Refs must be declared before any early returns (Rules of Hooks)
-  const predictionsRef = React.useRef([]);
-  const saveTimers = React.useRef({});
+  const predictionsRef = useRef([]);
+  const saveTimers = useRef({});
+  const playerRef = useRef(player);
+
+  // Keep playerRef in sync
+  useEffect(() => { playerRef.current = player; }, [player]);
+
+  // Flush all pending tip saves immediately (used before logout/unmount)
+  const flushPendingSaves = useCallback(async () => {
+    const timers = saveTimers.current;
+    const pending = Object.keys(timers);
+    if (!pending.length) return;
+    const flushPromises = pending.map(matchId => {
+      clearTimeout(timers[matchId]);
+      delete timers[matchId];
+      const currentPlayer = playerRef.current;
+      if (!currentPlayer) return;
+      const pred = predictionsRef.current.find(p => p.playerId === currentPlayer.id && p.matchId === matchId);
+      if (!pred || pred.homeScore == null || pred.awayScore == null) return;
+      const { homeScore, awayScore } = pred;
+      if (pred.id) {
+        return base44.entities.Prediction.update(pred.id, { homeScore, awayScore });
+      } else {
+        return base44.entities.Prediction.create({ playerId: currentPlayer.id, matchId, homeScore, awayScore });
+      }
+    });
+    await Promise.all(flushPromises.filter(Boolean));
+  }, []);
 
   const kickoffs = poolSettings?.kickoffOverrides
     ? { ...DEFAULT_KICKOFFS, ...JSON.parse(poolSettings.kickoffOverrides) }
@@ -465,6 +491,10 @@ export default function TippingHQ() {
       else setPoolSettings(event.data);
     });
 
+    // Flush pending saves before the tab/window closes
+    const handleBeforeUnload = () => { flushPendingSaves(); };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     // Fallback poll every 30s
     const t = setInterval(fetchAll, 30000);
     return () => {
@@ -474,8 +504,11 @@ export default function TippingHQ() {
       unsubBracket();
       unsubSettings();
       clearInterval(t);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // Flush any pending saves on unmount
+      flushPendingSaves();
     };
-  }, [player, fetchAll]);
+  }, [player, fetchAll, flushPendingSaves]);
 
   const handleLogin = (p) => {
     sessionStorage.setItem("wc_player", JSON.stringify(p));
@@ -486,7 +519,8 @@ export default function TippingHQ() {
       setShowHelp(true);
     }
   };
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await flushPendingSaves();
     sessionStorage.removeItem("wc_player");
     setPlayer(null);
   };
@@ -557,7 +591,7 @@ export default function TippingHQ() {
       }
     });
 
-    // Debounce DB save — wait 400ms after last click before persisting
+    // Debounce DB save — wait 200ms after last interaction before persisting
     clearTimeout(saveTimers.current[matchId]);
     saveTimers.current[matchId] = setTimeout(async () => {
       const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
