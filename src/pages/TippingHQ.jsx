@@ -345,7 +345,7 @@ const CSS = `
 `;
 
 // First KO kick-off time = predictor lock
-const PREDICTOR_LOCK_UTC = 1749686400000; // Jun 12 2026 00:00 UTC (approximate first KO)
+const PREDICTOR_LOCK_UTC = 1781431200000; // Jun 12 2026 18:00 UTC (first kickoff)
 
 function fmtKick(ms) {
   if (!ms) return "TBC";
