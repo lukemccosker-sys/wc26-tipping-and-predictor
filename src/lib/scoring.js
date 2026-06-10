@@ -245,6 +245,28 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   return { groupPts, bracketPts, awardPts, total: groupPts + bracketPts + awardPts };
 }
 
+// Build predictor KO team map from a player's own group/advance picks (mirrors TippingHQ's buildKOTeams)
+function buildPredKOTeams(gp, tp, ap) {
+  const slotTeams = {};
+  for (const L of GL) {
+    slotTeams[`1${L}`] = gp[L]?.first || null;
+    slotTeams[`2${L}`] = gp[L]?.second || null;
+  }
+  const thirds = Object.entries(tp).filter(([, v]) => v).map(([L, t]) => ({ L, t }));
+  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
+  thirds.forEach((tr, i) => { if (thirdSlots[i]) slotTeams[thirdSlots[i]] = tr.t; });
+
+  const teamOf = {};
+  for (const m of KO_MATCHES) {
+    const home = slotTeams[m.h] || null;
+    const away = slotTeams[m.a] || null;
+    teamOf[m.id] = { home, away };
+    if (ap[m.id] === "h" && home) { slotTeams[`W${m.id}`] = home; slotTeams[`L${m.id}`] = away; }
+    if (ap[m.id] === "a" && away) { slotTeams[`W${m.id}`] = away; slotTeams[`L${m.id}`] = home; }
+  }
+  return teamOf;
+}
+
 export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
 
@@ -273,10 +295,12 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
 
     const total = groupPts + bracketPts + awardPts;
 
-    // Champion prediction
+    // Champion prediction — derive from the player's own bracket picks
     const ap = bp?.advancePicks ? JSON.parse(bp.advancePicks) : {};
-    const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
-    const m104Teams = officialKOTeams["M104"];
+    const gp2 = bp?.groupPicks ? JSON.parse(bp.groupPicks) : {};
+    const tp2 = bp?.thirdPicks ? JSON.parse(bp.thirdPicks) : {};
+    const predKOTeams = buildPredKOTeams(gp2, tp2, ap);
+    const m104Teams = predKOTeams["M104"];
     const champion = m104Teams
       ? (ap["M104"] === "h" ? m104Teams.home : ap["M104"] === "a" ? m104Teams.away : null)
       : null;
