@@ -759,6 +759,12 @@ export default function TippingHQ() {
 
   // Optimistic bracket update — updates UI immediately, debounces DB write by 300ms
   const updateBracket = (partialData) => {
+    // Update ref FIRST so subsequent rapid calls (before React re-renders) see the new state
+    const existingForRef = bracketRef.current;
+    bracketRef.current = existingForRef
+      ? { ...existingForRef, ...partialData }
+      : { playerId: player.id, ...partialData };
+
     setBracketPredictions(prev => {
       const existing = prev.find(b => b.playerId === player.id);
       let next;
@@ -767,7 +773,6 @@ export default function TippingHQ() {
       } else {
         next = [...prev, { playerId: player.id, ...partialData }];
       }
-      bracketRef.current = next.find(b => b.playerId === player.id) || null;
       return next;
     });
 
