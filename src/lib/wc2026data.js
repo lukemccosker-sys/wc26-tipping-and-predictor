@@ -121,8 +121,8 @@ export const KO_MATCHES = [
   // Round of 32
   {id:"M73",round:"R32",h:"2A",a:"2B",venue:""},
   {id:"M74",round:"R32",h:"1E",a:"3ABCDF",venue:""},
-  {id:"M75",round:"R32",h:"1C",a:"2F",venue:""},
-  {id:"M76",round:"R32",h:"1F",a:"2C",venue:""},
+  {id:"M75",round:"R32",h:"1F",a:"2C",venue:""},
+  {id:"M76",round:"R32",h:"1C",a:"2F",venue:""},
   {id:"M77",round:"R32",h:"1I",a:"3CDFGH",venue:""},
   {id:"M78",round:"R32",h:"2E",a:"2I",venue:""},
   {id:"M79",round:"R32",h:"1A",a:"3CEFHI",venue:""},

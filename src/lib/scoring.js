@@ -110,9 +110,22 @@ export function buildOfficialKOTeamsFromResults(officialResults) {
   }).filter(Boolean).sort((a, b) =>
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
   );
-  // WC2026 3rd-place slot keys must match KO_MATCHES h/a values
-  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
-  thirds.slice(0, 8).forEach((t, i) => { slotTeams[thirdSlots[i]] = t.team; });
+
+  // Official FIFA 2026 third-place slot assignment:
+  // Each slot key (e.g. "3CEFHI") covers the matches where a 3rd from one of those groups goes.
+  // The team from group X is placed into the slot whose key contains X.
+  // Slot keys per R32 match (who the group winner faces):
+  const thirdSlotKeys = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
+  // Map each slot key to a set of eligible groups
+  const slotEligible = thirdSlotKeys.map(k => new Set(k.slice(1).split("")));
+  // Top 8 thirds qualify; assign each to the slot that contains their group letter
+  const top8Thirds = thirds.slice(0, 8);
+  for (const t of top8Thirds) {
+    const slotIdx = slotEligible.findIndex(eligible => eligible.has(t.group));
+    if (slotIdx !== -1) {
+      slotTeams[thirdSlotKeys[slotIdx]] = t.team;
+    }
+  }
 
   // Resolve KO matches round by round using official results
   const teamOf = {};
