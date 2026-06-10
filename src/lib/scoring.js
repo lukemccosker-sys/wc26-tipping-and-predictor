@@ -251,7 +251,9 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
   function awardMatch(mine, actual) {
     if (!mine || !actual) return false;
     const norm = str => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-    return norm(mine) === norm(actual);
+    const guessWords = norm(mine).split(/\s+/).filter(Boolean);
+    const actualWords = norm(actual).split(/\s+/).filter(Boolean);
+    return guessWords.some(gw => actualWords.some(aw => aw.includes(gw) || gw.includes(aw)));
   }
 
   return players.map(player => {
@@ -264,7 +266,7 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
       const picks = JSON.parse(bp.awardPicks);
       for (const key of Object.keys(picks)) {
         if (awardMatch(picks[key], officialAwards?.[key])) {
-          awardPts += +s.award || 5;
+          awardPts += s.award != null ? +s.award : 5;
         }
       }
     }
