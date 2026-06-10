@@ -79,8 +79,6 @@ export default function KOBracket({
             </span>
             {!teamsKnown ? (
               <span className="ko-osc" style={{ color: "var(--muted2)" }}>–</span>
-            ) : hasOfficial ? (
-              <span className="ko-osc">{official[side === "h" ? "homeScore" : "awayScore"]}</span>
             ) : isAdmin && adminEditing ? (
               <ScoreInput value={official?.[side === "h" ? "homeScore" : "awayScore"]} onChange={v => onSetOfficial(m.id, side, v)} locked={false} active />
             ) : (
