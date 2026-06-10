@@ -511,20 +511,33 @@ export default function TippingHQ() {
   const koTeams = buildOfficialKOTeamsFromResults(officialResults);
   const koWinners = buildKOWinners(officialResults);
 
-  // Save prediction
+  // Save prediction — only persists once both scores are set
   const onSetScore = async (matchId, side, value) => {
     const existing = predictions.find(p => p.playerId === player.id && p.matchId === matchId);
-    const update = side === "h"
-      ? { homeScore: value }
-      : { awayScore: value };
+    const updatedPred = existing
+      ? { ...existing, [side === "h" ? "homeScore" : "awayScore"]: value }
+      : { playerId: player.id, matchId, homeScore: side === "h" ? value : null, awayScore: side === "a" ? value : null };
+
+    // Update local state immediately so UI reflects the change
     if (existing) {
-      const updated = { ...existing, ...update };
-      await base44.entities.Prediction.update(existing.id, update);
-      setPredictions(prev => prev.map(p => p.id === existing.id ? { ...p, ...update } : p));
+      setPredictions(prev => prev.map(p => p.id === existing.id ? updatedPred : p));
     } else {
-      const newPred = { playerId: player.id, matchId, homeScore: side === "h" ? value : null, awayScore: side === "a" ? value : null };
-      const saved = await base44.entities.Prediction.create(newPred);
-      setPredictions(prev => [...prev, saved]);
+      // Temp local-only record (no id yet) so UI shows the partial score
+      setPredictions(prev => [...prev.filter(p => !(p.playerId === player.id && p.matchId === matchId)), updatedPred]);
+    }
+
+    // Only persist to DB when both scores are present
+    const homeScore = updatedPred.homeScore;
+    const awayScore = updatedPred.awayScore;
+    if (homeScore == null || awayScore == null) return;
+
+    if (existing) {
+      await base44.entities.Prediction.update(existing.id, { homeScore, awayScore });
+    } else {
+      const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore });
+      setPredictions(prev => prev.map(p =>
+        p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
+      ));
     }
   };
 
