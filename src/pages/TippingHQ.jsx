@@ -758,37 +758,16 @@ export default function TippingHQ() {
   };
 
   // Predictor picks — read from bracketRef (always latest) for instant optimistic updates
-  const onPickPos = (groupL, team, pos) => {
+  // Receives the full updated groupPicks object from PredictorGroups local state
+  const onPickPos = (updatedGroupPicks, groupL, team, pos) => {
     if (predLocked) return;
-    const current = bracketRef.current;
-    const gp = current?.groupPicks ? JSON.parse(current.groupPicks) : {};
-    const newGroup = { ...(gp[groupL] || {}) };
-    if (pos === 1) {
-      if (newGroup.second === team) newGroup.second = null;
-      newGroup.first = newGroup.first === team ? null : team;
-    } else {
-      if (newGroup.first === team) newGroup.first = null;
-      newGroup.second = newGroup.second === team ? null : team;
-    }
-    gp[groupL] = newGroup;
-    updateBracket({ groupPicks: JSON.stringify(gp) });
+    updateBracket({ groupPicks: JSON.stringify(updatedGroupPicks) });
   };
 
-  const onPickThird = (groupL, team) => {
+  // Receives the full updated thirdPicks object from PredictorGroups local state
+  const onPickThird = (updatedThirdPicks, groupL, team) => {
     if (predLocked) return;
-    const current = bracketRef.current;
-    const tp = current?.thirdPicks ? JSON.parse(current.thirdPicks) : {};
-    if (tp[groupL] === team) {
-      tp[groupL] = null;
-    } else {
-      const count = Object.values(tp).filter(Boolean).length;
-      if (count >= 8 && !tp[groupL]) {
-        alert("You can only pick 8 best-3rd teams.");
-        return;
-      }
-      tp[groupL] = team;
-    }
-    updateBracket({ thirdPicks: JSON.stringify(tp) });
+    updateBracket({ thirdPicks: JSON.stringify(updatedThirdPicks) });
   };
 
   const onPickAdvance = (matchId, side) => {

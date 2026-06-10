@@ -50,8 +50,10 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
         if (group.first === team) group.first = null;
         group.second = group.second === team ? null : team;
       }
-      onPickPos(L, team, pos);
-      return { ...prev, [L]: group };
+      const next = { ...prev, [L]: group };
+      // Pass the full updated picks to the parent so the DB save uses the correct state
+      onPickPos(next, L, team, pos);
+      return next;
     });
   };
 
@@ -68,7 +70,8 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
         }
         next[L] = team;
       }
-      onPickThird(L, team);
+      // Pass the full updated picks to the parent so the DB save uses the correct state
+      onPickThird(next, L, team);
       return next;
     });
   };
