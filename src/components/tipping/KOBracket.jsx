@@ -18,7 +18,7 @@ function slotLabel(slot) {
 export default function KOBracket({
   predictions, officialResults, kickoffs, koTeams, koWinners,
   onSetScore, onSetPenalty, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen,
-  player, poolSettings
+  player, poolSettings, groupStageComplete
 }) {
   const [round, setRound] = useState("R32");
   const topRef = useRef(null);
@@ -113,6 +113,14 @@ export default function KOBracket({
       </div>
     );
   };
+
+  if (!groupStageComplete && !isAdmin) {
+    return (
+      <div className="notice lock" style={{ marginTop: 8 }}>
+        🔒 Knockout tipping unlocks once all 72 group stage results are entered.
+      </div>
+    );
+  }
 
   return (
     <div ref={topRef}>

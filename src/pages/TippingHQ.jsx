@@ -436,6 +436,12 @@ export default function TippingHQ() {
   const totalGroupMatches = GROUP_MATCHES.length;
   const tipCount = myPreds.filter(p => p.homeScore != null && p.awayScore != null).length;
 
+  // Group stage complete = all 72 matches have official results
+  const groupStageComplete = GROUP_MATCHES.every(m => {
+    const r = officialResults.find(r => r.matchId === m.id);
+    return r && r.homeScore != null && r.awayScore != null;
+  });
+
   // My score
   const myScore = computePlayerScore(
     predictions.filter(p => p.playerId === player.id),
@@ -581,16 +587,23 @@ export default function TippingHQ() {
   };
 
   const onSuggestFromTips = async () => {
-    // Auto-fill group picks from tipping predictions
-    const gp = {};
+    // Only auto-fill groups where ALL 3 group matches have been tipped
+    const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
+    const groupScores = {};
+
     for (const L of GL) {
       const teams = WC_GROUPS[L];
+      const groupMs = GROUP_MATCHES.filter(m => m.group === L);
+      const allTipped = groupMs.every(m => {
+        const pred = myPreds.find(p => p.matchId === m.id);
+        return pred && pred.homeScore != null && pred.awayScore != null;
+      });
+      if (!allTipped) continue; // skip groups where not all games are tipped
+
       const matchScores = {};
       teams.forEach(t => { matchScores[t] = { pts: 0, gd: 0, gf: 0 }; });
-      const groupMs = GROUP_MATCHES.filter(m => m.group === L);
       for (const m of groupMs) {
         const pred = myPreds.find(p => p.matchId === m.id);
-        if (!pred || pred.homeScore == null || pred.awayScore == null) continue;
         const h = +pred.homeScore, a = +pred.awayScore;
         matchScores[m.home].gf += h; matchScores[m.home].gd += h - a;
         matchScores[m.away].gf += a; matchScores[m.away].gd += a - h;
@@ -603,34 +616,16 @@ export default function TippingHQ() {
         return sb.pts - sa.pts || sb.gd - sa.gd || sb.gf - sa.gf;
       });
       gp[L] = { first: sorted[0], second: sorted[1] };
+      groupScores[L] = { matchScores, sorted };
     }
 
-    // best-3rd: pick top 8 3rd-place teams by pts/gd/gf
-    const thirds = GL.map(L => {
-      const teams = WC_GROUPS[L];
-      const matchScores = {};
-      teams.forEach(t => { matchScores[t] = { pts: 0, gd: 0, gf: 0 }; });
-      const groupMs = GROUP_MATCHES.filter(m => m.group === L);
-      for (const m of groupMs) {
-        const pred = myPreds.find(p => p.matchId === m.id);
-        if (!pred || pred.homeScore == null) continue;
-        const h = +pred.homeScore, a = +pred.awayScore;
-        matchScores[m.home].gf += h; matchScores[m.home].gd += h - a;
-        matchScores[m.away].gf += a; matchScores[m.away].gd += a - h;
-        if (h > a) { matchScores[m.home].pts += 3; }
-        else if (h < a) { matchScores[m.away].pts += 3; }
-        else { matchScores[m.home].pts += 1; matchScores[m.away].pts += 1; }
-      }
-      const sorted = teams.slice().sort((a, b) => {
-        const sa = matchScores[a], sb = matchScores[b];
-        return sb.pts - sa.pts || sb.gd - sa.gd || sb.gf - sa.gf;
-      });
-      return { group: L, team: sorted[2], ...matchScores[sorted[2]] };
-    });
+    // best-3rd: only from fully-tipped groups, pick top 8
+    const tp = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
+    const thirds = Object.entries(groupScores).map(([L, { matchScores, sorted }]) => ({
+      group: L, team: sorted[2], ...matchScores[sorted[2]]
+    }));
     thirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
-    const top8 = thirds.slice(0, 8);
-    const tp = {};
-    for (const t of top8) { if (t.team) tp[t.group] = t.team; }
+    thirds.slice(0, 8).forEach(t => { if (t.team) tp[t.group] = t.team; });
 
     await saveBracket({ groupPicks: JSON.stringify(gp), thirdPicks: JSON.stringify(tp) });
   };
@@ -676,6 +671,7 @@ export default function TippingHQ() {
               {isAdmin && (
                 <button className="mini" onClick={() => setShowKickEditor(true)}>🕐 Times</button>
               )}
+              <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
               <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
@@ -752,6 +748,7 @@ export default function TippingHQ() {
             onSetOfficialPen={onSetOfficialPen}
             player={player}
             poolSettings={poolSettings}
+            groupStageComplete={groupStageComplete}
           />
         </div>
       )}

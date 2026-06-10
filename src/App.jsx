@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import TippingHQ from './pages/TippingHQ';
+import LiveResults from './pages/LiveResults';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -36,6 +37,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<TippingHQ />} />
+      <Route path="/live" element={<LiveResults />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
