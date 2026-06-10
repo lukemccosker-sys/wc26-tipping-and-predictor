@@ -1,7 +1,8 @@
 import React from "react";
 import Flag from "@/lib/flags";
+import { PredictorScoringCard } from "@/components/ScoringCard";
 
-export default function PredictorLeaderboard({ predLB, player, predSettings, onRefresh, loading }) {
+export default function PredictorLeaderboard({ predLB, player, predSettings, onRefresh, loading, isAdmin, onSavePredSettings }) {
   return (
     <div className="board">
       <div className="card pad" style={{ gridColumn: "1/-1" }}>
@@ -54,10 +55,9 @@ export default function PredictorLeaderboard({ predLB, player, predSettings, onR
           ))}
         </div>
 
-        <div className="cfg-note pad8" style={{ marginTop: 12 }}>
-          Points — group winner {predSettings.g1} · runner-up {predSettings.g2} · best-3rd {predSettings.third} · reach R16 {predSettings.r32} · reach QF {predSettings.r16} · reach SF {predSettings.qf} · reach Final {predSettings.sf} · 3rd-place win {predSettings.third_place} · <b>Champion {predSettings.champ}</b> · each award {predSettings.award}
-        </div>
       </div>
+
+      <PredictorScoringCard predSettings={predSettings} isAdmin={isAdmin} onSave={onSavePredSettings} />
     </div>
   );
 }

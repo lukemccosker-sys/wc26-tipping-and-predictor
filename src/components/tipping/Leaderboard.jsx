@@ -1,7 +1,8 @@
 import React from "react";
 import Flag from "@/lib/flags";
+import { TippingScoringCard } from "@/components/ScoringCard";
 
-export default function Leaderboard({ leaderboard, player, onRefresh, loading }) {
+export default function Leaderboard({ leaderboard, player, onRefresh, loading, poolSettings, isAdmin, onSaveSettings }) {
   return (
     <div className="board">
       <div className="card pad lb-card">
@@ -33,10 +34,9 @@ export default function Leaderboard({ leaderboard, player, onRefresh, loading })
             ))}
           </tbody>
         </table>
-        <div className="howto">
-          <b>How scoring works:</b> 5pts exact scoreline · 3pts correct goal difference · 1pt correct result/winner. Board updates as results come in.
-        </div>
       </div>
+
+      <TippingScoringCard poolSettings={poolSettings} isAdmin={isAdmin} onSave={onSaveSettings} />
 
       {player && (
         <div className="card pad">

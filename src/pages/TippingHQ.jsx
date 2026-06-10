@@ -801,6 +801,9 @@ export default function TippingHQ() {
             player={player}
             onRefresh={fetchAll}
             loading={loading}
+            poolSettings={poolSettings}
+            isAdmin={isAdmin}
+            onSaveSettings={savePoolSettings}
           />
           {isAdmin && (
             <div className="card pad" style={{ marginTop: 16 }}>
@@ -868,6 +871,10 @@ export default function TippingHQ() {
               predSettings={predSettings}
               onRefresh={fetchAll}
               loading={loading}
+              isAdmin={isAdmin}
+              onSavePredSettings={async (newSettings) => {
+                await savePoolSettings({ predSettings: JSON.stringify({ ...predSettings, ...newSettings }) });
+              }}
             />
           )}
         </>
