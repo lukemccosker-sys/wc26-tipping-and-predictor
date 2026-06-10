@@ -12,7 +12,7 @@ function fmtKick(ms) {
 
 export default function GroupCard({
   group, predictions, officialResults, kickoffs,
-  onSetScore, isAdmin, adminEditing, onSetOfficial,
+  onSetScore, isAdmin, adminEditing, onSetOfficial, onClearOfficial,
   player, poolSettings
 }) {
   const matches = groupMatches(group);
@@ -45,7 +45,7 @@ export default function GroupCard({
           const locked = isLocked(m.id) || !!official;
           const kicked = getKickoff(m.id);
           const hasTip = pred && pred.homeScore != null && pred.awayScore != null;
-          const hasOfficial = official && official.homeScore != null;
+          const hasOfficial = official && official.homeScore != null && official.awayScore != null;
           const scored = hasOfficial && hasTip ? scoreTip(pred, official, settings) : null;
 
           return (
@@ -59,51 +59,70 @@ export default function GroupCard({
                   <span className={`pts-circle t-${scored.tier}`}>{scored.pts}</span>
                 )}
               </div>
+
+              {/* Tip row */}
               <div className="gm-main">
                 <div className="gm-team">
                   <span className="tname"><Flag name={m.home} size={16} /><span>{m.home}</span></span>
                 </div>
-                <div className={`gm-score${hasTip && !locked ? " tipped" : ""}${locked ? " locked" : ""}`}>
-                  {hasOfficial && adminEditing ? (
-                    <>
-                      <ScoreInput value={official.homeScore} onChange={v => onSetOfficial(m.id, "h", v)} locked={false} active />
-                      <span className="vs">vs</span>
-                      <ScoreInput value={official.awayScore} onChange={v => onSetOfficial(m.id, "a", v)} locked={false} active />
-                    </>
-                  ) : hasOfficial ? (
-                    <>
-                      <div className="sin ro act"><div className="sin-num">{official.homeScore}</div></div>
-                      <span className="vs">–</span>
-                      <div className="sin ro act"><div className="sin-num">{official.awayScore}</div></div>
-                    </>
-                  ) : adminEditing ? (
-                    <>
-                      <ScoreInput value={official?.homeScore} onChange={v => onSetOfficial(m.id, "h", v)} locked={false} active />
-                      <span className="vs">vs</span>
-                      <ScoreInput value={official?.awayScore} onChange={v => onSetOfficial(m.id, "a", v)} locked={false} active />
-                    </>
-                  ) : (
-                    <>
-                      <ScoreInput
-                        value={pred?.homeScore}
-                        onChange={v => onSetScore(m.id, "h", v)}
-                        locked={locked}
-                        active={hasTip}
-                      />
-                      <span className="vs">vs</span>
-                      <ScoreInput
-                        value={pred?.awayScore}
-                        onChange={v => onSetScore(m.id, "a", v)}
-                        locked={locked}
-                        active={hasTip}
-                      />
-                    </>
-                  )}
+                <div className="gm-score">
+                  <ScoreInput
+                    value={pred?.homeScore}
+                    onChange={v => onSetScore(m.id, "h", v)}
+                    locked={locked}
+                    active={hasTip}
+                  />
+                  <span className="vs">vs</span>
+                  <ScoreInput
+                    value={pred?.awayScore}
+                    onChange={v => onSetScore(m.id, "a", v)}
+                    locked={locked}
+                    active={hasTip}
+                  />
                 </div>
                 <div className="gm-team r">
                   <span className="tname"><Flag name={m.away} size={16} /><span>{m.away}</span></span>
                 </div>
               </div>
+
+              {/* Result row — shown for admin when editing, or read-only once result entered */}
+              {(adminEditing || hasOfficial) && (
+                <div className="gm-result-row">
+                  <span className="gm-result-lbl">
+                    {hasOfficial ? "✅ Result" : "📝 Enter result"}
+                  </span>
+                  <div className="gm-result-inputs">
+                    {adminEditing ? (
+                      <>
+                        <ScoreInput
+                          value={official?.homeScore}
+                          onChange={v => onSetOfficial(m.id, "h", v)}
+                          locked={false}
+                          active={hasOfficial}
+                        />
+                        <span className="vs">–</span>
+                        <ScoreInput
+                          value={official?.awayScore}
+                          onChange={v => onSetOfficial(m.id, "a", v)}
+                          locked={false}
+                          active={hasOfficial}
+                        />
+                        {hasOfficial && (
+                          <button
+                            className="result-clear-btn"
+                            onClick={() => onClearOfficial(m.id)}
+                            title="Clear result"
+                          >✕</button>
+                        )}
+                      </>
+                    ) : (
+                      <span className="gm-result-score">
+                        {official.homeScore} – {official.awayScore}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

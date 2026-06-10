@@ -307,6 +307,12 @@ const CSS = `
 .cfg-note{font-size:11.5px;color:var(--muted);line-height:1.5;}
 .lb-card{grid-column:1/-1;}
 .ft{margin-top:26px;color:var(--muted2);font-size:11px;text-align:center;line-height:1.6;}
+.gm-result-row{display:flex;align-items:center;gap:10px;padding:6px 0 4px;border-top:1px dashed var(--line2);margin-top:4px;flex-wrap:wrap;}
+.gm-result-lbl{font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;min-width:80px;}
+.gm-result-inputs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.gm-result-score{font-family:'Anton',sans-serif;font-size:18px;color:var(--teal);}
+.result-clear-btn{background:#fff0f2;border:1.5px solid var(--pink);color:var(--pink);border-radius:8px;padding:4px 9px;font-size:13px;font-weight:800;cursor:pointer;line-height:1;font-family:inherit;}
+.result-clear-btn:hover{background:var(--pink);color:#fff;}
 @media (max-width:780px){
   .wc{padding:14px 12px calc(78px + env(safe-area-inset-bottom,0px));}
   .board{grid-template-columns:1fr;}
@@ -494,6 +500,25 @@ export default function TippingHQ() {
     }
   };
 
+  // Clear official result
+  const onClearOfficial = async (matchId) => {
+    const existing = officialResults.find(r => r.matchId === matchId);
+    if (!existing) return;
+    await base44.entities.OfficialResult.delete(existing.id);
+    setOfficialResults(prev => prev.filter(r => r.id !== existing.id));
+  };
+
+  // Reset my tips for unlocked matches
+  const onResetTips = async () => {
+    if (!window.confirm("Are you sure you want to reset all your tips for unlocked matches? This cannot be undone.")) return;
+    const toDelete = myPreds.filter(p => {
+      const ko = kickoffs[p.matchId];
+      return !ko || Date.now() < ko;
+    });
+    await Promise.all(toDelete.map(p => base44.entities.Prediction.delete(p.id)));
+    setPredictions(prev => prev.filter(p => !toDelete.find(d => d.id === p.id)));
+  };
+
   const onSetOfficialPen = async (matchId, side) => {
     const existing = officialResults.find(r => r.matchId === matchId);
     if (existing) {
@@ -673,6 +698,7 @@ export default function TippingHQ() {
               )}
               <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
+              <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>
               <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
           </div>
@@ -722,6 +748,7 @@ export default function TippingHQ() {
               isAdmin={isAdmin}
               adminEditing={adminEditing}
               onSetOfficial={onSetOfficial}
+              onClearOfficial={onClearOfficial}
               player={player}
               poolSettings={poolSettings}
             />
@@ -746,6 +773,7 @@ export default function TippingHQ() {
             adminEditing={adminEditing}
             onSetOfficial={onSetOfficial}
             onSetOfficialPen={onSetOfficialPen}
+            onClearOfficial={onClearOfficial}
             player={player}
             poolSettings={poolSettings}
             groupStageComplete={groupStageComplete}

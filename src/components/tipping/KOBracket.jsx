@@ -17,7 +17,7 @@ function slotLabel(slot) {
 
 export default function KOBracket({
   predictions, officialResults, kickoffs, koTeams, koWinners,
-  onSetScore, onSetPenalty, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen,
+  onSetScore, onSetPenalty, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen, onClearOfficial,
   player, poolSettings, groupStageComplete
 }) {
   const [round, setRound] = useState("R32");
@@ -107,6 +107,45 @@ export default function KOBracket({
                   {koWinners?.[m.id] === team && <b style={{ marginLeft: 6, fontSize: 10 }}>through</b>}
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Result entry row for admin */}
+        {(adminEditing || hasOfficial) && (
+          <div className="gm-result-row" style={{ marginTop: 6 }}>
+            <span className="gm-result-lbl">
+              {hasOfficial ? "✅ Result" : "📝 Enter result"}
+            </span>
+            <div className="gm-result-inputs">
+              {adminEditing ? (
+                <>
+                  <ScoreInput
+                    value={official?.homeScore}
+                    onChange={v => onSetOfficial(m.id, "h", v)}
+                    locked={false}
+                    active={hasOfficial}
+                  />
+                  <span className="vs" style={{ margin: "0 4px" }}>–</span>
+                  <ScoreInput
+                    value={official?.awayScore}
+                    onChange={v => onSetOfficial(m.id, "a", v)}
+                    locked={false}
+                    active={hasOfficial}
+                  />
+                  {hasOfficial && (
+                    <button
+                      className="result-clear-btn"
+                      onClick={() => onClearOfficial(m.id)}
+                      title="Clear result"
+                    >✕</button>
+                  )}
+                </>
+              ) : (
+                <span className="gm-result-score">
+                  {official.homeScore} – {official.awayScore}
+                </span>
+              )}
             </div>
           </div>
         )}
