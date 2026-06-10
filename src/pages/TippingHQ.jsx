@@ -592,26 +592,29 @@ export default function TippingHQ() {
   const koTeams = buildOfficialKOTeamsFromResults(officialResults);
   const koWinners = buildKOWinners(officialResults);
 
-  // Keep ref in sync with latest predictions
-  predictionsRef.current = predictions;
+  // predictionsRef is kept in sync inside onSetScore's functional setter for accuracy during rapid clicks
 
   const onSetScore = (matchId, side, value) => {
     const field = side === "h" ? "homeScore" : "awayScore";
 
-    // Update local state immediately for responsive UI
+    // Update local state immediately for responsive UI, and sync ref at the same time
     setPredictions(prev => {
+      let next;
       const existing = prev.find(p => p.playerId === player.id && p.matchId === matchId);
       if (existing) {
-        return prev.map(p =>
+        next = prev.map(p =>
           p.playerId === player.id && p.matchId === matchId ? { ...p, [field]: value } : p
         );
       } else {
-        return [...prev, {
+        next = [...prev, {
           playerId: player.id, matchId,
           homeScore: side === "h" ? value : null,
           awayScore: side === "a" ? value : null
         }];
       }
+      // Keep ref in sync immediately so debounced save uses latest value
+      predictionsRef.current = next;
+      return next;
     });
 
     // Debounce DB save — wait 200ms after last interaction before persisting
