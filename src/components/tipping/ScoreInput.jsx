@@ -15,7 +15,7 @@ export default function ScoreInput({ value, onChange, locked, active }) {
       <button
         className="sin-btn plus"
         disabled={locked}
-        onClick={() => onChange((v == null ? 0 : v) + 1)}
+        onClick={() => onChange(v == null ? 0 : v + 1)}
         aria-label="increase"
       >+</button>
       <div className={`sin-num${isEmpty ? " empty" : ""}`}>
