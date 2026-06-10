@@ -478,8 +478,9 @@ export default function TippingHQ() {
   // On load, verify stored player still exists in DB — if removed, kick back to login
   useEffect(() => {
     if (!player) return;
-    base44.entities.Player.filter({ id: player.id }, null, 1).then(results => {
-      if (!results || results.length === 0) {
+    base44.entities.Player.list().then(all => {
+      const stillExists = (all || []).some(p => p.id === player.id);
+      if (!stillExists) {
         localStorage.removeItem("wc_player");
         setPlayer(null);
       }
