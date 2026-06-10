@@ -969,7 +969,6 @@ export default function TippingHQ() {
               </button>
             ))}
             <a href="/live" className="mtn-btn" style={{ textDecoration: "none" }}><span>📺</span>Live Results</a>
-            <a href="/live" className="mtn-btn mtn-live"><span className="live-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--green)", display: "inline-block" }} /></a>
           </nav>
         </>
       )}
@@ -992,7 +991,6 @@ export default function TippingHQ() {
               </button>
             ))}
             <a href="/live" className="mtn-btn" style={{ textDecoration: "none" }}><span>📺</span>Live Results</a>
-            <a href="/live" className="mtn-btn mtn-live"><span className="live-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--green)", display: "inline-block" }} /></a>
           </nav>
         </>
       )}
