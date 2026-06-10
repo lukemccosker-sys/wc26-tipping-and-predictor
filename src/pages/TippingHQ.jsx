@@ -481,7 +481,7 @@ export default function TippingHQ() {
 
   // Tip count (group stage only = 72 matches)
   const totalGroupMatches = GROUP_MATCHES.length;
-  const tipCount = myPreds.filter(p => p.homeScore != null && p.awayScore != null).length;
+  const tipCount = myPreds.filter(p => p.homeScore != null && p.awayScore != null && p.matchId?.startsWith("G")).length;
 
   // Group stage complete = all 72 matches have official results
   const groupStageComplete = GROUP_MATCHES.every(m => {
