@@ -416,6 +416,12 @@ export default function TippingHQ() {
     fetchAll();
 
     // Real-time subscriptions — instantly reflect any change
+    const unsubPlayers = base44.entities.Player.subscribe((event) => {
+      if (event.type === "create") setPlayers(prev => [...prev.filter(p => p.id !== event.id), event.data]);
+      else if (event.type === "update") setPlayers(prev => prev.map(p => p.id === event.id ? event.data : p));
+      else if (event.type === "delete") setPlayers(prev => prev.filter(p => p.id !== event.id));
+    });
+
     const unsubPred = base44.entities.Prediction.subscribe((event) => {
       if (event.type === "create") setPredictions(prev => [...prev.filter(p => p.id !== event.id), event.data]);
       else if (event.type === "update") setPredictions(prev => prev.map(p => p.id === event.id ? event.data : p));
@@ -442,6 +448,7 @@ export default function TippingHQ() {
     // Fallback poll every 30s
     const t = setInterval(fetchAll, 30000);
     return () => {
+      unsubPlayers();
       unsubPred();
       unsubOfficial();
       unsubBracket();
