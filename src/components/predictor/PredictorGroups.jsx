@@ -12,9 +12,15 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
   );
   const initialised = useRef(false);
 
-  // Sync on first load only
+  // Sync on first load, and clear if bracketPred is wiped (reset)
   useEffect(() => {
-    if (!initialised.current && bracketPred) {
+    if (!bracketPred) {
+      setLocalGroupPicks({});
+      setLocalThirdPicks({});
+      initialised.current = false;
+      return;
+    }
+    if (!initialised.current) {
       setLocalGroupPicks(bracketPred.groupPicks ? JSON.parse(bracketPred.groupPicks) : {});
       setLocalThirdPicks(bracketPred.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {});
       initialised.current = true;

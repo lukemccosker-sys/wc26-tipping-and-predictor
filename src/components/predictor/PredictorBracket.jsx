@@ -21,9 +21,14 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   );
   const initialised = useRef(false);
 
-  // Sync from prop only once when bracketPred first arrives (e.g. after data loads)
+  // Sync from prop on first load, and clear if bracketPred is wiped (reset)
   useEffect(() => {
-    if (!initialised.current && bracketPred?.advancePicks) {
+    if (!bracketPred) {
+      setLocalPicks({});
+      initialised.current = false;
+      return;
+    }
+    if (!initialised.current && bracketPred.advancePicks) {
       setLocalPicks(JSON.parse(bracketPred.advancePicks));
       initialised.current = true;
     }
