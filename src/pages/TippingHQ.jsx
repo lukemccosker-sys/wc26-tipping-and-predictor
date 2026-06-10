@@ -1068,6 +1068,7 @@ export default function TippingHQ() {
                 officialAwards={officialAwards}
                 isAdmin={isAdmin}
                 onSetOfficialAward={onSetOfficialAward}
+                predSettings={predSettings}
               />
               {(() => {
                 const awards = myBracket?.awardPicks ? JSON.parse(myBracket.awardPicks) : {};

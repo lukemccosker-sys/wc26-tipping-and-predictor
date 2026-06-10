@@ -7,7 +7,10 @@ const AWARDS = [
   { key: "glove", label: "🧤 Golden Glove", hint: "Best goalkeeper" },
 ];
 
-export default function PredictorAwards({ bracketPred, locked, onSetAward, officialAwards, isAdmin, onSetOfficialAward }) {
+import { DEFAULT_PRED_SETTINGS } from "@/lib/wc2026data";
+
+export default function PredictorAwards({ bracketPred, locked, onSetAward, officialAwards, isAdmin, onSetOfficialAward, predSettings }) {
+  const awardPts = predSettings?.award ?? DEFAULT_PRED_SETTINGS.award ?? 5;
   const awardPicks = bracketPred?.awardPicks ? JSON.parse(bracketPred.awardPicks) : {};
 
   function awardMatch(mine, actual) {
@@ -37,7 +40,7 @@ export default function PredictorAwards({ bracketPred, locked, onSetAward, offic
               </div>
               {known && (
                 <span className={`pts-circle t-${ok ? "exact" : "miss"}`}>
-                  {ok ? 5 : 0}
+                  {ok ? awardPts : 0}
                 </span>
               )}
             </div>
