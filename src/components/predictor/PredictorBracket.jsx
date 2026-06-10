@@ -6,8 +6,18 @@ const ROUND_SHORT = { R32:"R32", R16:"R16", QF:"QF", SF:"Semis", "3rd":"3rd", F:
 
 function slotLabel(slot) {
   if (!slot) return "TBD";
-  if (slot.startsWith("W")) return `Winner M${slot.slice(1)}`;
-  if (slot.startsWith("L")) return `Loser M${slot.slice(1)}`;
+  if (slot.startsWith("W")) return `Winner M${slot.slice(2)}`;
+  if (slot.startsWith("L")) return `Loser M${slot.slice(2)}`;
+  // e.g. "1A" → "Group A winners", "2B" → "Group B runners-up"
+  if (slot.match(/^[12][A-L]$/)) {
+    const pos = slot[0] === "1" ? "winners" : "runners-up";
+    return `Group ${slot[1]} ${pos}`;
+  }
+  // e.g. "3ABCDF" → "Group A/B/C/D/F 3rd place"
+  if (slot.startsWith("3")) {
+    const groups = slot.slice(1).split("").join("/");
+    return `Group ${groups} 3rd place`;
+  }
   return slot;
 }
 
