@@ -1,6 +1,5 @@
-// Inline SVG country flags for all 48 WC2026 teams
-// Using emoji flags rendered via unicode regional indicators as fallback
-// Primary: actual SVG flag render via flagcdn.com as img with no external deps fallback
+// Country flag component using flagcdn.com with emoji fallback
+// Flags are loaded as images; on error, falls back to emoji
 
 const COUNTRY_CODES = {
   "Mexico": "mx", "Uruguay": "uy", "South Africa": "za", "Ecuador": "ec",
@@ -17,7 +16,6 @@ const COUNTRY_CODES = {
   "Ukraine": "ua", "Turkey": "tr", "Romania": "ro", "Austria": "at",
 };
 
-// Emoji flag fallback
 const EMOJI_FLAGS = {
   "Mexico":"🇲🇽","Uruguay":"🇺🇾","South Africa":"🇿🇦","Ecuador":"🇪🇨",
   "USA":"🇺🇸","Panama":"🇵🇦","Ghana":"🇬🇭","Cameroon":"🇨🇲",
@@ -36,46 +34,32 @@ const EMOJI_FLAGS = {
 export default function Flag({ name, size = 20 }) {
   const code = COUNTRY_CODES[name];
   const emoji = EMOJI_FLAGS[name] || "🏳️";
-  
+
   if (!code) {
     return (
-      <span style={{ fontSize: size * 0.85, lineHeight: 1, display: "inline-block", verticalAlign: "middle" }}>
+      <span style={{ fontSize: size * 0.9, lineHeight: 1, display: "inline-block", verticalAlign: "middle", flexShrink: 0 }}>
         {emoji}
       </span>
     );
   }
 
-  // Use flagcdn for reliable flags
-  const url = code === "gb-eng"
-    ? "https://flagcdn.com/gb-eng.svg"
-    : `https://flagcdn.com/${code}.svg`;
+  const w = Math.round(size * 1.5);
+  const url = `https://flagcdn.com/w${w <= 40 ? 40 : 80}/${code}.png`;
 
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        verticalAlign: "middle",
-        flexShrink: 0,
-      }}
-    >
+    <span style={{ display: "inline-flex", alignItems: "center", verticalAlign: "middle", flexShrink: 0 }}>
       <img
         src={url}
         alt={name}
-        width={Math.round(size * 1.5)}
+        width={w}
         height={size}
-        style={{
-          borderRadius: 3,
-          boxShadow: "0 0 0 1px rgba(0,0,0,0.12)",
-          objectFit: "cover",
-          display: "block",
-        }}
+        style={{ borderRadius: 3, boxShadow: "0 0 0 1px rgba(0,0,0,0.12)", objectFit: "cover", display: "block" }}
         onError={(e) => {
           e.target.style.display = "none";
-          e.target.nextSibling && (e.target.nextSibling.style.display = "inline");
+          if (e.target.nextSibling) e.target.nextSibling.style.display = "inline";
         }}
       />
-      <span style={{ display: "none", fontSize: size * 0.85 }}>{emoji}</span>
+      <span style={{ display: "none", fontSize: size * 0.9, lineHeight: 1 }}>{emoji}</span>
     </span>
   );
 }
