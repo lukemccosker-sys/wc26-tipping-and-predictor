@@ -10,34 +10,8 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
 
-  // Redirect non-admins
-  if (player && !player.isAdmin) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", background: "#fff7ee" }}>
-        <div style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 48 }}>🚫</div>
-          <h2 style={{ marginTop: 12 }}>Access Denied</h2>
-          <p style={{ color: "#6c7384" }}>This page is for admins only.</p>
-          <a href="/" style={{ color: "#ff3d7f", fontWeight: 700 }}>← Back to TippingHQ</a>
-        </div>
-      </div>
-    );
-  }
-
-  if (!player) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", background: "#fff7ee" }}>
-        <div style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 48 }}>🔐</div>
-          <h2>Not logged in</h2>
-          <a href="/" style={{ color: "#ff3d7f", fontWeight: 700 }}>← Go to TippingHQ</a>
-        </div>
-      </div>
-    );
-  }
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
+    if (!player || !player.isAdmin) return; // don't load data for non-admins
     async function load() {
       setLoading(true);
       const [pl, ps] = await Promise.all([
@@ -90,6 +64,32 @@ export default function AdminPanel() {
     setPlayers(prev => prev.filter(x => x.id !== p.id));
     setRemoving(null);
   };
+
+  // Access gates — rendered after all hooks
+  if (!player) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", background: "#fff7ee" }}>
+        <div style={{ textAlign: "center", padding: 32 }}>
+          <div style={{ fontSize: 48 }}>🔐</div>
+          <h2>Not logged in</h2>
+          <a href="/" style={{ color: "#ff3d7f", fontWeight: 700 }}>← Go to TippingHQ</a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!player.isAdmin) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", background: "#fff7ee" }}>
+        <div style={{ textAlign: "center", padding: 32 }}>
+          <div style={{ fontSize: 48 }}>🚫</div>
+          <h2 style={{ marginTop: 12 }}>Access Denied</h2>
+          <p style={{ color: "#6c7384" }}>This page is for admins only.</p>
+          <a href="/" style={{ color: "#ff3d7f", fontWeight: 700 }}>← Back to TippingHQ</a>
+        </div>
+      </div>
+    );
+  }
 
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.isAdmin && !b.isAdmin) return -1;
