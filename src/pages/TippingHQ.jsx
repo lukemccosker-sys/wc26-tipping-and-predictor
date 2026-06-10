@@ -1337,8 +1337,14 @@ function buildKOTeams(gp, tp, ap) {
     const away = slotTeams[m.a] || null;
     teamOf[m.id] = { home, away };
     // winner slot key: e.g. M73 → WM73
-    if (ap[m.id] === "h" && home) slotTeams[`W${m.id}`] = home;
-    if (ap[m.id] === "a" && away) slotTeams[`W${m.id}`] = away;
+    if (ap[m.id] === "h" && home) {
+      slotTeams[`W${m.id}`] = home;
+      slotTeams[`L${m.id}`] = away; // loser goes to 3rd place
+    }
+    if (ap[m.id] === "a" && away) {
+      slotTeams[`W${m.id}`] = away;
+      slotTeams[`L${m.id}`] = home; // loser goes to 3rd place
+    }
   }
   return teamOf;
 }
