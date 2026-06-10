@@ -1060,6 +1060,11 @@ export default function TippingHQ() {
 
       {mode === "tip" && tab === "ko" && (
         <div className="bracket-wrap">
+          {tipCount < totalGroupMatches && (
+            <div className="alert-red" style={{ marginBottom: 14 }}>
+              ⚠️ You've only tipped {tipCount}/{totalGroupMatches} group matches — <button className="mini" style={{ display: "inline", padding: "2px 10px" }} onClick={() => setTab("groups")}>Go finish group tips →</button>
+            </div>
+          )}
           <KOBracket
             predictions={predictions}
             officialResults={officialResults}

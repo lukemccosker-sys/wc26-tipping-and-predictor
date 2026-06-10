@@ -41,7 +41,20 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   const thirdsCount = Object.keys(thirdPicks).filter(k => thirdPicks[k]).length;
   const predGroupsComplete = groupsDone === 12 && thirdsCount === 8;
 
-  const champion = predWinners["m32"];
+  const champion = predWinners["M104"];
+
+  // Count picks per round
+  const picksByRound = {};
+  for (const r of ROUND_ORDER) {
+    const roundMatches = KO_MATCHES.filter(m => m.round === r);
+    picksByRound[r] = roundMatches.filter(m => advancePicks[m.id]).length;
+  }
+  const roundMatchCount = {};
+  for (const r of ROUND_ORDER) {
+    roundMatchCount[r] = KO_MATCHES.filter(m => m.round === r).length;
+  }
+  const currentRoundDone = picksByRound[round] === roundMatchCount[round];
+  const nextRound = ROUND_ORDER[idx + 1];
 
   const renderMatch = (m) => {
     const home = koTeams?.[m.id]?.home;
@@ -108,6 +121,25 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
+
+      {currentRoundDone && nextRound && nextRound !== "3rd" && (
+        <div className="step-prompt" style={{ marginTop: 14 }}>
+          <span className="step-prompt-txt">✅ All {ROUND_NAME[round]} picks done! Move on to the {ROUND_NAME[nextRound]}.</span>
+          <button className="step-prompt-btn" onClick={() => goRound(nextRound)}>Go to {ROUND_NAME[nextRound]} →</button>
+        </div>
+      )}
+      {currentRoundDone && round === "SF" && (
+        <div className="step-prompt" style={{ marginTop: 14 }}>
+          <span className="step-prompt-txt">✅ Semis picked! Don't forget the 3rd place play-off and the Final.</span>
+          <button className="step-prompt-btn" onClick={() => goRound("3rd")}>Go to 3rd Place →</button>
+        </div>
+      )}
+      {currentRoundDone && round === "F" && champion && (
+        <div className="step-prompt" style={{ marginTop: 14 }}>
+          <span className="step-prompt-txt">🏆 Champion picked: <b>{champion}</b>! Last step — pick the four individual award winners.</span>
+          <button className="step-prompt-btn" onClick={onGoToAwards}>Go to Awards →</button>
+        </div>
+      )}
 
       <div className="ko-nextbar">
         {idx > 0 && (
