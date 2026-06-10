@@ -342,38 +342,38 @@ export const DEFAULT_KICKOFFS = {
   "M86":  new Date("2026-07-04T08:00:00+10:00").getTime(),
   // M87  Sat 04 Jul  11:30 Sydney
   "M87":  new Date("2026-07-04T11:30:00+10:00").getTime(),
-  // M89  Sat 04 Jul  Sydney (Philadelphia - Sat 5 Jul local = ~midnight Sydney)
-  "M89":  new Date("2026-07-05T00:00:00+10:00").getTime(),
-  // M90  Sat 04 Jul  Sydney (Houston - Sat 5 Jul local)
-  "M90":  new Date("2026-07-05T04:00:00+10:00").getTime(),
-  // M91  Sun 05 Jul  Sydney (New York NJ - Sun 6 Jul local)
-  "M91":  new Date("2026-07-06T00:00:00+10:00").getTime(),
-  // M92  Sun 05 Jul  Sydney (Mexico City - Sun 6 Jul local)
-  "M92":  new Date("2026-07-06T04:00:00+10:00").getTime(),
-  // M93  Mon 06 Jul  Sydney (Dallas - Mon 7 Jul local)
-  "M93":  new Date("2026-07-07T00:00:00+10:00").getTime(),
-  // M94  Mon 06 Jul  Sydney (Seattle - Mon 7 Jul local)
-  "M94":  new Date("2026-07-07T04:00:00+10:00").getTime(),
-  // M95  Tue 07 Jul  Sydney (Atlanta - Tue 8 Jul local)
-  "M95":  new Date("2026-07-08T00:00:00+10:00").getTime(),
-  // M96  Tue 07 Jul  Sydney (Vancouver - Tue 8 Jul local)
-  "M96":  new Date("2026-07-08T04:00:00+10:00").getTime(),
-  // M97  Thu 09 Jul  Sydney (Boston - Thu 10 Jul local)
-  "M97":  new Date("2026-07-10T00:00:00+10:00").getTime(),
-  // M98  Fri 10 Jul  Sydney (Los Angeles - Fri 11 Jul local)
-  "M98":  new Date("2026-07-11T00:00:00+10:00").getTime(),
-  // M99  Sat 11 Jul  Sydney (Miami - Sat 12 Jul local)
-  "M99":  new Date("2026-07-12T00:00:00+10:00").getTime(),
-  // M100 Sat 11 Jul  Sydney (Kansas City - Sat 12 Jul local)
-  "M100": new Date("2026-07-12T04:00:00+10:00").getTime(),
-  // M101 Tue 14 Jul  Sydney (Dallas - Tue 15 Jul local)
-  "M101": new Date("2026-07-15T00:00:00+10:00").getTime(),
-  // M102 Wed 15 Jul  Sydney (Atlanta - Wed 16 Jul local)
-  "M102": new Date("2026-07-16T00:00:00+10:00").getTime(),
-  // M103 Sat 18 Jul  Sydney (Miami - Sat 19 Jul local)
-  "M103": new Date("2026-07-19T00:00:00+10:00").getTime(),
-  // M104 Sun 19 Jul  Sydney (New York NJ Final - Sun 20 Jul local)
-  "M104": new Date("2026-07-20T00:00:00+10:00").getTime(),
+  // M90  Sun 05 Jul  03:00 Sydney
+  "M90":  new Date("2026-07-05T03:00:00+10:00").getTime(),
+  // M89  Sun 05 Jul  07:00 Sydney
+  "M89":  new Date("2026-07-05T07:00:00+10:00").getTime(),
+  // M91  Mon 06 Jul  06:00 Sydney
+  "M91":  new Date("2026-07-06T06:00:00+10:00").getTime(),
+  // M92  Mon 06 Jul  10:00 Sydney
+  "M92":  new Date("2026-07-06T10:00:00+10:00").getTime(),
+  // M93  Tue 07 Jul  05:00 Sydney
+  "M93":  new Date("2026-07-07T05:00:00+10:00").getTime(),
+  // M94  Tue 07 Jul  10:00 Sydney
+  "M94":  new Date("2026-07-07T10:00:00+10:00").getTime(),
+  // M95  Wed 08 Jul  02:00 Sydney
+  "M95":  new Date("2026-07-08T02:00:00+10:00").getTime(),
+  // M96  Wed 08 Jul  06:00 Sydney
+  "M96":  new Date("2026-07-08T06:00:00+10:00").getTime(),
+  // M97  Fri 10 Jul  06:00 Sydney
+  "M97":  new Date("2026-07-10T06:00:00+10:00").getTime(),
+  // M98  Sat 11 Jul  05:00 Sydney
+  "M98":  new Date("2026-07-11T05:00:00+10:00").getTime(),
+  // M99  Sun 12 Jul  07:00 Sydney
+  "M99":  new Date("2026-07-12T07:00:00+10:00").getTime(),
+  // M100 Sun 12 Jul  11:00 Sydney
+  "M100": new Date("2026-07-12T11:00:00+10:00").getTime(),
+  // M101 Wed 15 Jul  05:00 Sydney
+  "M101": new Date("2026-07-15T05:00:00+10:00").getTime(),
+  // M102 Thu 16 Jul  05:00 Sydney
+  "M102": new Date("2026-07-16T05:00:00+10:00").getTime(),
+  // M103 Sun 19 Jul  07:00 Sydney
+  "M103": new Date("2026-07-19T07:00:00+10:00").getTime(),
+  // M104 Mon 20 Jul  05:00 Sydney
+  "M104": new Date("2026-07-20T05:00:00+10:00").getTime(),
 };
 
 // Default predictor settings
