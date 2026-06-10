@@ -3,8 +3,8 @@ import ScoreInput from "./ScoreInput";
 
 /**
  * Admin result entry with local draft state.
- * "Set ✓" commits to DB (triggers notification for all users).
- * "✕" clears the official result.
+ * Once "Set ✓" is clicked, inputs lock and the score is saved permanently.
+ * Admin must click "✕ Reset" to clear and re-enter.
  */
 export default function ResultEntry({ matchId, official, onSetOfficial, onClearOfficial }) {
   const hasOfficial = official && official.homeScore != null && official.awayScore != null;
@@ -12,19 +12,23 @@ export default function ResultEntry({ matchId, official, onSetOfficial, onClearO
   const [draftHome, setDraftHome] = useState(official?.homeScore ?? null);
   const [draftAway, setDraftAway] = useState(official?.awayScore ?? null);
 
-  // Keep draft in sync if official result changes externally
+  // Sync draft when official result changes externally (e.g. another admin clears it)
   useEffect(() => {
     setDraftHome(official?.homeScore ?? null);
     setDraftAway(official?.awayScore ?? null);
   }, [official?.homeScore, official?.awayScore]);
 
-  const canSet = draftHome != null && draftAway != null;
+  const canSet = draftHome != null && draftAway != null && !hasOfficial;
 
   const handleSet = async () => {
     if (!canSet) return;
-    // Save both sides together
-    await onSetOfficial(matchId, "h", draftHome);
-    await onSetOfficial(matchId, "a", draftAway);
+    await onSetOfficial(matchId, draftHome, draftAway);
+  };
+
+  const handleClear = () => {
+    onClearOfficial(matchId);
+    setDraftHome(null);
+    setDraftAway(null);
   };
 
   return (
@@ -34,42 +38,44 @@ export default function ResultEntry({ matchId, official, onSetOfficial, onClearO
       </span>
       <div className="gm-result-inputs" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
         <ScoreInput
-          value={draftHome}
-          onChange={v => setDraftHome(v)}
-          locked={false}
+          value={hasOfficial ? official.homeScore : draftHome}
+          onChange={v => !hasOfficial && setDraftHome(v)}
+          locked={hasOfficial}
           active={hasOfficial}
         />
         <span className="vs">–</span>
         <ScoreInput
-          value={draftAway}
-          onChange={v => setDraftAway(v)}
-          locked={false}
+          value={hasOfficial ? official.awayScore : draftAway}
+          onChange={v => !hasOfficial && setDraftAway(v)}
+          locked={hasOfficial}
           active={hasOfficial}
         />
-        <button
-          onClick={handleSet}
-          disabled={!canSet}
-          style={{
-            background: canSet ? "linear-gradient(95deg,#2cb551,#12b3a6)" : "#e0d8cf",
-            color: canSet ? "#fff" : "#9aa0ad",
-            border: "none",
-            borderRadius: 8,
-            padding: "5px 12px",
-            fontSize: 12,
-            fontWeight: 800,
-            cursor: canSet ? "pointer" : "not-allowed",
-            fontFamily: "inherit",
-            flexShrink: 0,
-          }}
-        >
-          Set ✓
-        </button>
+        {!hasOfficial && (
+          <button
+            onClick={handleSet}
+            disabled={!canSet}
+            style={{
+              background: canSet ? "linear-gradient(95deg,#2cb551,#12b3a6)" : "#e0d8cf",
+              color: canSet ? "#fff" : "#9aa0ad",
+              border: "none",
+              borderRadius: 8,
+              padding: "5px 12px",
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: canSet ? "pointer" : "not-allowed",
+              fontFamily: "inherit",
+              flexShrink: 0,
+            }}
+          >
+            Set ✓
+          </button>
+        )}
         {hasOfficial && (
           <button
             className="result-clear-btn"
-            onClick={() => onClearOfficial(matchId)}
-            title="Clear result"
-          >✕</button>
+            onClick={handleClear}
+            title="Reset result"
+          >✕ Reset</button>
         )}
       </div>
     </div>
