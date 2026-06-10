@@ -328,6 +328,13 @@ const CSS = `
 .desk-nav-live{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--muted2);padding:6px 16px;border-radius:12px;font-size:11px;font-weight:800;letter-spacing:.01em;min-width:72px;}
 .desk-nav-live:hover{background:var(--panel2);color:var(--ink);}
 .desk-nav-live.act{color:var(--teal);}
+.mobile-tabnav{display:none;}
+@media (max-width:780px){
+  .mobile-tabnav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .mtn-btn{display:inline-flex;align-items:center;gap:5px;background:#fff;border:2px solid var(--line2);color:var(--muted);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;}
+  .mtn-btn.act{background:linear-gradient(95deg,var(--pink),var(--orange));color:#fff;border-color:transparent;}
+  .mtn-live.act{background:linear-gradient(95deg,var(--teal),var(--blue));color:#fff;border-color:transparent;}
+}
 .step-prompt{background:linear-gradient(95deg,rgba(44,181,81,.14),rgba(18,179,166,.08));border:1.5px solid var(--green);border-radius:13px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .step-prompt-txt{font-size:13.5px;font-weight:700;color:#1c7a3a;line-height:1.4;flex:1;}
 .step-prompt-btn{flex:0 0 auto;background:linear-gradient(95deg,var(--green),var(--teal));color:#fff;border:none;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;}
@@ -873,28 +880,49 @@ export default function TippingHQ() {
         <button className={mode === "pred" ? "on" : ""} onClick={() => setMode("pred")}>🔮 Predictor</button>
       </div>
 
+      {/* Tab nav — shown on desktop via .tabs, shown on mobile via .mobile-tabnav */}
       {mode === "tip" && (
-        <nav className="tabs">
-          {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
-            <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
-              <span className="tab-ic">{ic}</span>
-              <span className="tab-full">{l}</span>
-              <span className="tab-short">{sh}</span>
-            </button>
-          ))}
-        </nav>
+        <>
+          <nav className="tabs">
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+              <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
+                <span className="tab-ic">{ic}</span>
+                <span className="tab-full">{l}</span>
+                <span className="tab-short">{sh}</span>
+              </button>
+            ))}
+          </nav>
+          <nav className="mobile-tabnav">
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","📊","Table"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
+                <span>{ic}</span>{lbl}
+              </button>
+            ))}
+            <a href="/live" className="mtn-btn mtn-live"><span>📺</span>Live</a>
+          </nav>
+        </>
       )}
 
       {mode === "pred" && (
-        <nav className="tabs">
-          {[["pg","Groups","Groups","🥇",false],["pb","Bracket","Bracket","🏆",false],["pa","Awards","Awards","🏅",false],["pl","Leaderboard","Table","📊",false]].map(([k,l,sh,ic,sep]) => (
-            <button key={k} className={`tab${ptab===k?" act":""}${sep?" sep":""}`} onClick={() => setPtab(k)}>
-              <span className="tab-ic">{ic}</span>
-              <span className="tab-full">{l}</span>
-              <span className="tab-short">{sh}</span>
-            </button>
-          ))}
-        </nav>
+        <>
+          <nav className="tabs">
+            {[["pg","Groups","Groups","🥇",false],["pb","Bracket","Bracket","🏆",false],["pa","Awards","Awards","🏅",false],["pl","Leaderboard","Table","📊",false]].map(([k,l,sh,ic,sep]) => (
+              <button key={k} className={`tab${ptab===k?" act":""}${sep?" sep":""}`} onClick={() => setPtab(k)}>
+                <span className="tab-ic">{ic}</span>
+                <span className="tab-full">{l}</span>
+                <span className="tab-short">{sh}</span>
+              </button>
+            ))}
+          </nav>
+          <nav className="mobile-tabnav">
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Table"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
+                <span>{ic}</span>{lbl}
+              </button>
+            ))}
+            <a href="/live" className="mtn-btn mtn-live"><span>📺</span>Live</a>
+          </nav>
+        </>
       )}
 
       {/* TIPPING TABS */}
