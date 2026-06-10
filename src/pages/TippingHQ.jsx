@@ -913,9 +913,12 @@ export default function TippingHQ() {
           </div>
         </div>
         <div className="hdr-r">
-          <div className={`ptotal${mode === "pred" ? " pred" : ""}`}>
-            <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
-            <div className="pt-lab">{mode === "tip" ? "tipping pts" : "predictor pts"}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className={`ptotal${mode === "pred" ? " pred" : ""}`}>
+              <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
+              <div className="pt-lab">{mode === "tip" ? "tipping pts" : "predictor pts"}</div>
+            </div>
+            <a href="/live" className="live" style={{ textDecoration: "none", flexShrink: 0 }}><span className="live-dot" />Live</a>
           </div>
           <div className="hdr-meta">
             <div className="picks">{tipCount}/{totalGroupMatches} tips in</div>
@@ -938,7 +941,6 @@ export default function TippingHQ() {
               <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
               {mode === "pred" && !predLocked && <button className="mini danger" onClick={onResetPredictor}>🗑 Reset predictor</button>}
-              <a href="/live" className="live" style={{ textDecoration: "none" }}><span className="live-dot" />Live</a>
               <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
           </div>
