@@ -1,44 +1,48 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export default function ScoreInput({ value, onChange, locked, active }) {
-  const isEmpty = value == null || value === "";
-  const externalValue = isEmpty ? null : +value;
+  const toNum = (v) => (v == null || v === "" ? null : +v);
 
-  const [local, setLocal] = useState(externalValue);
+  const [local, setLocal] = useState(() => toNum(value));
+  const localRef = useRef(local);
   const onChangeRef = useRef(onChange);
-  const isPendingRef = useRef(false); // true while user is actively editing (debounce in flight)
+  const pendingTimer = useRef(null);
+  const isPending = useRef(false);
 
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
-  // Sync from parent only if not mid-edit (avoids overwriting rapid clicks with stale DB value)
+  // Sync from parent only when not mid-edit
   useEffect(() => {
-    if (!isPendingRef.current) {
-      setLocal(externalValue);
+    const ext = toNum(value);
+    if (!isPending.current && ext !== localRef.current) {
+      localRef.current = ext;
+      setLocal(ext);
     }
-  }, [externalValue]);
+  }, [value]);
+
+  const commit = (next) => {
+    localRef.current = next;
+    setLocal(next);
+    isPending.current = true;
+    onChangeRef.current(next);
+
+    clearTimeout(pendingTimer.current);
+    pendingTimer.current = setTimeout(() => {
+      isPending.current = false;
+    }, 800);
+  };
 
   const inc = () => {
     if (locked) return;
-    const next = local == null ? 0 : local + 1;
-    setLocal(next);
-    isPendingRef.current = true;
-    onChangeRef.current(next);
-    // Clear pending flag after debounce window + buffer
-    clearTimeout(inc._t);
-    inc._t = setTimeout(() => { isPendingRef.current = false; }, 800);
+    commit(localRef.current == null ? 0 : localRef.current + 1);
   };
 
   const dec = () => {
-    if (locked || local == null || local <= 0) return;
-    const next = Math.max(0, local - 1);
-    setLocal(next);
-    isPendingRef.current = true;
-    onChangeRef.current(next);
-    clearTimeout(dec._t);
-    dec._t = setTimeout(() => { isPendingRef.current = false; }, 800);
+    if (locked || localRef.current == null || localRef.current <= 0) return;
+    commit(localRef.current - 1);
   };
 
-  const cls = ["sin", active || local != null ? "act" : "", locked ? "lk" : ""].filter(Boolean).join(" ");
+  const cls = ["sin", active || local != null ? "act" : ""].filter(Boolean).join(" ");
 
   return (
     <div className={cls}>
