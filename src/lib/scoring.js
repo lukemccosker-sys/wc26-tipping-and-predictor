@@ -86,17 +86,26 @@ export function buildOfficialKOTeamsFromResults(officialResults) {
   }
 
   // Slot teams: 1A = 1st in group A, etc.
+  // Only fill if the group has actually played at least one match
   const slotTeams = {};
   for (const group of GL) {
     const table = standings[group] || [];
-    slotTeams[`1${group}`] = table[0]?.team || null;
-    slotTeams[`2${group}`] = table[1]?.team || null;
-    slotTeams[`3${group}`] = table[2]?.team || null;
+    const groupPlayed = table.some(r => r.pld > 0);
+    if (!groupPlayed) continue; // don't assign teams from groups with no results
+    const allPlayed = table.every(r => r.pld > 0) && table.reduce((s, r) => s + r.pld, 0) >= 6;
+    // Only assign 1st/2nd once all 3 matchdays are complete (6 games played in group)
+    if (allPlayed) {
+      slotTeams[`1${group}`] = table[0]?.team || null;
+      slotTeams[`2${group}`] = table[1]?.team || null;
+      slotTeams[`3${group}`] = table[2]?.team || null;
+    }
   }
 
-  // Best 3rd-place teams: sort all 3rd-place teams by pts/gd/gf, pick top 8
+  // Best 3rd-place teams: only from groups where all matches are complete
   const thirds = GL.map(group => {
     const table = standings[group] || [];
+    const totalPld = table.reduce((s, r) => s + r.pld, 0);
+    if (totalPld < 6) return null; // group not finished
     return table[2] ? { ...table[2], group } : null;
   }).filter(Boolean).sort((a, b) =>
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
