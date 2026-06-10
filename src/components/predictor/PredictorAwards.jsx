@@ -8,6 +8,36 @@ const AWARDS = [
   { key: "glove", label: "🧤 Golden Glove", hint: "Best goalkeeper" },
 ];
 
+function AdminActualInput({ awardKey, actual, onSetOfficialAward }) {
+  const [value, setValue] = useState(actual || "");
+  const saveTimer = useRef(null);
+
+  useEffect(() => {
+    if (!actual) setValue("");
+  }, [actual]);
+
+  const handleChange = (e) => {
+    const v = e.target.value;
+    setValue(v);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => onSetOfficialAward(awardKey, v), 600);
+  };
+
+  return (
+    <div className="award-official">
+      <label>
+        Actual winner (admin):
+        <input
+          type="text"
+          placeholder="set once known"
+          value={value}
+          onChange={handleChange}
+        />
+      </label>
+    </div>
+  );
+}
+
 function AwardInput({ awardKey, label, hint, locked, savedValue, onSave, actual, isAdmin, onSetOfficialAward, awardPts }) {
   const [value, setValue] = useState(savedValue || "");
   const saveTimer = useRef(null);
@@ -68,17 +98,7 @@ function AwardInput({ awardKey, label, hint, locked, savedValue, onSave, actual,
       </div>
 
       {isAdmin && (
-        <div className="award-official">
-          <label>
-            Actual winner (admin):
-            <input
-              type="text"
-              placeholder="set once known"
-              value={actual || ""}
-              onChange={e => onSetOfficialAward(awardKey, e.target.value)}
-            />
-          </label>
-        </div>
+        <AdminActualInput awardKey={awardKey} actual={actual} onSetOfficialAward={onSetOfficialAward} />
       )}
       {!isAdmin && known && (
         <div className="award-actual">Winner: <b>{actual}</b></div>
