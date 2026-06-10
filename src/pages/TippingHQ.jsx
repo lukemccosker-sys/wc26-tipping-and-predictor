@@ -740,7 +740,7 @@ export default function TippingHQ() {
     if (predLocked) return;
     const current = bracketRef.current;
     const ap = current?.advancePicks ? JSON.parse(current.advancePicks) : {};
-    ap[matchId] = ap[matchId] === side ? null : side;
+    ap[matchId] = side; // side is already toggled/nulled by PredictorBracket's local state
     updateBracket({ advancePicks: JSON.stringify(ap) });
   };
 

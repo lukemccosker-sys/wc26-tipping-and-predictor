@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Flag from "@/lib/flags";
 import { KO_MATCHES, ROUND_ORDER, ROUND_NAME } from "@/lib/wc2026data";
 
@@ -15,43 +15,62 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   const [round, setRound] = useState("R32");
   const topRef = useRef(null);
 
-  const advancePicks = bracketPred?.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
+  // Local picks state — source of truth for UI. Syncs from prop only on initial load.
+  const [localPicks, setLocalPicks] = useState(() =>
+    bracketPred?.advancePicks ? JSON.parse(bracketPred.advancePicks) : {}
+  );
+  const initialised = useRef(false);
+
+  // Sync from prop only once when bracketPred first arrives (e.g. after data loads)
+  useEffect(() => {
+    if (!initialised.current && bracketPred?.advancePicks) {
+      setLocalPicks(JSON.parse(bracketPred.advancePicks));
+      initialised.current = true;
+    }
+  }, [bracketPred]);
 
   const idx = ROUND_ORDER.indexOf(round);
   const matches = KO_MATCHES.filter(m => m.round === round);
 
-  // Build predictor winners from advancePicks
+  // Build winners from local picks so subsequent rounds update instantly
   const predWinners = {};
-  for (const [matchId, side] of Object.entries(advancePicks)) {
+  for (const [matchId, side] of Object.entries(localPicks)) {
+    if (!side) continue;
     const m = KO_MATCHES.find(x => x.id === matchId);
     if (!m) continue;
-    const team = koTeams?.[matchId]?.[side];
+    const team = koTeams?.[matchId]?.[side === "h" ? "home" : "away"];
     if (team) predWinners[matchId] = team;
   }
+
+  const champion = predWinners["M104"];
+
+  const handlePick = (matchId, side) => {
+    if (locked) return;
+    setLocalPicks(prev => {
+      const next = { ...prev, [matchId]: prev[matchId] === side ? null : side };
+      onPickAdvance(matchId, next[matchId]);
+      return next;
+    });
+  };
 
   const goRound = (r) => {
     setRound(r);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Check if group picks are done
   const groupPicks = bracketPred?.groupPicks ? JSON.parse(bracketPred.groupPicks) : {};
   const thirdPicks = bracketPred?.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {};
   const groupsDone = Object.keys(groupPicks).filter(L => groupPicks[L]?.first && groupPicks[L]?.second).length;
   const thirdsCount = Object.keys(thirdPicks).filter(k => thirdPicks[k]).length;
   const predGroupsComplete = groupsDone === 12 && thirdsCount === 8;
 
-  const champion = predWinners["M104"];
-
-  // Count picks per round
+  // Per-round completion prompts
   const picksByRound = {};
-  for (const r of ROUND_ORDER) {
-    const roundMatches = KO_MATCHES.filter(m => m.round === r);
-    picksByRound[r] = roundMatches.filter(m => advancePicks[m.id]).length;
-  }
   const roundMatchCount = {};
   for (const r of ROUND_ORDER) {
-    roundMatchCount[r] = KO_MATCHES.filter(m => m.round === r).length;
+    const rm = KO_MATCHES.filter(m => m.round === r);
+    roundMatchCount[r] = rm.length;
+    picksByRound[r] = rm.filter(m => localPicks[m.id]).length;
   }
   const currentRoundDone = picksByRound[round] === roundMatchCount[round];
   const nextRound = ROUND_ORDER[idx + 1];
@@ -60,7 +79,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
     const home = koTeams?.[m.id]?.home;
     const away = koTeams?.[m.id]?.away;
     const teamsKnown = !!(home && away);
-    const picked = advancePicks[m.id];
+    const picked = localPicks[m.id];
     const isF = m.round === "F";
     const is3rd = m.round === "3rd";
 
@@ -78,7 +97,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
               key={side}
               className={`pko-row${isPicked ? " picked" : ""}${!team ? " empty" : ""}`}
               disabled={locked || !team}
-              onClick={() => !locked && team && onPickAdvance(m.id, side)}
+              onClick={() => handlePick(m.id, side)}
             >
               <span className="ko-team">
                 {team ? <><Flag name={team} size={16} /><span>{team}</span></> : <span className="ko-ph">{slotLabel(slot)}</span>}
@@ -122,7 +141,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
 
-      {currentRoundDone && nextRound && nextRound !== "3rd" && (
+      {currentRoundDone && nextRound && nextRound !== "3rd" && round !== "SF" && round !== "F" && (
         <div className="step-prompt" style={{ marginTop: 14 }}>
           <span className="step-prompt-txt">✅ All {ROUND_NAME[round]} picks done! Move on to the {ROUND_NAME[nextRound]}.</span>
           <button className="step-prompt-btn" onClick={() => goRound(nextRound)}>Go to {ROUND_NAME[nextRound]} →</button>
