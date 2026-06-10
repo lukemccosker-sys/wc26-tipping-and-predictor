@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Flag from "@/lib/flags";
 import { WC_GROUPS, GL } from "@/lib/wc2026data";
 
-export default function PredictorGroups({ bracketPred, locked, onPickPos, onPickThird, onSuggest, canSuggest }) {
-  // Local state — source of truth for the UI, avoids glitches from debounced DB saves
+export default function PredictorGroups({ bracketPred, locked, onPickPos, onPickThird, onSuggest, canSuggest, suggestionKey }) {
+  // Local state — source of truth for the UI, prevents glitches from debounced DB saves
   const [localGroupPicks, setLocalGroupPicks] = useState(() =>
     bracketPred?.groupPicks ? JSON.parse(bracketPred.groupPicks) : {}
   );
@@ -12,14 +12,24 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
   );
   const initialised = useRef(false);
 
-  // Sync from prop only once when bracketPred first arrives (after data loads or after auto-fill)
+  // Sync on first load only
   useEffect(() => {
-    if (bracketPred) {
+    if (!initialised.current && bracketPred) {
       setLocalGroupPicks(bracketPred.groupPicks ? JSON.parse(bracketPred.groupPicks) : {});
       setLocalThirdPicks(bracketPred.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {});
       initialised.current = true;
     }
-  }, [bracketPred?.groupPicks, bracketPred?.thirdPicks]);
+  }, [bracketPred]);
+
+  // Re-sync when an auto-fill happens (parent increments suggestionKey)
+  const prevSuggestionKey = useRef(suggestionKey);
+  useEffect(() => {
+    if (suggestionKey !== prevSuggestionKey.current && bracketPred) {
+      prevSuggestionKey.current = suggestionKey;
+      setLocalGroupPicks(bracketPred.groupPicks ? JSON.parse(bracketPred.groupPicks) : {});
+      setLocalThirdPicks(bracketPred.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {});
+    }
+  }, [suggestionKey, bracketPred]);
 
   const groupsDone = GL.filter(L => localGroupPicks[L]?.first && localGroupPicks[L]?.second).length;
   const thirdsCount = Object.keys(localThirdPicks).filter(k => localThirdPicks[k]).length;

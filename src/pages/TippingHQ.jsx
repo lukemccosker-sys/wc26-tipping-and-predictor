@@ -404,6 +404,7 @@ export default function TippingHQ() {
   const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resultNotification, setResultNotification] = useState(null);
+  const [suggestionKey, setSuggestionKey] = useState(0);
 
   // Refs must be declared before any early returns (Rules of Hooks)
   const predictionsRef = useRef([]);
@@ -862,6 +863,7 @@ export default function TippingHQ() {
     thirds.slice(0, 8).forEach(t => { if (t.team) tp[t.group] = t.team; });
 
     await saveBracket({ groupPicks: JSON.stringify(gp), thirdPicks: JSON.stringify(tp) });
+    setSuggestionKey(k => k + 1);
   };
 
   // Build predictor KO teams from bracket's group picks
@@ -1142,6 +1144,7 @@ export default function TippingHQ() {
                 onPickThird={onPickThird}
                 onSuggest={onSuggestFromTips}
                 canSuggest={canSuggest}
+                suggestionKey={suggestionKey}
               />
               {(() => {
                 const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
