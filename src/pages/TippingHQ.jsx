@@ -801,6 +801,9 @@ export default function TippingHQ() {
               {isAdmin && (
                 <button className="mini" onClick={() => setShowKickEditor(true)}>🕐 Times</button>
               )}
+              {isAdmin && (
+                <a href="/admin" className="mini" style={{ textDecoration: "none" }}>⚙️ Admin</a>
+              )}
               <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}

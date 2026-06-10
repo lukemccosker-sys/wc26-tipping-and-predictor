@@ -28,6 +28,10 @@
     },
     "officialAwards": {
       "type": "string"
+    },
+    "globalLockTipping": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": []

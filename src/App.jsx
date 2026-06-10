@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import TippingHQ from './pages/TippingHQ';
 import LiveResults from './pages/LiveResults';
+import AdminPanel from './pages/AdminPanel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<TippingHQ />} />
       <Route path="/live" element={<LiveResults />} />
+      <Route path="/admin" element={<AdminPanel />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

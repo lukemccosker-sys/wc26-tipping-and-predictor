@@ -26,7 +26,10 @@ export default function KOBracket({
   const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
   const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
   const getKickoff = (matchId) => kickoffs?.[matchId] || null;
+  const globalLock = poolSettings?.globalLockTipping ?? false;
+
   const isLocked = (matchId) => {
+    if (globalLock) return true;
     const ko = getKickoff(matchId);
     if (!ko) return false;
     return Date.now() >= ko;

@@ -42,7 +42,10 @@ export default function GroupCard({
   const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
   const getKickoff = (matchId) => kickoffs?.[matchId] || null;
 
+  const globalLock = poolSettings?.globalLockTipping ?? false;
+
   const isLocked = (matchId) => {
+    if (globalLock) return true;
     const ko = getKickoff(matchId);
     if (!ko) return false;
     return Date.now() >= ko;
