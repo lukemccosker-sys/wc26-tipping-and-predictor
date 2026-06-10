@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import Flag from "@/lib/flags";
 import GroupCard from "@/components/tipping/GroupCard";
+import KickoffView from "@/components/tipping/KickoffView";
 import KOBracket from "@/components/tipping/KOBracket";
 import Leaderboard from "@/components/tipping/Leaderboard";
 import TipsRoom from "@/components/tipping/TipsRoom";
@@ -381,6 +382,7 @@ export default function TippingHQ() {
   });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("groups");
+  const [groupView, setGroupView] = useState("group"); // "group" | "kickoff"
   const [ptab, setPtab] = useState("pg");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
@@ -916,24 +918,46 @@ export default function TippingHQ() {
       })()}
       {mode === "tip" && tab === "groups" && (
         <>
-          <div className="groups-grid">
-            {GL.map(L => (
-              <GroupCard
-                key={L}
-                group={L}
-                predictions={predictions}
-                officialResults={officialResults}
-                kickoffs={kickoffs}
-                onSetScore={onSetScore}
-                isAdmin={isAdmin}
-                adminEditing={adminEditing}
-                onSetOfficial={onSetOfficial}
-                onClearOfficial={onClearOfficial}
-                player={player}
-                poolSettings={poolSettings}
-              />
-            ))}
+          {/* View toggle */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
+            <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
           </div>
+
+          {groupView === "kickoff" ? (
+            <KickoffView
+              predictions={predictions}
+              officialResults={officialResults}
+              kickoffs={kickoffs}
+              onSetScore={onSetScore}
+              isAdmin={isAdmin}
+              adminEditing={adminEditing}
+              onSetOfficial={onSetOfficial}
+              onClearOfficial={onClearOfficial}
+              player={player}
+              poolSettings={poolSettings}
+            />
+          ) : (
+            <div className="groups-grid">
+              {GL.map(L => (
+                <GroupCard
+                  key={L}
+                  group={L}
+                  predictions={predictions}
+                  officialResults={officialResults}
+                  kickoffs={kickoffs}
+                  onSetScore={onSetScore}
+                  isAdmin={isAdmin}
+                  adminEditing={adminEditing}
+                  onSetOfficial={onSetOfficial}
+                  onClearOfficial={onClearOfficial}
+                  player={player}
+                  poolSettings={poolSettings}
+                />
+              ))}
+            </div>
+          )}
+
           {tipCount === totalGroupMatches && (
             <div className="step-prompt" style={{ marginTop: 16 }}>
               <span className="step-prompt-txt">🎉 All 72 group tips done! Head to the Bracket tab to tip the knockouts — they unlock once group results are in.</span>
