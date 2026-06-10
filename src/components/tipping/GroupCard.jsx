@@ -111,13 +111,13 @@ export default function GroupCard({
               </div>
 
               {/* Result row — shown for admin when editing, or read-only once result entered */}
-              {(adminEditing || hasOfficial) && (
+              {(hasOfficial || (isAdmin && adminEditing)) && (
                 <div className="gm-result-row">
                   <span className="gm-result-lbl">
                     {hasOfficial ? "✅ Result" : "📝 Enter result"}
                   </span>
                   <div className="gm-result-inputs">
-                    {adminEditing ? (
+                    {isAdmin && adminEditing ? (
                       <>
                         <ScoreInput
                           value={official?.homeScore}

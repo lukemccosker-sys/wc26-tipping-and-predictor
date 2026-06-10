@@ -78,7 +78,7 @@ export default function KOBracket({
             </span>
             {hasOfficial ? (
               <span className="ko-osc">{official[side]}</span>
-            ) : adminEditing && teamsKnown ? (
+            ) : isAdmin && adminEditing && teamsKnown ? (
               <ScoreInput value={official?.[side]} onChange={v => onSetOfficial(m.id, side, v)} locked={false} active />
             ) : teamsKnown ? (
               <ScoreInput
@@ -115,13 +115,13 @@ export default function KOBracket({
         )}
 
         {/* Result entry row for admin */}
-        {(adminEditing || hasOfficial) && (
+        {(hasOfficial || (isAdmin && adminEditing)) && (
           <div className="gm-result-row" style={{ marginTop: 6 }}>
             <span className="gm-result-lbl">
               {hasOfficial ? "✅ Result" : "📝 Enter result"}
             </span>
             <div className="gm-result-inputs">
-              {adminEditing ? (
+              {isAdmin && adminEditing ? (
                 <>
                   <ScoreInput
                     value={official?.homeScore}
