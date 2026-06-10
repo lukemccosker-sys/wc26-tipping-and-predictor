@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { DEFAULT_PRED_SETTINGS } from "@/lib/wc2026data";
 
 const AWARDS = [
   { key: "boot", label: "🥇 Golden Boot", hint: "Top goalscorer" },
@@ -7,17 +8,30 @@ const AWARDS = [
   { key: "glove", label: "🧤 Golden Glove", hint: "Best goalkeeper" },
 ];
 
-import { DEFAULT_PRED_SETTINGS } from "@/lib/wc2026data";
-
 export default function PredictorAwards({ bracketPred, locked, onSetAward, officialAwards, isAdmin, onSetOfficialAward, predSettings }) {
   const awardPts = predSettings?.award ?? DEFAULT_PRED_SETTINGS.award ?? 5;
-  const awardPicks = bracketPred?.awardPicks ? JSON.parse(bracketPred.awardPicks) : {};
+
+  // Local state for smooth typing — syncs from bracketPred on mount/change
+  const [localPicks, setLocalPicks] = useState(() => {
+    return bracketPred?.awardPicks ? JSON.parse(bracketPred.awardPicks) : {};
+  });
+
+  useEffect(() => {
+    setLocalPicks(bracketPred?.awardPicks ? JSON.parse(bracketPred.awardPicks) : {});
+  }, [bracketPred?.awardPicks]);
+
+  const savedPicks = bracketPred?.awardPicks ? JSON.parse(bracketPred.awardPicks) : {};
 
   function awardMatch(mine, actual) {
     if (!mine || !actual) return false;
     const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     return norm(mine) === norm(actual);
   }
+
+  const handleChange = (key, value) => {
+    setLocalPicks(prev => ({ ...prev, [key]: value }));
+    onSetAward(key, value);
+  };
 
   return (
     <div className="awards">
@@ -27,9 +41,9 @@ export default function PredictorAwards({ bracketPred, locked, onSetAward, offic
 
       {AWARDS.map(({ key, label, hint }) => {
         const actual = officialAwards?.[key];
-        const mine = awardPicks[key] || "";
+        const saved = savedPicks[key] || "";
         const known = !!(actual && actual.trim());
-        const ok = known && awardMatch(mine, actual);
+        const ok = known && awardMatch(saved, actual);
 
         return (
           <div className="award-card" key={key}>
@@ -48,9 +62,9 @@ export default function PredictorAwards({ bracketPred, locked, onSetAward, offic
               className="award-in"
               type="text"
               placeholder="e.g. Kylian Mbappé"
-              value={mine}
+              value={localPicks[key] || ""}
               disabled={locked}
-              onChange={e => onSetAward(key, e.target.value)}
+              onChange={e => handleChange(key, e.target.value)}
             />
             <div className="award-note">
               ✍️ Full name, no abbreviations. Accents optional — <b>Mbappe</b> or <b>Mbappé</b> both count.
