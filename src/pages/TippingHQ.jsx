@@ -313,7 +313,20 @@ const CSS = `
 .gm-result-score{font-family:'Anton',sans-serif;font-size:18px;color:var(--teal);}
 .result-clear-btn{background:#fff0f2;border:1.5px solid var(--pink);color:var(--pink);border-radius:8px;padding:4px 9px;font-size:13px;font-weight:800;cursor:pointer;line-height:1;font-family:inherit;}
 .result-clear-btn:hover{background:var(--pink);color:#fff;}
+.desk-nav{display:flex;align-items:center;justify-content:center;gap:6px;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px -16px rgba(80,40,20,.4);}
+.desk-nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;color:var(--muted2);cursor:pointer;font-family:inherit;padding:6px 16px;border-radius:12px;font-size:11px;font-weight:800;letter-spacing:.01em;min-width:72px;}
+.desk-nav-btn:hover{background:var(--panel2);color:var(--ink);}
+.desk-nav-btn.act{color:var(--pink);}
+.desk-nav-btn .dnic{font-size:22px;line-height:1;}
+.desk-nav-sep{width:1px;height:32px;background:var(--line);margin:0 4px;flex:0 0 auto;}
+.desk-nav-live{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--muted2);padding:6px 16px;border-radius:12px;font-size:11px;font-weight:800;letter-spacing:.01em;min-width:72px;}
+.desk-nav-live:hover{background:var(--panel2);color:var(--ink);}
+.desk-nav-live.act{color:var(--teal);}
+.step-prompt{background:linear-gradient(95deg,rgba(44,181,81,.14),rgba(18,179,166,.08));border:1.5px solid var(--green);border-radius:13px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.step-prompt-txt{font-size:13.5px;font-weight:700;color:#1c7a3a;line-height:1.4;flex:1;}
+.step-prompt-btn{flex:0 0 auto;background:linear-gradient(95deg,var(--green),var(--teal));color:#fff;border:none;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;}
 @media (max-width:780px){
+  .desk-nav{display:none;}
   .wc{padding:14px 12px calc(78px + env(safe-area-inset-bottom,0px));}
   .board{grid-template-columns:1fr;}
   .hdr{align-items:flex-start;gap:12px;}
@@ -835,24 +848,32 @@ export default function TippingHQ() {
         );
       })()}
       {mode === "tip" && tab === "groups" && (
-        <div className="groups-grid">
-          {GL.map(L => (
-            <GroupCard
-              key={L}
-              group={L}
-              predictions={predictions}
-              officialResults={officialResults}
-              kickoffs={kickoffs}
-              onSetScore={onSetScore}
-              isAdmin={isAdmin}
-              adminEditing={adminEditing}
-              onSetOfficial={onSetOfficial}
-              onClearOfficial={onClearOfficial}
-              player={player}
-              poolSettings={poolSettings}
-            />
-          ))}
-        </div>
+        <>
+          <div className="groups-grid">
+            {GL.map(L => (
+              <GroupCard
+                key={L}
+                group={L}
+                predictions={predictions}
+                officialResults={officialResults}
+                kickoffs={kickoffs}
+                onSetScore={onSetScore}
+                isAdmin={isAdmin}
+                adminEditing={adminEditing}
+                onSetOfficial={onSetOfficial}
+                onClearOfficial={onClearOfficial}
+                player={player}
+                poolSettings={poolSettings}
+              />
+            ))}
+          </div>
+          {tipCount === totalGroupMatches && (
+            <div className="step-prompt" style={{ marginTop: 16 }}>
+              <span className="step-prompt-txt">🎉 All 72 group tips done! Head to the Bracket tab to tip the knockouts — they unlock once group results are in.</span>
+              <button className="step-prompt-btn" onClick={() => setTab("ko")}>Go to Bracket →</button>
+            </div>
+          )}
+        </>
       )}
 
       {mode === "tip" && tab === "ko" && (
@@ -924,35 +945,77 @@ export default function TippingHQ() {
           )}
 
           {ptab === "pg" && (
-            <PredictorGroups
-              bracketPred={myBracket}
-              locked={predLocked}
-              onPickPos={onPickPos}
-              onPickThird={onPickThird}
-              onSuggest={onSuggestFromTips}
-              canSuggest={canSuggest}
-            />
+            <>
+              <PredictorGroups
+                bracketPred={myBracket}
+                locked={predLocked}
+                onPickPos={onPickPos}
+                onPickThird={onPickThird}
+                onSuggest={onSuggestFromTips}
+                canSuggest={canSuggest}
+              />
+              {(() => {
+                const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
+                const tp = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
+                const groupsDone = GL.every(L => gp[L]?.first && gp[L]?.second);
+                const thirdsDone = Object.values(tp).filter(Boolean).length >= 8;
+                if (groupsDone && thirdsDone) return (
+                  <div className="step-prompt" style={{ marginTop: 14 }}>
+                    <span className="step-prompt-txt">✅ All groups & best 3rd picks done! Now click winners through the knockout bracket.</span>
+                    <button className="step-prompt-btn" onClick={() => setPtab("pb")}>Go to Bracket →</button>
+                  </div>
+                );
+                return null;
+              })()}
+            </>
           )}
 
           {ptab === "pb" && (
-            <PredictorBracket
-              bracketPred={myBracket}
-              locked={predLocked}
-              koTeams={predKOTeams}
-              onPickAdvance={onPickAdvance}
-              onGoToAwards={() => setPtab("pa")}
-            />
+            <>
+              <PredictorBracket
+                bracketPred={myBracket}
+                locked={predLocked}
+                koTeams={predKOTeams}
+                onPickAdvance={onPickAdvance}
+                onGoToAwards={() => setPtab("pa")}
+              />
+              {(() => {
+                const ap = myBracket?.advancePicks ? JSON.parse(myBracket.advancePicks) : {};
+                const koMatchCount = KO_MATCHES.filter(m => m.round !== "3rd").length;
+                const pickedCount = Object.values(ap).filter(Boolean).length;
+                if (pickedCount >= koMatchCount - 1) return (
+                  <div className="step-prompt" style={{ marginTop: 14 }}>
+                    <span className="step-prompt-txt">🏆 Bracket looking good! Last step — pick your four individual award winners.</span>
+                    <button className="step-prompt-btn" onClick={() => setPtab("pa")}>Go to Awards →</button>
+                  </div>
+                );
+                return null;
+              })()}
+            </>
           )}
 
           {ptab === "pa" && (
-            <PredictorAwards
-              bracketPred={myBracket}
-              locked={predLocked}
-              onSetAward={onSetAward}
-              officialAwards={officialAwards}
-              isAdmin={isAdmin}
-              onSetOfficialAward={onSetOfficialAward}
-            />
+            <>
+              <PredictorAwards
+                bracketPred={myBracket}
+                locked={predLocked}
+                onSetAward={onSetAward}
+                officialAwards={officialAwards}
+                isAdmin={isAdmin}
+                onSetOfficialAward={onSetOfficialAward}
+              />
+              {(() => {
+                const awards = myBracket?.awardPicks ? JSON.parse(myBracket.awardPicks) : {};
+                const awardsDone = ["boot","ball","young","glove"].every(k => awards[k]?.trim());
+                if (awardsDone) return (
+                  <div className="step-prompt" style={{ marginTop: 14 }}>
+                    <span className="step-prompt-txt">🎉 Predictor complete! Check the leaderboard to see how you stack up against everyone else.</span>
+                    <button className="step-prompt-btn" onClick={() => setPtab("pl")}>View Leaderboard →</button>
+                  </div>
+                );
+                return null;
+              })()}
+            </>
           )}
 
           {ptab === "pl" && (
@@ -971,9 +1034,38 @@ export default function TippingHQ() {
         </>
       )}
 
-      <footer className="ft">
+      <footer className="ft" style={{ paddingBottom: 72 }}>
         Tables sort on points → goal difference → goals scored. Admin PIN is a light lock for friendly pools, not real security. Built for fun — not affiliated with FIFA.
       </footer>
+
+      {/* Desktop bottom nav */}
+      <nav className="desk-nav">
+        {mode === "tip" ? (
+          <>
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","📊","Table"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
+                <span className="dnic">{ic}</span>{lbl}
+              </button>
+            ))}
+            <div className="desk-nav-sep" />
+            <a href="/live" className="desk-nav-live">
+              <span className="dnic">📺</span>Live
+            </a>
+          </>
+        ) : (
+          <>
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Table"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
+                <span className="dnic">{ic}</span>{lbl}
+              </button>
+            ))}
+            <div className="desk-nav-sep" />
+            <a href="/live" className="desk-nav-live">
+              <span className="dnic">📺</span>Live
+            </a>
+          </>
+        )}
+      </nav>
 
       {showKickEditor && (
         <KickoffEditor
