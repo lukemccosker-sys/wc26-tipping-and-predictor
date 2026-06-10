@@ -961,7 +961,7 @@ export default function TippingHQ() {
               {(() => {
                 const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
                 const tp = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
-                const groupsDone = GL.every(L => gp[L]?.first && gp[L]?.second);
+                const groupsDone = GL.filter(L => gp[L]?.first && gp[L]?.second).length === 12;
                 const thirdsDone = Object.values(tp).filter(Boolean).length >= 8;
                 if (groupsDone && thirdsDone) return (
                   <div className="step-prompt" style={{ marginTop: 14 }}>
