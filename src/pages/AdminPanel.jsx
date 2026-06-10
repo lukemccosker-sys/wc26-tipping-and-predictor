@@ -49,6 +49,12 @@ export default function AdminPanel() {
     }
   };
 
+  const resetAllResults = async () => {
+    if (!window.confirm("Reset ALL official match results? This wipes every entered score and cannot be undone.")) return;
+    const results = await base44.entities.OfficialResult.list();
+    await Promise.all(results.map(r => base44.entities.OfficialResult.delete(r.id)));
+  };
+
   const removePlayer = async (p) => {
     if (!window.confirm(`Remove ${p.name}? This permanently deletes all their tips and predictions.`)) return;
     setRemoving(p.id);
@@ -144,6 +150,20 @@ export default function AdminPanel() {
           </div>
           <button className={`lock-knob${globalLocked ? " on" : ""}`} onClick={toggleGlobalLock} title="Toggle global tipping lock" />
         </div>
+      </div>
+
+      {/* Reset results */}
+      <div className="ap-card">
+        <div className="ap-section-title">🗑 Reset All Results</div>
+        <div className="ap-section-sub">Wipes every official match result entered so far. Use this to test the app from scratch.</div>
+        <button
+          onClick={resetAllResults}
+          style={{ background: "#fff0f2", border: "1.5px solid #ff3d7f", color: "#ff3d7f", borderRadius: 10, padding: "11px 20px", fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}
+          onMouseOver={e => { e.target.style.background = "#ff3d7f"; e.target.style.color = "#fff"; }}
+          onMouseOut={e => { e.target.style.background = "#fff0f2"; e.target.style.color = "#ff3d7f"; }}
+        >
+          🗑 Reset All Entered Results
+        </button>
       </div>
 
       {/* Players list */}
