@@ -530,32 +530,40 @@ export default function TippingHQ() {
 
   // Save prediction — only persists once both scores are set
   const onSetScore = async (matchId, side, value) => {
-    const existing = predictions.find(p => p.playerId === player.id && p.matchId === matchId);
-    const updatedPred = existing
-      ? { ...existing, [side === "h" ? "homeScore" : "awayScore"]: value }
-      : { playerId: player.id, matchId, homeScore: side === "h" ? value : null, awayScore: side === "a" ? value : null };
+    const field = side === "h" ? "homeScore" : "awayScore";
 
-    // Update local state immediately so UI reflects the change
-    if (existing) {
-      setPredictions(prev => prev.map(p => p.id === existing.id ? updatedPred : p));
-    } else {
-      // Temp local-only record (no id yet) so UI shows the partial score
-      setPredictions(prev => [...prev.filter(p => !(p.playerId === player.id && p.matchId === matchId)), updatedPred]);
-    }
+    // Update local state immediately using functional update to avoid stale closure
+    setPredictions(prev => {
+      const existing = prev.find(p => p.playerId === player.id && p.matchId === matchId);
+      if (existing) {
+        return prev.map(p => p.id === existing.id || (p.playerId === player.id && p.matchId === matchId)
+          ? { ...p, [field]: value }
+          : p
+        );
+      } else {
+        return [...prev, { playerId: player.id, matchId, homeScore: side === "h" ? value : null, awayScore: side === "a" ? value : null }];
+      }
+    });
 
-    // Only persist to DB when both scores are present
-    const homeScore = updatedPred.homeScore;
-    const awayScore = updatedPred.awayScore;
-    if (homeScore == null || awayScore == null) return;
+    // Read latest state after update to decide whether to persist
+    setPredictions(prev => {
+      const pred = prev.find(p => p.playerId === player.id && p.matchId === matchId);
+      if (!pred || pred.homeScore == null || pred.awayScore == null) return prev;
 
-    if (existing) {
-      await base44.entities.Prediction.update(existing.id, { homeScore, awayScore });
-    } else {
-      const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore });
-      setPredictions(prev => prev.map(p =>
-        p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
-      ));
-    }
+      // Persist to DB asynchronously
+      const { homeScore, awayScore } = pred;
+      if (pred.id) {
+        base44.entities.Prediction.update(pred.id, { homeScore, awayScore });
+      } else {
+        base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore })
+          .then(saved => {
+            setPredictions(p2 => p2.map(p =>
+              p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
+            ));
+          });
+      }
+      return prev;
+    });
   };
 
   // Save official result
