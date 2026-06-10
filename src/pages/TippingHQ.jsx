@@ -392,7 +392,9 @@ export default function TippingHQ() {
     : {};
 
   const isAdmin = player?.isAdmin || false;
-  const predLocked = Date.now() >= PREDICTOR_LOCK_UTC;
+  // Lock predictor at the first game kickoff (GA0), overridable by kickoff overrides
+  const firstKickoff = kickoffs["GA0"] ?? PREDICTOR_LOCK_UTC;
+  const predLocked = Date.now() >= firstKickoff;
 
   const fetchAll = useCallback(async () => {
     const [pl, pr, or_, bp, ps] = await Promise.all([
@@ -517,6 +519,16 @@ export default function TippingHQ() {
     });
     await Promise.all(toDelete.map(p => base44.entities.Prediction.delete(p.id)));
     setPredictions(prev => prev.filter(p => !toDelete.find(d => d.id === p.id)));
+  };
+
+  // Reset predictor picks (only if not locked)
+  const onResetPredictor = async () => {
+    if (predLocked) return;
+    if (!window.confirm("Are you sure you want to reset all your predictor picks? This cannot be undone.")) return;
+    if (myBracket) {
+      await base44.entities.BracketPrediction.delete(myBracket.id);
+      setBracketPredictions(prev => prev.filter(b => b.id !== myBracket.id));
+    }
   };
 
   const onSetOfficialPen = async (matchId, side) => {
@@ -698,7 +710,8 @@ export default function TippingHQ() {
               )}
               <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
-              <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>
+              {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
+              {mode === "pred" && !predLocked && <button className="mini danger" onClick={onResetPredictor}>🗑 Reset predictor</button>}
               <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
           </div>
