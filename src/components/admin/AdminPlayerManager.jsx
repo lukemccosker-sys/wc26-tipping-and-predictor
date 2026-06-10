@@ -24,8 +24,17 @@ export default function AdminPlayerManager({ players, onRefresh }) {
   };
 
   const removePlayer = async (p) => {
-    if (!window.confirm(`Remove ${p.name}? This deletes their picks permanently.`)) return;
-    await base44.entities.Player.delete(p.id);
+    if (!window.confirm(`Remove ${p.name}? This deletes their tips, predictions and all picks permanently.`)) return;
+    // Delete all their predictions and bracket picks too
+    const [preds, brackets] = await Promise.all([
+      base44.entities.Prediction.filter({ playerId: p.id }),
+      base44.entities.BracketPrediction.filter({ playerId: p.id }),
+    ]);
+    await Promise.all([
+      ...preds.map(r => base44.entities.Prediction.delete(r.id)),
+      ...brackets.map(r => base44.entities.BracketPrediction.delete(r.id)),
+      base44.entities.Player.delete(p.id),
+    ]);
     onRefresh();
   };
 
