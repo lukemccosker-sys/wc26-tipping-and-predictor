@@ -781,10 +781,15 @@ export default function TippingHQ() {
 
   const onSetAward = async (key, value) => {
     if (predLocked) return;
-    const existing = myBracket;
+    const existing = bracketRef.current;
     const awards = existing?.awardPicks ? JSON.parse(existing.awardPicks) : {};
     awards[key] = value;
-    await saveBracket({ awardPicks: JSON.stringify(awards) });
+    const awardPicksStr = JSON.stringify(awards);
+    // Keep bracketRef in sync so subsequent bracket picks don't overwrite awardPicks
+    bracketRef.current = existing
+      ? { ...existing, awardPicks: awardPicksStr }
+      : { playerId: player.id, awardPicks: awardPicksStr };
+    await saveBracket({ awardPicks: awardPicksStr });
   };
 
   const onSetOfficialAward = async (key, value) => {
