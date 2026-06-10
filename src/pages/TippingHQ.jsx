@@ -634,8 +634,11 @@ export default function TippingHQ() {
   const onResetTips = async () => {
     if (!window.confirm("Are you sure you want to reset all your tips for unlocked matches? This cannot be undone.")) return;
     const toDelete = myPreds.filter(p => {
+      if (poolSettings?.globalLockTipping) return false;
+      const official = officialResults.find(r => r.matchId === p.matchId);
+      if (official && official.homeScore != null) return false; // has official result = locked
       const ko = kickoffs[p.matchId];
-      return !ko || Date.now() < ko;
+      return !ko || Date.now() < ko; // only delete if kickoff hasn't passed
     });
     await Promise.all(toDelete.map(p => base44.entities.Prediction.delete(p.id)));
     setPredictions(prev => prev.filter(p => !toDelete.find(d => d.id === p.id)));
