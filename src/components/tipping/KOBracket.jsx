@@ -122,10 +122,10 @@ export default function KOBracket({
         )}
 
         {/* Result row */}
-        {hasOfficial && !adminEditing && (
+        {hasOfficial && !(isAdmin && adminEditing) && (
           <div className="gm-result-row" style={{ marginTop: 6 }}>
             <span className="gm-result-lbl">✅ Result</span>
-            <span className="gm-result-score">{official.homeScore} – {official.awayScore}</span>
+            <span className="gm-result-score">{official.homeScore} – {official.awayScore}{pen ? ` (${pen === "h" ? home : away} on pens)` : ""}</span>
           </div>
         )}
         {isAdmin && adminEditing && (
