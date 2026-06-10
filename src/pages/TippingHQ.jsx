@@ -1377,7 +1377,7 @@ function assignThirdPlaceTeams(tp, slotTeams) {
   });
 
   let bestAssignment = null;
-  let bestCount = 0;
+  let bestCount = -1;
 
   function backtrack(pickIdx, usedSlots) {
     if (pickIdx === picks.length) {
@@ -1385,6 +1385,7 @@ function assignThirdPlaceTeams(tp, slotTeams) {
       if (count > bestCount) { bestCount = count; bestAssignment = assignment.slice(); }
       return;
     }
+    // Try every eligible slot for this pick
     for (const si of eligibleSlots[pickIdx]) {
       if (!usedSlots.has(si)) {
         assignment[pickIdx] = si;
@@ -1394,6 +1395,7 @@ function assignThirdPlaceTeams(tp, slotTeams) {
         assignment[pickIdx] = null;
       }
     }
+    // Also try leaving this pick unplaced so later picks can use slots this one could have taken
     assignment[pickIdx] = -1;
     backtrack(pickIdx + 1, usedSlots);
     assignment[pickIdx] = null;

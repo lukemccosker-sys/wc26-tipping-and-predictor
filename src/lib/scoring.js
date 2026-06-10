@@ -29,24 +29,24 @@ export function assignThirdPlaceTeams(tp, slotTeams) {
     }, []);
   });
 
-  // Backtrack to find assignment that places the most teams
+  // Backtrack over ALL slot permutations to find the assignment that places the most teams
+  // Each pick is either placed in one of its eligible slots, or marked -1 (unplaced).
+  // We try EVERY combination so rearranging earlier picks can free up slots for later ones.
   let bestAssignment = null;
-  let bestCount = 0;
+  let bestCount = -1;
 
   function backtrack(pickIdx, usedSlots) {
     if (pickIdx === picks.length) {
-      const count = assignment.filter(x => x !== null).length;
+      const count = assignment.filter(x => x !== null && x !== -1).length;
       if (count > bestCount) {
         bestCount = count;
         bestAssignment = assignment.slice();
       }
       return;
     }
-    // Try eligible slots first
-    const tried = new Set();
+    // Try every eligible slot
     for (const si of eligibleSlots[pickIdx]) {
       if (!usedSlots.has(si)) {
-        tried.add(si);
         assignment[pickIdx] = si;
         usedSlots.add(si);
         backtrack(pickIdx + 1, usedSlots);
@@ -54,8 +54,8 @@ export function assignThirdPlaceTeams(tp, slotTeams) {
         assignment[pickIdx] = null;
       }
     }
-    // Also try skipping this pick (leave unplaced) so earlier picks don't block later ones
-    assignment[pickIdx] = -1; // sentinel: skip
+    // Also try leaving this pick unplaced (allows later picks to use slots this one could have taken)
+    assignment[pickIdx] = -1;
     backtrack(pickIdx + 1, usedSlots);
     assignment[pickIdx] = null;
   }
