@@ -14,6 +14,11 @@ const COUNTRY_CODES = {
   "Poland": "pl", "New Zealand": "nz", "Egypt": "eg", "South Korea": "kr",
   "Bolivia": "bo", "Jamaica": "jm", "Indonesia": "id", "Venezuela": "ve",
   "Ukraine": "ua", "Turkey": "tr", "Romania": "ro", "Austria": "at",
+  // WC 2026 teams
+  "Czechia": "cz", "Qatar": "qa", "Bosnia & Herz.": "ba", "Scotland": "gb-sct",
+  "Haiti": "ht", "Türkiye": "tr", "Côte d'Ivoire": "ci", "Curaçao": "cw",
+  "Sweden": "se", "Tunisia": "tn", "Cabo Verde": "cv", "Norway": "no",
+  "Iraq": "iq", "Jordan": "jo", "Uzbekistan": "uz",
 };
 
 const EMOJI_FLAGS = {
@@ -29,6 +34,10 @@ const EMOJI_FLAGS = {
   "Poland":"🇵🇱","New Zealand":"🇳🇿","Egypt":"🇪🇬","South Korea":"🇰🇷",
   "Bolivia":"🇧🇴","Jamaica":"🇯🇲","Indonesia":"🇮🇩","Venezuela":"🇻🇪",
   "Ukraine":"🇺🇦","Turkey":"🇹🇷","Romania":"🇷🇴","Austria":"🇦🇹",
+  "Czechia":"🇨🇿","Qatar":"🇶🇦","Bosnia & Herz.":"🇧🇦","Scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Haiti":"🇭🇹","Türkiye":"🇹🇷","Côte d'Ivoire":"🇨🇮","Curaçao":"🇨🇼",
+  "Sweden":"🇸🇪","Tunisia":"🇹🇳","Cabo Verde":"🇨🇻","Norway":"🇳🇴",
+  "Iraq":"🇮🇶","Jordan":"🇯🇴","Uzbekistan":"🇺🇿",
 };
 
 export default function Flag({ name, size = 20 }) {
