@@ -1,0 +1,24 @@
+{
+  "name": "BracketPrediction",
+  "type": "object",
+  "properties": {
+    "playerId": {
+      "type": "string"
+    },
+    "groupPicks": {
+      "type": "string"
+    },
+    "thirdPicks": {
+      "type": "string"
+    },
+    "advancePicks": {
+      "type": "string"
+    },
+    "awardPicks": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "playerId"
+  ]
+}

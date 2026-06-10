@@ -1,0 +1,34 @@
+{
+  "name": "PoolSettings",
+  "type": "object",
+  "properties": {
+    "adminPin": {
+      "type": "string"
+    },
+    "adminName": {
+      "type": "string"
+    },
+    "pointsExact": {
+      "type": "number",
+      "default": 5
+    },
+    "pointsGD": {
+      "type": "number",
+      "default": 3
+    },
+    "pointsResult": {
+      "type": "number",
+      "default": 1
+    },
+    "predSettings": {
+      "type": "string"
+    },
+    "kickoffOverrides": {
+      "type": "string"
+    },
+    "officialAwards": {
+      "type": "string"
+    }
+  },
+  "required": []
+}

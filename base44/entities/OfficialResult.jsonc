@@ -1,0 +1,21 @@
+{
+  "name": "OfficialResult",
+  "type": "object",
+  "properties": {
+    "matchId": {
+      "type": "string"
+    },
+    "homeScore": {
+      "type": "number"
+    },
+    "awayScore": {
+      "type": "number"
+    },
+    "penaltyWinner": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "matchId"
+  ]
+}

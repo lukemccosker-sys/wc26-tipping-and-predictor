@@ -1,0 +1,22 @@
+{
+  "name": "Prediction",
+  "type": "object",
+  "properties": {
+    "playerId": {
+      "type": "string"
+    },
+    "matchId": {
+      "type": "string"
+    },
+    "homeScore": {
+      "type": "number"
+    },
+    "awayScore": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "playerId",
+    "matchId"
+  ]
+}
