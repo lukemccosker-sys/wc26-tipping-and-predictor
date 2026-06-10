@@ -475,6 +475,17 @@ export default function TippingHQ() {
     }
   }, []);
 
+  // On load, verify stored player still exists in DB — if removed, kick back to login
+  useEffect(() => {
+    if (!player) return;
+    base44.entities.Player.filter({ id: player.id }, null, 1).then(results => {
+      if (!results || results.length === 0) {
+        localStorage.removeItem("wc_player");
+        setPlayer(null);
+      }
+    });
+  }, []);
+
   useEffect(() => {
     if (!player) return;
     fetchAll();
@@ -483,7 +494,14 @@ export default function TippingHQ() {
     const unsubPlayers = base44.entities.Player.subscribe((event) => {
       if (event.type === "create") setPlayers(prev => [...prev.filter(p => p.id !== event.id), event.data]);
       else if (event.type === "update") setPlayers(prev => prev.map(p => p.id === event.id ? event.data : p));
-      else if (event.type === "delete") setPlayers(prev => prev.filter(p => p.id !== event.id));
+      else if (event.type === "delete") {
+        setPlayers(prev => prev.filter(p => p.id !== event.id));
+        // If the deleted player is the currently logged-in user, force logout
+        if (event.id === playerRef.current?.id) {
+          localStorage.removeItem("wc_player");
+          setPlayer(null);
+        }
+      }
     });
 
     const unsubPred = base44.entities.Prediction.subscribe((event) => {
