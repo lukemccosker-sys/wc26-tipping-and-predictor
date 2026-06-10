@@ -506,9 +506,17 @@ export default function TippingHQ() {
     });
 
     const unsubPred = base44.entities.Prediction.subscribe((event) => {
-      if (event.type === "create") setPredictions(prev => [...prev.filter(p => p.id !== event.id), event.data]);
-      else if (event.type === "update") setPredictions(prev => prev.map(p => p.id === event.id ? event.data : p));
-      else if (event.type === "delete") setPredictions(prev => prev.filter(p => p.id !== event.id));
+      if (event.type === "create") {
+        // Skip if there's a pending save for this match (our optimistic state is newer)
+        if (event.data?.matchId && saveTimers.current[event.data.matchId]) return;
+        setPredictions(prev => [...prev.filter(p => p.id !== event.id), event.data]);
+      } else if (event.type === "update") {
+        // Skip if there's a pending save for this match (our optimistic state is newer)
+        if (event.data?.matchId && saveTimers.current[event.data.matchId]) return;
+        setPredictions(prev => prev.map(p => p.id === event.id ? event.data : p));
+      } else if (event.type === "delete") {
+        setPredictions(prev => prev.filter(p => p.id !== event.id));
+      }
     });
 
     const unsubOfficial = base44.entities.OfficialResult.subscribe((event) => {
@@ -697,7 +705,8 @@ export default function TippingHQ() {
     if (!window.confirm("Are you sure you want to reset all your tips for unlocked matches? This cannot be undone.")) return;
     if (poolSettings?.globalLockTipping) return;
 
-    const myPredsCurrent = predictionsRef.current.filter(p => p.playerId === player.id);
+    // Use the latest predictions state (not ref, which may be slightly stale)
+    const myPredsCurrent = predictions.filter(p => p.playerId === player.id);
     const toDelete = myPredsCurrent.filter(p => {
       const official = officialResults.find(r => r.matchId === p.matchId);
       if (official && official.homeScore != null) return false; // result already in, locked
@@ -706,15 +715,17 @@ export default function TippingHQ() {
       return true;
     });
 
-    // Clear any pending debounced saves for these matches immediately
-    toDelete.forEach(p => {
-      clearTimeout(saveTimers.current[p.matchId]);
-      delete saveTimers.current[p.matchId];
+    // Clear ALL pending debounced saves immediately so nothing gets re-saved after deletion
+    Object.keys(saveTimers.current).forEach(matchId => {
+      clearTimeout(saveTimers.current[matchId]);
+      delete saveTimers.current[matchId];
     });
 
-    // Only delete records that exist in DB (have an id)
+    // Delete records from DB (only those with an id), one by one to ensure reliability
     const toDeleteInDB = toDelete.filter(p => p.id);
-    await Promise.all(toDeleteInDB.map(p => base44.entities.Prediction.delete(p.id)));
+    for (const p of toDeleteInDB) {
+      await base44.entities.Prediction.delete(p.id);
+    }
 
     const deletedMatchIds = new Set(toDelete.map(d => d.matchId));
     setPredictions(prev => {
