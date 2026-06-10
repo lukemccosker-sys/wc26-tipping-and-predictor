@@ -1,6 +1,7 @@
 import React from "react";
 import Flag from "@/lib/flags";
 import ScoreInput from "./ScoreInput";
+import ResultEntry from "./ResultEntry";
 import Countdown from "./Countdown";
 import { groupMatches, WC_GROUPS } from "@/lib/wc2026data";
 import { scoreTip } from "@/lib/wc2026data";
@@ -110,43 +111,20 @@ export default function GroupCard({
                 </div>
               </div>
 
-              {/* Result row — shown for admin when editing, or read-only once result entered */}
-              {(hasOfficial || (isAdmin && adminEditing)) && (
+              {/* Result row */}
+              {hasOfficial && !adminEditing && (
                 <div className="gm-result-row">
-                  <span className="gm-result-lbl">
-                    {hasOfficial ? "✅ Result" : "📝 Enter result"}
-                  </span>
-                  <div className="gm-result-inputs">
-                    {isAdmin && adminEditing ? (
-                      <>
-                        <ScoreInput
-                          value={official?.homeScore}
-                          onChange={v => onSetOfficial(m.id, "h", v)}
-                          locked={false}
-                          active={hasOfficial}
-                        />
-                        <span className="vs">–</span>
-                        <ScoreInput
-                          value={official?.awayScore}
-                          onChange={v => onSetOfficial(m.id, "a", v)}
-                          locked={false}
-                          active={hasOfficial}
-                        />
-                        {hasOfficial && (
-                          <button
-                            className="result-clear-btn"
-                            onClick={() => onClearOfficial(m.id)}
-                            title="Clear result"
-                          >✕</button>
-                        )}
-                      </>
-                    ) : (
-                      <span className="gm-result-score">
-                        {official.homeScore} – {official.awayScore}
-                      </span>
-                    )}
-                  </div>
+                  <span className="gm-result-lbl">✅ Result</span>
+                  <span className="gm-result-score">{official.homeScore} – {official.awayScore}</span>
                 </div>
+              )}
+              {isAdmin && adminEditing && (
+                <ResultEntry
+                  matchId={m.id}
+                  official={official}
+                  onSetOfficial={(mid, h, a) => onSetOfficial(mid, h, a)}
+                  onClearOfficial={onClearOfficial}
+                />
               )}
             </div>
           );

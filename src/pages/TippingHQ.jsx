@@ -625,15 +625,15 @@ export default function TippingHQ() {
     }, 400);
   };
 
-  // Save official result
-  const onSetOfficial = async (matchId, side, value) => {
+  // Commit official result (both scores at once) — triggers notification banner for all users
+  const onSetOfficial = async (matchId, homeScore, awayScore) => {
     const existing = officialResults.find(r => r.matchId === matchId);
-    const update = side === "h" ? { homeScore: value } : { awayScore: value };
+    const data = { homeScore, awayScore };
     if (existing) {
-      await base44.entities.OfficialResult.update(existing.id, update);
-      setOfficialResults(prev => prev.map(r => r.id === existing.id ? { ...r, ...update } : r));
+      const updated = await base44.entities.OfficialResult.update(existing.id, data);
+      setOfficialResults(prev => prev.map(r => r.id === existing.id ? { ...r, ...data } : r));
     } else {
-      const saved = await base44.entities.OfficialResult.create({ matchId, ...update });
+      const saved = await base44.entities.OfficialResult.create({ matchId, ...data });
       setOfficialResults(prev => [...prev, saved]);
     }
   };
