@@ -414,8 +414,40 @@ export default function TippingHQ() {
   useEffect(() => {
     if (!player) return;
     fetchAll();
-    const t = setInterval(fetchAll, 15000);
-    return () => clearInterval(t);
+
+    // Real-time subscriptions — instantly reflect any change
+    const unsubPred = base44.entities.Prediction.subscribe((event) => {
+      if (event.type === "create") setPredictions(prev => [...prev.filter(p => p.id !== event.id), event.data]);
+      else if (event.type === "update") setPredictions(prev => prev.map(p => p.id === event.id ? event.data : p));
+      else if (event.type === "delete") setPredictions(prev => prev.filter(p => p.id !== event.id));
+    });
+
+    const unsubOfficial = base44.entities.OfficialResult.subscribe((event) => {
+      if (event.type === "create") setOfficialResults(prev => [...prev.filter(r => r.id !== event.id), event.data]);
+      else if (event.type === "update") setOfficialResults(prev => prev.map(r => r.id === event.id ? event.data : r));
+      else if (event.type === "delete") setOfficialResults(prev => prev.filter(r => r.id !== event.id));
+    });
+
+    const unsubBracket = base44.entities.BracketPrediction.subscribe((event) => {
+      if (event.type === "create") setBracketPredictions(prev => [...prev.filter(b => b.id !== event.id), event.data]);
+      else if (event.type === "update") setBracketPredictions(prev => prev.map(b => b.id === event.id ? event.data : b));
+      else if (event.type === "delete") setBracketPredictions(prev => prev.filter(b => b.id !== event.id));
+    });
+
+    const unsubSettings = base44.entities.PoolSettings.subscribe((event) => {
+      if (event.type === "delete") setPoolSettings(null);
+      else setPoolSettings(event.data);
+    });
+
+    // Fallback poll every 30s
+    const t = setInterval(fetchAll, 30000);
+    return () => {
+      unsubPred();
+      unsubOfficial();
+      unsubBracket();
+      unsubSettings();
+      clearInterval(t);
+    };
   }, [player, fetchAll]);
 
   const handleLogin = (p) => {

@@ -101,8 +101,16 @@ export default function LiveResults() {
 
   useEffect(() => {
     fetchResults();
-    const t = setInterval(fetchResults, 15000);
-    return () => clearInterval(t);
+
+    const unsub = base44.entities.OfficialResult.subscribe((event) => {
+      setLoading(false);
+      if (event.type === "create") setOfficialResults(prev => [...prev.filter(r => r.id !== event.id), event.data]);
+      else if (event.type === "update") setOfficialResults(prev => prev.map(r => r.id === event.id ? event.data : r));
+      else if (event.type === "delete") setOfficialResults(prev => prev.filter(r => r.id !== event.id));
+    });
+
+    const t = setInterval(fetchResults, 30000);
+    return () => { unsub(); clearInterval(t); };
   }, [fetchResults]);
 
   const getResult = (matchId) => officialResults.find(r => r.matchId === matchId);
