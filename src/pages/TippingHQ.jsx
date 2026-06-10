@@ -742,7 +742,14 @@ export default function TippingHQ() {
   const myAdvancePicks = myBracket?.advancePicks ? JSON.parse(myBracket.advancePicks) : {};
   const predKOTeams = buildKOTeams(myGroupPicks, myThirdPicks, myAdvancePicks);
 
-  const canSuggest = myPreds.filter(p => p.homeScore != null).length > 0;
+  // Show suggest button once at least one full group (3 matches) is tipped
+  const canSuggest = GL.some(L => {
+    const groupMs = GROUP_MATCHES.filter(m => m.group === L);
+    return groupMs.every(m => {
+      const pred = myPreds.find(p => p.matchId === m.id);
+      return pred && pred.homeScore != null && pred.awayScore != null;
+    });
+  });
 
   return (
     <div className="wc">
