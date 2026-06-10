@@ -32,9 +32,11 @@ export default function HelpModal({ player, onClose }) {
             <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--muted2)", marginLeft: 4 }}>Score every game</span>
           </div>
           <div style={{ fontSize: 13.5, lineHeight: 1.7, color: "var(--ink)" }}>
-            <div><b>Group Stage</b> — tap the score boxes to predict every game.</div>
-            <div><b>Knockouts</b> — each match unlocks when its real teams are known; tip that actual matchup before kick-off.</div>
-            <div><b>Leaderboard &amp; Tips Room</b> — see your rank, and everyone's tips once a game finishes.</div>
+            <div>⚽ <b>Groups</b> — predict scores for all 72 group stage matches.</div>
+            <div>🏆 <b>Bracket</b> — tip the knockout rounds once the teams are confirmed.</div>
+            <div>🏅 <b>Leaderboard</b> — see everyone's points and your ranking.</div>
+            <div>👀 <b>Tips</b> — compare everyone's predictions once a game is done.</div>
+            <div>📺 <b>Live</b> — real-time group tables, results &amp; bracket as the tournament unfolds.</div>
           </div>
           <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--line2)", fontSize: 12, color: "var(--muted2)", fontStyle: "italic" }}>
             Each tip locks at that game's kick-off.
