@@ -252,9 +252,25 @@ function buildPredKOTeams(gp, tp, ap) {
     slotTeams[`1${L}`] = gp[L]?.first || null;
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
-  const thirds = Object.entries(tp).filter(([, v]) => v).map(([L, t]) => ({ L, t }));
-  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
-  thirds.forEach((tr, i) => { if (thirdSlots[i]) slotTeams[thirdSlots[i]] = tr.t; });
+  // Each slot key lists exactly which groups can fill it — match by source group letter
+  const thirdSlotGroups = {
+    "3CEFHI": ["C","E","F","H","I"],
+    "3ABCDF": ["A","B","C","D","F"],
+    "3EFGIJ": ["E","F","G","I","J"],
+    "3DEIJL": ["D","E","I","J","L"],
+    "3AEHIJ": ["A","E","H","I","J"],
+    "3CDFGH": ["C","D","F","G","H"],
+    "3BEFIJ": ["B","E","F","I","J"],
+    "3EHIJK": ["E","H","I","J","K"],
+  };
+  for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
+    for (const groupL of allowedGroups) {
+      if (tp[groupL]) {
+        slotTeams[slotKey] = tp[groupL];
+        break;
+      }
+    }
+  }
 
   const teamOf = {};
   for (const m of KO_MATCHES) {

@@ -1377,10 +1377,30 @@ function buildKOTeams(gp, tp, ap) {
     slotTeams[`1${L}`] = gp[L]?.first || null;
     slotTeams[`2${L}`] = gp[L]?.second || null;
   }
-  const thirds = Object.entries(tp).filter(([,v]) => v).map(([L,t]) => ({ L, t }));
-  // third-place slot keys must match KO_MATCHES h/a values
-  const thirdSlots = ["3CEFHI","3ABCDF","3EFGIJ","3DEIJL","3AEHIJ","3CDFGH","3BEFIJ","3EHIJK"];
-  thirds.forEach((tr, i) => { if (thirdSlots[i]) slotTeams[thirdSlots[i]] = tr.t; });
+
+  // Each R32 "best 3rd" slot lists exactly which groups can fill it.
+  // Match the user's picked best-3rd teams to slots by their source group letter.
+  // Slot key format: "3CEFHI" means "best-3rd from one of groups C, E, F, H, or I".
+  const thirdSlotGroups = {
+    "3CEFHI": ["C","E","F","H","I"],
+    "3ABCDF": ["A","B","C","D","F"],
+    "3EFGIJ": ["E","F","G","I","J"],
+    "3DEIJL": ["D","E","I","J","L"],
+    "3AEHIJ": ["A","E","H","I","J"],
+    "3CDFGH": ["C","D","F","G","H"],
+    "3BEFIJ": ["B","E","F","I","J"],
+    "3EHIJK": ["E","H","I","J","K"],
+  };
+  // tp is { [groupLetter]: teamName } — assign each picked best-3rd to the slot whose
+  // group list contains that team's source group.
+  for (const [slotKey, allowedGroups] of Object.entries(thirdSlotGroups)) {
+    for (const groupL of allowedGroups) {
+      if (tp[groupL]) {
+        slotTeams[slotKey] = tp[groupL];
+        break;
+      }
+    }
+  }
 
   const teamOf = {};
   for (const m of KO_MATCHES) {
