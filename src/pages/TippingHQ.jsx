@@ -822,6 +822,7 @@ export default function TippingHQ() {
   });
 
   return (
+    <>
     <div className="wc">
       <style>{CSS}</style>
 
@@ -1142,35 +1143,6 @@ export default function TippingHQ() {
         Tables sort on points → goal difference → goals scored. Admin PIN is a light lock for friendly pools, not real security. Built for fun — not affiliated with FIFA.
       </footer>
 
-      {/* Desktop bottom nav */}
-      <nav className="desk-nav">
-        {mode === "tip" ? (
-          <>
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","📊","Table"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
-              <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
-                <span className="dnic">{ic}</span>{lbl}
-              </button>
-            ))}
-            <div className="desk-nav-sep" />
-            <a href="/live" className="desk-nav-live">
-              <span className="dnic">📺</span>Live
-            </a>
-          </>
-        ) : (
-          <>
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Table"]].map(([k,ic,lbl]) => (
-              <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
-                <span className="dnic">{ic}</span>{lbl}
-              </button>
-            ))}
-            <div className="desk-nav-sep" />
-            <a href="/live" className="desk-nav-live">
-              <span className="dnic">📺</span>Live
-            </a>
-          </>
-        )}
-      </nav>
-
       {showKickEditor && (
         <KickoffEditor
           kickoffs={kickoffs}
@@ -1218,6 +1190,36 @@ export default function TippingHQ() {
         />
       )}
     </div>
+
+      {/* Bottom nav rendered OUTSIDE .wc to avoid overflow:hidden stacking context trapping fixed positioning */}
+      <nav className="desk-nav">
+        {mode === "tip" ? (
+          <>
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","📊","Table"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
+                <span className="dnic">{ic}</span>{lbl}
+              </button>
+            ))}
+            <div className="desk-nav-sep" />
+            <a href="/live" className="desk-nav-live">
+              <span className="dnic">📺</span>Live
+            </a>
+          </>
+        ) : (
+          <>
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Table"]].map(([k,ic,lbl]) => (
+              <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
+                <span className="dnic">{ic}</span>{lbl}
+              </button>
+            ))}
+            <div className="desk-nav-sep" />
+            <a href="/live" className="desk-nav-live">
+              <span className="dnic">📺</span>Live
+            </a>
+          </>
+        )}
+      </nav>
+    </>
   );
 }
 
