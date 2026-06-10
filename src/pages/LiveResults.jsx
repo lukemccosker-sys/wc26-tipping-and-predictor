@@ -4,6 +4,18 @@ import Flag from "@/lib/flags";
 import { GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER, ROUND_NAME } from "@/lib/wc2026data";
 import { calcGroupTable, buildOfficialKOTeamsFromResults } from "@/lib/scoring";
 
+function getBest3rdGroups(officialResults) {
+  // Returns a Set of group letters whose 3rd-place team qualifies (top 8 best 3rds)
+  // Only consider groups where all 6 matches have been played
+  const thirds = GL.map(group => {
+    const table = calcGroupTable(group, officialResults);
+    const totalPld = table.reduce((s, r) => s + r.pld, 0);
+    if (totalPld < 6) return null;
+    return table[2] ? { group, ...table[2] } : null;
+  }).filter(Boolean).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+  return new Set(thirds.slice(0, 8).map(t => t.group));
+}
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap');
 .lr{
@@ -194,7 +206,9 @@ export default function LiveResults() {
       {/* GROUP TABLES */}
       {!loading && tab === "tables" && (
         <div className="lr-grid">
-          {GL.map(L => {
+          {(() => {
+            const best3rdGroups = getBest3rdGroups(officialResults);
+            return GL.map(L => {
             const table = calcGroupTable(L, officialResults);
             return (
               <div className="lr-card" key={L}>
@@ -213,7 +227,7 @@ export default function LiveResults() {
                   </thead>
                   <tbody>
                     {table.map((row, i) => (
-                      <tr key={row.team} className={i < 2 ? "qualify" : i === 2 ? "qualify-3rd" : ""}>
+                      <tr key={row.team} className={i < 2 ? "qualify" : i === 2 && best3rdGroups.has(L) ? "qualify-3rd" : ""}>
                         <td className="pos">{i + 1}</td>
                         <td className="tl"><span className="tlteam"><Flag name={row.team} size={14} />{row.team}</span></td>
                         <td>{row.pld}</td>
@@ -234,7 +248,8 @@ export default function LiveResults() {
                 </div>
               </div>
             );
-          })}
+          });
+          })()}
         </div>
       )}
 
