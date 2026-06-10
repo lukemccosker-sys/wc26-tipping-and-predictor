@@ -970,7 +970,6 @@ export default function TippingHQ() {
                 <span>{ic}</span>{lbl}
               </button>
             ))}
-            <a href="/live" className="mtn-btn" style={{ textDecoration: "none" }}><span>📺</span>Live Results</a>
           </nav>
         </>
       )}
@@ -992,7 +991,6 @@ export default function TippingHQ() {
                 <span>{ic}</span>{lbl}
               </button>
             ))}
-            <a href="/live" className="mtn-btn" style={{ textDecoration: "none" }}><span>📺</span>Live Results</a>
           </nav>
         </>
       )}
