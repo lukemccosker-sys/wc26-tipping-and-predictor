@@ -153,14 +153,6 @@ export default function KOBracket({
     );
   };
 
-  if (!groupStageComplete && !isAdmin) {
-    return (
-      <div className="notice lock" style={{ marginTop: 8 }}>
-        🔒 Knockout tipping unlocks once all 72 group stage results are entered.
-      </div>
-    );
-  }
-
   return (
     <div ref={topRef}>
       <div className="round-nav">

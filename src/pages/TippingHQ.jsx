@@ -906,9 +906,6 @@ export default function TippingHQ() {
 
       {mode === "tip" && tab === "ko" && (
         <div className="bracket-wrap">
-          <div className="notice">
-            Knockout fixtures open for tipping once both teams are confirmed from group stage results.
-          </div>
           <KOBracket
             predictions={predictions}
             officialResults={officialResults}
