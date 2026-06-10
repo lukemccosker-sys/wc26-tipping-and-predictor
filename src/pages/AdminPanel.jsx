@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
-    try { return JSON.parse(sessionStorage.getItem("wc_player") || "null"); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem("wc_player") || "null"); } catch { return null; }
   });
   const [players, setPlayers] = useState([]);
   const [poolSettings, setPoolSettings] = useState(null);
