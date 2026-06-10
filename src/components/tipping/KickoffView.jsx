@@ -119,7 +119,7 @@ export default function KickoffView({
                   </div>
 
                   {/* Result row */}
-                  {hasOfficial && !adminEditing && (
+                  {hasOfficial && !(isAdmin && adminEditing) && (
                     <div className="gm-result-row">
                       <span className="gm-result-lbl">✅ Result</span>
                       <span className="gm-result-score">{official.homeScore} – {official.awayScore}</span>
