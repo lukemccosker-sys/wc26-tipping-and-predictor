@@ -409,6 +409,8 @@ export default function TippingHQ() {
   const predictionsRef = useRef([]);
   const saveTimers = useRef({});
   const playerRef = useRef(player);
+  const bracketRef = useRef(null); // tracks latest bracket data for optimistic updates
+  const bracketSaveTimer = useRef(null);
 
   // Keep playerRef in sync
   useEffect(() => { playerRef.current = player; }, [player]);
@@ -465,6 +467,10 @@ export default function TippingHQ() {
     setOfficialResults(or_ || []);
     setBracketPredictions(bp || []);
     setPoolSettings(ps?.[0] || null);
+    // Sync bracketRef on load (only if no pending edits)
+    if (!bracketSaveTimer.current) {
+      bracketRef.current = (bp || []).find(b => b.playerId === playerRef.current?.id) || null;
+    }
   }, []);
 
   useEffect(() => {
@@ -504,9 +510,17 @@ export default function TippingHQ() {
     });
 
     const unsubBracket = base44.entities.BracketPrediction.subscribe((event) => {
-      if (event.type === "create") setBracketPredictions(prev => [...prev.filter(b => b.id !== event.id), event.data]);
-      else if (event.type === "update") setBracketPredictions(prev => prev.map(b => b.id === event.id ? event.data : b));
-      else if (event.type === "delete") setBracketPredictions(prev => prev.filter(b => b.id !== event.id));
+      setBracketPredictions(prev => {
+        let next;
+        if (event.type === "create") next = [...prev.filter(b => b.id !== event.id), event.data];
+        else if (event.type === "update") next = prev.map(b => b.id === event.id ? event.data : b);
+        else next = prev.filter(b => b.id !== event.id);
+        // Keep bracketRef in sync — but only if not mid-edit (timer pending)
+        if (!bracketSaveTimer.current) {
+          bracketRef.current = next.find(b => b.playerId === playerRef.current?.id) || null;
+        }
+        return next;
+      });
     });
 
     const unsubSettings = base44.entities.PoolSettings.subscribe((event) => {
@@ -688,14 +702,13 @@ export default function TippingHQ() {
     }
   };
 
-  // Predictor picks
-  const onPickPos = async (groupL, team, pos) => {
+  // Predictor picks — read from bracketRef (always latest) for instant optimistic updates
+  const onPickPos = (groupL, team, pos) => {
     if (predLocked) return;
-    const existing = myBracket;
-    const gp = existing?.groupPicks ? JSON.parse(existing.groupPicks) : {};
+    const current = bracketRef.current;
+    const gp = current?.groupPicks ? JSON.parse(current.groupPicks) : {};
     const newGroup = { ...(gp[groupL] || {}) };
     if (pos === 1) {
-      // Clear if already second
       if (newGroup.second === team) newGroup.second = null;
       newGroup.first = newGroup.first === team ? null : team;
     } else {
@@ -703,14 +716,13 @@ export default function TippingHQ() {
       newGroup.second = newGroup.second === team ? null : team;
     }
     gp[groupL] = newGroup;
-    await saveBracket({ groupPicks: JSON.stringify(gp) });
+    updateBracket({ groupPicks: JSON.stringify(gp) });
   };
 
-  const onPickThird = async (groupL, team) => {
+  const onPickThird = (groupL, team) => {
     if (predLocked) return;
-    const existing = myBracket;
-    const tp = existing?.thirdPicks ? JSON.parse(existing.thirdPicks) : {};
-    // Toggle
+    const current = bracketRef.current;
+    const tp = current?.thirdPicks ? JSON.parse(current.thirdPicks) : {};
     if (tp[groupL] === team) {
       tp[groupL] = null;
     } else {
@@ -721,15 +733,15 @@ export default function TippingHQ() {
       }
       tp[groupL] = team;
     }
-    await saveBracket({ thirdPicks: JSON.stringify(tp) });
+    updateBracket({ thirdPicks: JSON.stringify(tp) });
   };
 
-  const onPickAdvance = async (matchId, side) => {
+  const onPickAdvance = (matchId, side) => {
     if (predLocked) return;
-    const existing = myBracket;
-    const ap = existing?.advancePicks ? JSON.parse(existing.advancePicks) : {};
+    const current = bracketRef.current;
+    const ap = current?.advancePicks ? JSON.parse(current.advancePicks) : {};
     ap[matchId] = ap[matchId] === side ? null : side;
-    await saveBracket({ advancePicks: JSON.stringify(ap) });
+    updateBracket({ advancePicks: JSON.stringify(ap) });
   };
 
   const onSetAward = async (key, value) => {
@@ -745,10 +757,41 @@ export default function TippingHQ() {
     await savePoolSettings({ officialAwards: JSON.stringify(awards) });
   };
 
+  // Optimistic bracket update — updates UI immediately, debounces DB write by 300ms
+  const updateBracket = (partialData) => {
+    setBracketPredictions(prev => {
+      const existing = prev.find(b => b.playerId === player.id);
+      let next;
+      if (existing) {
+        next = prev.map(b => b.id === existing.id ? { ...b, ...partialData } : b);
+      } else {
+        next = [...prev, { playerId: player.id, ...partialData }];
+      }
+      bracketRef.current = next.find(b => b.playerId === player.id) || null;
+      return next;
+    });
+
+    clearTimeout(bracketSaveTimer.current);
+    bracketSaveTimer.current = setTimeout(async () => {
+      const current = bracketRef.current;
+      const existing = current?.id ? current : null;
+      if (existing) {
+        await base44.entities.BracketPrediction.update(existing.id, partialData);
+      } else {
+        const saved = await base44.entities.BracketPrediction.create({ playerId: player.id, ...partialData });
+        setBracketPredictions(prev => {
+          const next = prev.map(b => b.playerId === player.id && !b.id ? saved : b);
+          bracketRef.current = saved;
+          return next;
+        });
+      }
+    }, 300);
+  };
+
   const saveBracket = async (data) => {
     const existing = bracketPredictions.find(b => b.playerId === player.id);
     if (existing) {
-      const updated = await base44.entities.BracketPrediction.update(existing.id, data);
+      await base44.entities.BracketPrediction.update(existing.id, data);
       setBracketPredictions(prev => prev.map(b => b.id === existing.id ? { ...b, ...data } : b));
     } else {
       const saved = await base44.entities.BracketPrediction.create({ playerId: player.id, ...data });
