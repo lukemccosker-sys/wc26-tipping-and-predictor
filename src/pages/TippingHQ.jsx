@@ -800,6 +800,40 @@ export default function TippingHQ() {
       )}
 
       {/* TIPPING TABS */}
+      {mode === "tip" && tab === "groups" && (() => {
+        // Next untipped group match
+        const nextUntipped = GROUP_MATCHES.find(m => {
+          const ko = kickoffs[m.id];
+          if (ko && Date.now() >= ko) return false;
+          const pred = predictions.find(p => p.playerId === player.id && p.matchId === m.id);
+          return !pred || pred.homeScore == null || pred.awayScore == null;
+        });
+        // Next upcoming kickoff (any group match not yet started)
+        const nextKickoff = GROUP_MATCHES.map(m => ({ m, ko: kickoffs[m.id] }))
+          .filter(({ ko }) => ko && Date.now() < ko)
+          .sort((a, b) => a.ko - b.ko)[0];
+        return (
+          <>
+            {nextUntipped && (
+              <a href={`#match-${nextUntipped.id}`} style={{ display: "block", margin: "0 0 10px", textDecoration: "none" }}>
+                <div style={{ background: "linear-gradient(95deg,#12b3a6,#2f8bff)", color: "#fff", borderRadius: 14, padding: "11px 18px", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                  ⚽ Next to tip: {nextUntipped.home} v {nextUntipped.away} →
+                </div>
+              </a>
+            )}
+            {nextKickoff && (
+              <div style={{ background: "linear-gradient(95deg,#ff7a2f,#ffb020)", color: "#fff", borderRadius: 14, padding: "10px 18px", marginBottom: 12 }}>
+                <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase" }}>
+                  🔔 Next kick-off: {nextKickoff.m.home} v {nextKickoff.m.away} →
+                </div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, opacity: .88, marginTop: 2 }}>
+                  {fmtKick(nextKickoff.ko)} · Change before it locks
+                </div>
+              </div>
+            )}
+          </>
+        );
+      })()}
       {mode === "tip" && tab === "groups" && (
         <div className="groups-grid">
           {GL.map(L => (
@@ -880,6 +914,11 @@ export default function TippingHQ() {
       {/* PREDICTOR TABS */}
       {mode === "pred" && (
         <>
+          {!predLocked && (
+            <div style={{ background: "rgba(18,179,166,.1)", border: "1px solid rgba(18,179,166,.3)", borderRadius: 13, padding: "13px 17px", marginBottom: 12, fontSize: 13, color: "#0c6f66", lineHeight: 1.55, fontWeight: 500 }}>
+              Fill out the whole tournament now: pick each group's top 2, your 8 best third-placed teams, then click winners through every round to your champion — plus the four player awards. Everything locks at the <strong>first kick-off</strong> ({fmtKick(firstKickoff)}) — you can't predict once the tournament has started. No scores here — just who goes through.
+            </div>
+          )}
           {predLocked && ptab !== "pl" && (
             <div className="notice lock">🔒 Predictor picks are locked — the tournament has started.</div>
           )}
