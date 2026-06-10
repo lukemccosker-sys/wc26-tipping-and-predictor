@@ -950,14 +950,16 @@ export default function TippingHQ() {
               </a>
             )}
             {nextKickoff && (
-              <div style={{ background: "linear-gradient(95deg,#ff7a2f,#ffb020)", color: "#fff", borderRadius: 14, padding: "10px 18px", marginBottom: 12 }}>
-                <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase" }}>
-                  🔔 Next kick-off: {nextKickoff.m.home} v {nextKickoff.m.away} →
+              <a href={`#match-${nextKickoff.m.id}`} style={{ display: "block", margin: "0 0 12px", textDecoration: "none" }}>
+                <div style={{ background: "linear-gradient(95deg,#ff7a2f,#ffb020)", color: "#fff", borderRadius: 14, padding: "10px 18px", cursor: "pointer" }}>
+                  <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase" }}>
+                    🔔 Next kick-off: {nextKickoff.m.home} v {nextKickoff.m.away} →
+                  </div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, opacity: .88, marginTop: 2 }}>
+                    {fmtKick(nextKickoff.ko)} · Change before it locks
+                  </div>
                 </div>
-                <div style={{ fontSize: 11.5, fontWeight: 700, opacity: .88, marginTop: 2 }}>
-                  {fmtKick(nextKickoff.ko)} · Change before it locks
-                </div>
-              </div>
+              </a>
             )}
           </>
         );
