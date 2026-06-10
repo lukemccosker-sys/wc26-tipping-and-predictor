@@ -409,9 +409,10 @@ export function scoreTip(pred, official, settings) {
   // picked the team that advanced (either by predicting a draw, or by picking that side to win).
   if (owin === "d" && official.penaltyWinner) {
     const pen = official.penaltyWinner; // "h" or "a"
-    // Correct scoreline (already caught exact above, check GD: same diff, both drew)
+    // Exact draw scoreline already caught above (ph===oh && pa===oa)
+    // Correct goal difference (same diff, both drew — e.g. predicted 1-1, actual 2-2)
     if (pwin === "d" && pdiff === odiff) return { pts: +s.gd || 3, tier: "gd" };
-    // Predicted a draw (any draw score) — correct outcome, 1 pt
+    // Predicted any draw — correct 90-min outcome, 1 pt
     if (pwin === "d") return { pts: +s.result || 1, tier: "result" };
     // Predicted one side to win outright — award result pt if they picked the penalty winner
     if (pwin === pen) return { pts: +s.result || 1, tier: "result" };
