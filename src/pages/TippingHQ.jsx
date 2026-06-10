@@ -392,6 +392,10 @@ export default function TippingHQ() {
   const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Refs must be declared before any early returns (Rules of Hooks)
+  const predictionsRef = React.useRef([]);
+  const saveTimers = React.useRef({});
+
   const kickoffs = poolSettings?.kickoffOverrides
     ? { ...DEFAULT_KICKOFFS, ...JSON.parse(poolSettings.kickoffOverrides) }
     : DEFAULT_KICKOFFS;
@@ -528,42 +532,44 @@ export default function TippingHQ() {
   const koTeams = buildOfficialKOTeamsFromResults(officialResults);
   const koWinners = buildKOWinners(officialResults);
 
-  // Save prediction — only persists once both scores are set
-  const onSetScore = async (matchId, side, value) => {
+  // Keep ref in sync with latest predictions
+  predictionsRef.current = predictions;
+
+  const onSetScore = (matchId, side, value) => {
     const field = side === "h" ? "homeScore" : "awayScore";
 
-    // Update local state immediately using functional update to avoid stale closure
+    // Update local state immediately for responsive UI
     setPredictions(prev => {
       const existing = prev.find(p => p.playerId === player.id && p.matchId === matchId);
       if (existing) {
-        return prev.map(p => p.id === existing.id || (p.playerId === player.id && p.matchId === matchId)
-          ? { ...p, [field]: value }
-          : p
+        return prev.map(p =>
+          p.playerId === player.id && p.matchId === matchId ? { ...p, [field]: value } : p
         );
       } else {
-        return [...prev, { playerId: player.id, matchId, homeScore: side === "h" ? value : null, awayScore: side === "a" ? value : null }];
+        return [...prev, {
+          playerId: player.id, matchId,
+          homeScore: side === "h" ? value : null,
+          awayScore: side === "a" ? value : null
+        }];
       }
     });
 
-    // Read latest state after update to decide whether to persist
-    setPredictions(prev => {
-      const pred = prev.find(p => p.playerId === player.id && p.matchId === matchId);
-      if (!pred || pred.homeScore == null || pred.awayScore == null) return prev;
+    // Debounce DB save — wait 400ms after last click before persisting
+    clearTimeout(saveTimers.current[matchId]);
+    saveTimers.current[matchId] = setTimeout(async () => {
+      const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+      if (!pred || pred.homeScore == null || pred.awayScore == null) return;
 
-      // Persist to DB asynchronously
       const { homeScore, awayScore } = pred;
       if (pred.id) {
-        base44.entities.Prediction.update(pred.id, { homeScore, awayScore });
+        await base44.entities.Prediction.update(pred.id, { homeScore, awayScore });
       } else {
-        base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore })
-          .then(saved => {
-            setPredictions(p2 => p2.map(p =>
-              p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
-            ));
-          });
+        const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore });
+        setPredictions(prev => prev.map(p =>
+          p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
+        ));
       }
-      return prev;
-    });
+    }, 400);
   };
 
   // Save official result
