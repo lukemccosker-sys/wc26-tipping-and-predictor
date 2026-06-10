@@ -56,7 +56,14 @@ function AwardInput({ awardKey, label, hint, locked, savedValue, onSave, actual,
 
   const known = !!(actual && actual.trim());
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-  const ok = known && !!value && norm(value) === norm(actual);
+  // Match if any word in the guess appears in any word of the actual name (fuzzy, accent-insensitive)
+  const fuzzyMatch = (guess, actual) => {
+    if (!guess || !actual) return false;
+    const guessWords = norm(guess).split(/\s+/).filter(Boolean);
+    const actualWords = norm(actual).split(/\s+/).filter(Boolean);
+    return guessWords.some(gw => actualWords.some(aw => aw.includes(gw) || gw.includes(aw)));
+  };
+  const ok = known && fuzzyMatch(value, actual);
 
   return (
     <div className="award-card">
@@ -94,7 +101,7 @@ function AwardInput({ awardKey, label, hint, locked, savedValue, onSave, actual,
         }}
       />
       <div className="award-note">
-        Accents optional — <b>Mbappe</b> or <b>Mbappé</b> both count.
+        First or last name is fine — accents & spelling don't have to be perfect. <b>Mbappe</b>, <b>Kylian</b>, or <b>Mbappé</b> all count.
       </div>
 
       {isAdmin && (
