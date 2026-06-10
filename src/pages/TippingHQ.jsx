@@ -11,6 +11,7 @@ import PredictorAwards from "@/components/predictor/PredictorAwards";
 import PredictorLeaderboard from "@/components/predictor/PredictorLeaderboard";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
+import HelpModal from "@/components/HelpModal";
 import LoginPage from "./Login";
 import {
   GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER,
@@ -362,6 +363,7 @@ export default function TippingHQ() {
   const [ptab, setPtab] = useState("pg");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Data state
   const [players, setPlayers] = useState([]);
@@ -411,6 +413,11 @@ export default function TippingHQ() {
   const handleLogin = (p) => {
     sessionStorage.setItem("wc_player", JSON.stringify(p));
     setPlayer(p);
+    // Show help modal only on first ever login (tracked in localStorage per player)
+    const seenKey = `wc_help_seen_${p.id}`;
+    if (!localStorage.getItem(seenKey)) {
+      setShowHelp(true);
+    }
   };
   const handleLogout = () => {
     sessionStorage.removeItem("wc_player");
@@ -669,6 +676,7 @@ export default function TippingHQ() {
               {isAdmin && (
                 <button className="mini" onClick={() => setShowKickEditor(true)}>🕐 Times</button>
               )}
+              <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
               <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
           </div>
@@ -836,6 +844,16 @@ export default function TippingHQ() {
           kickoffs={kickoffs}
           onSetKickoff={onSetKickoff}
           onClose={() => setShowKickEditor(false)}
+        />
+      )}
+
+      {showHelp && (
+        <HelpModal
+          player={player}
+          onClose={() => {
+            localStorage.setItem(`wc_help_seen_${player.id}`, "1");
+            setShowHelp(false);
+          }}
         />
       )}
     </div>
