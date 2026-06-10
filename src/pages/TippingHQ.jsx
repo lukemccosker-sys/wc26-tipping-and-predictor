@@ -138,6 +138,7 @@ const CSS = `
 .kick-when{font-size:10.5px;font-weight:700;color:var(--muted);margin-right:auto;}
 .tip-saved{font-size:10px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.04em;}
 @keyframes cdpulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-16px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
 .pts-circle{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;}
 .pts-circle.t-exact{background:var(--green);}.pts-circle.t-gd{background:var(--teal);}.pts-circle.t-result{background:var(--gold);}
 .pts-circle.t-miss{background:#b9b1a3;color:#fff;}
@@ -395,6 +396,7 @@ export default function TippingHQ() {
   const [bracketPredictions, setBracketPredictions] = useState([]);
   const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [resultNotification, setResultNotification] = useState(null);
 
   // Refs must be declared before any early returns (Rules of Hooks)
   const predictionsRef = useRef([]);
@@ -476,9 +478,22 @@ export default function TippingHQ() {
     });
 
     const unsubOfficial = base44.entities.OfficialResult.subscribe((event) => {
-      if (event.type === "create") setOfficialResults(prev => [...prev.filter(r => r.id !== event.id), event.data]);
-      else if (event.type === "update") setOfficialResults(prev => prev.map(r => r.id === event.id ? event.data : r));
-      else if (event.type === "delete") setOfficialResults(prev => prev.filter(r => r.id !== event.id));
+      if (event.type === "create") {
+        setOfficialResults(prev => [...prev.filter(r => r.id !== event.id), event.data]);
+        // Only notify non-admins (admin is the one entering results)
+        if (!playerRef.current?.isAdmin && event.data?.homeScore != null && event.data?.awayScore != null) {
+          setResultNotification({ matchId: event.data.matchId, home: event.data.homeScore, away: event.data.awayScore });
+          setTimeout(() => setResultNotification(null), 5000);
+        }
+      } else if (event.type === "update") {
+        setOfficialResults(prev => prev.map(r => r.id === event.id ? event.data : r));
+        if (!playerRef.current?.isAdmin && event.data?.homeScore != null && event.data?.awayScore != null) {
+          setResultNotification({ matchId: event.data.matchId, home: event.data.homeScore, away: event.data.awayScore });
+          setTimeout(() => setResultNotification(null), 5000);
+        }
+      } else if (event.type === "delete") {
+        setOfficialResults(prev => prev.filter(r => r.id !== event.id));
+      }
     });
 
     const unsubBracket = base44.entities.BracketPrediction.subscribe((event) => {
@@ -1163,6 +1178,35 @@ export default function TippingHQ() {
           onClose={() => setShowKickEditor(false)}
         />
       )}
+
+      {resultNotification && (() => {
+        const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
+        const m = allMatches.find(x => x.id === resultNotification.matchId);
+        const label = m ? `${m.home} ${resultNotification.home} – ${resultNotification.away} ${m.away}` : `Result posted`;
+        return (
+          <div style={{
+            position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)",
+            zIndex: 100, background: "linear-gradient(95deg,#2cb551,#12b3a6)",
+            color: "#fff", borderRadius: 14, padding: "14px 22px",
+            boxShadow: "0 12px 36px -10px rgba(18,179,166,.6)",
+            display: "flex", alignItems: "center", gap: 12,
+            fontSize: 14, fontWeight: 800, maxWidth: "90vw",
+            animation: "slideDown .3s ease"
+          }}>
+            <span style={{ fontSize: 20 }}>⚽</span>
+            <div>
+              <div style={{ fontSize: 11, opacity: .85, textTransform: "uppercase", letterSpacing: ".06em" }}>Result just in!</div>
+              <div>{label}</div>
+            </div>
+            <button onClick={() => setResultNotification(null)} style={{
+              marginLeft: 8, background: "rgba(255,255,255,.25)", border: "none",
+              borderRadius: 999, width: 24, height: 24, color: "#fff",
+              cursor: "pointer", fontSize: 13, fontWeight: 900, lineHeight: 1,
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}>✕</button>
+          </div>
+        );
+      })()}
 
       {showHelp && (
         <HelpModal
