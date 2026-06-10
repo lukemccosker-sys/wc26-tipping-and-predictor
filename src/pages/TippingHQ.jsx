@@ -675,15 +675,26 @@ export default function TippingHQ() {
   // Reset my tips for unlocked matches
   const onResetTips = async () => {
     if (!window.confirm("Are you sure you want to reset all your tips for unlocked matches? This cannot be undone.")) return;
-    const toDelete = myPreds.filter(p => {
+    const myPredsCurrent = predictionsRef.current.filter(p => p.playerId === player.id);
+    const toDelete = myPredsCurrent.filter(p => {
       if (poolSettings?.globalLockTipping) return false;
       const official = officialResults.find(r => r.matchId === p.matchId);
-      if (official && official.homeScore != null) return false; // has official result = locked
+      if (official && official.homeScore != null) return false;
       const ko = kickoffs[p.matchId];
-      return !ko || Date.now() < ko; // only delete if kickoff hasn't passed
+      return !ko || Date.now() < ko;
+    });
+    // Clear any pending debounced saves for these matches
+    toDelete.forEach(p => {
+      clearTimeout(saveTimers.current[p.matchId]);
+      delete saveTimers.current[p.matchId];
     });
     await Promise.all(toDelete.map(p => base44.entities.Prediction.delete(p.id)));
-    setPredictions(prev => prev.filter(p => !toDelete.find(d => d.id === p.id)));
+    const deletedIds = new Set(toDelete.map(d => d.id));
+    setPredictions(prev => {
+      const next = prev.filter(p => !deletedIds.has(p.id));
+      predictionsRef.current = next;
+      return next;
+    });
   };
 
   // Reset predictor picks (only if not locked)
@@ -691,7 +702,10 @@ export default function TippingHQ() {
     if (predLocked) return;
     if (!window.confirm("Are you sure you want to reset all your predictor picks? This cannot be undone.")) return;
     if (myBracket) {
+      clearTimeout(bracketSaveTimer.current);
+      bracketSaveTimer.current = null;
       await base44.entities.BracketPrediction.delete(myBracket.id);
+      bracketRef.current = null;
       setBracketPredictions(prev => prev.filter(b => b.id !== myBracket.id));
     }
   };
