@@ -58,9 +58,10 @@ export default function AdminPanel() {
   const removePlayer = async (p) => {
     if (!window.confirm(`Remove ${p.name}? This permanently deletes all their tips and predictions.`)) return;
     setRemoving(p.id);
+    // Fetch with a large limit to ensure we get all records
     const [preds, brackets] = await Promise.all([
-      base44.entities.Prediction.filter({ playerId: p.id }),
-      base44.entities.BracketPrediction.filter({ playerId: p.id }),
+      base44.entities.Prediction.filter({ playerId: p.id }, null, 500),
+      base44.entities.BracketPrediction.filter({ playerId: p.id }, null, 500),
     ]);
     await Promise.all([
       ...preds.map(r => base44.entities.Prediction.delete(r.id)),
