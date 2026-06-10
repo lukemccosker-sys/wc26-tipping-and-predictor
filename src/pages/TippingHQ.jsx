@@ -307,6 +307,9 @@ const CSS = `
 .cfg-note{font-size:11.5px;color:var(--muted);line-height:1.5;}
 .lb-card{grid-column:1/-1;}
 .ft{margin-top:26px;color:var(--muted2);font-size:11px;text-align:center;line-height:1.6;}
+.gm.locked-match{background:linear-gradient(180deg,rgba(180,170,160,.09),transparent 60%);}
+.gm-main.gm-locked{opacity:.72;}
+.gm-lock-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:#9a6800;background:rgba(255,176,32,.18);border:1px solid rgba(255,176,32,.45);border-radius:999px;padding:2px 9px;}
 .gm-result-row{display:flex;align-items:center;gap:10px;padding:6px 0 4px;border-top:1px dashed var(--line2);margin-top:4px;flex-wrap:wrap;}
 .gm-result-lbl{font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;min-width:80px;}
 .gm-result-inputs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}

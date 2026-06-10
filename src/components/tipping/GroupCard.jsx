@@ -70,11 +70,12 @@ export default function GroupCard({
           const scored = hasOfficial && hasTip ? scoreTip(pred, official, settings) : null;
 
           return (
-            <div className={`gm${scored ? " scored" : ""}`} key={m.id} id={`match-${m.id}`}>
+            <div className={`gm${scored ? " scored" : ""}${locked ? " locked-match" : ""}`} key={m.id} id={`match-${m.id}`}>
               <div className="cd-row">
                 {kicked && <span className="kick-when">{fmtKick(kicked)}</span>}
                 <Countdown kickoff={kicked} />
-                {locked && !hasOfficial && <span className="cd cd-closed">Locked</span>}
+                {locked && !hasOfficial && <span className="gm-lock-badge">🔒 Locked</span>}
+                {locked && hasOfficial && <span className="gm-lock-badge">🔒 Final</span>}
                 {hasTip && !locked && <span className="tip-saved">✓ saved</span>}
                 {scored && (
                   <span className={`pts-circle t-${scored.tier}`}>{scored.pts}</span>
@@ -82,7 +83,7 @@ export default function GroupCard({
               </div>
 
               {/* Tip row */}
-              <div className="gm-main">
+              <div className={`gm-main${locked ? " gm-locked" : ""}`}>
                 <div className="gm-team">
                   <span className="tname"><Flag name={m.home} size={16} /><span>{m.home}</span></span>
                 </div>
