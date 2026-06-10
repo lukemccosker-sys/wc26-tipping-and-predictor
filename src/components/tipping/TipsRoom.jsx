@@ -6,10 +6,14 @@ const STAGES = [
   ["all","All"],["group","Groups"],["R32","R32"],["R16","R16"],["QF","QF"],["SF","SF"],["3rd","3rd"],["F","Final"]
 ];
 
-export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading }) {
+export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings }) {
   const [stage, setStage] = useState("all");
 
-  const settings = { exact: 5, gd: 3, result: 1 };
+  const settings = {
+    exact: poolSettings?.pointsExact ?? 5,
+    gd: poolSettings?.pointsGD ?? 3,
+    result: poolSettings?.pointsResult ?? 1,
+  };
 
   // Build revealed matches (only those with official result)
   const revealed = [];

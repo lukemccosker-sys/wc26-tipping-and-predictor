@@ -18,7 +18,7 @@ function slotLabel(slot) {
 export default function KOBracket({
   predictions, officialResults, kickoffs, koTeams, koWinners,
   onSetScore, onSetPenalty, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen,
-  player
+  player, poolSettings
 }) {
   const [round, setRound] = useState("R32");
   const topRef = useRef(null);
@@ -32,7 +32,11 @@ export default function KOBracket({
     return Date.now() >= ko;
   };
 
-  const settings = { exact: 5, gd: 3, result: 1 };
+  const settings = {
+    exact: poolSettings?.pointsExact ?? 5,
+    gd: poolSettings?.pointsGD ?? 3,
+    result: poolSettings?.pointsResult ?? 1,
+  };
   const idx = ROUND_ORDER.indexOf(round);
   const matches = KO_MATCHES.filter(m => m.round === round);
 

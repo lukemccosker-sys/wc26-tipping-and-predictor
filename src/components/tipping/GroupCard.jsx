@@ -13,7 +13,7 @@ function fmtKick(ms) {
 export default function GroupCard({
   group, predictions, officialResults, kickoffs,
   onSetScore, isAdmin, adminEditing, onSetOfficial,
-  player
+  player, poolSettings
 }) {
   const matches = groupMatches(group);
 
@@ -27,7 +27,11 @@ export default function GroupCard({
     return Date.now() >= ko;
   };
 
-  const settings = { exact: 5, gd: 3, result: 1 };
+  const settings = {
+    exact: poolSettings?.pointsExact ?? 5,
+    gd: poolSettings?.pointsGD ?? 3,
+    result: poolSettings?.pointsResult ?? 1,
+  };
 
   return (
     <div className="card">

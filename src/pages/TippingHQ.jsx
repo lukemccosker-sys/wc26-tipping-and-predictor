@@ -17,7 +17,7 @@ import {
   DEFAULT_KICKOFFS, DEFAULT_PRED_SETTINGS, DEFAULT_SETTINGS,
   scoreTip, ADMIN_NAME
 } from "@/lib/wc2026data";
-import { computePlayerScore, buildLeaderboard } from "@/lib/scoring";
+import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard } from "@/lib/scoring";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -353,7 +353,9 @@ function fmtKick(ms) {
 }
 
 export default function TippingHQ() {
-  const [player, setPlayer] = useState(null);
+  const [player, setPlayer] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("wc_player") || "null"); } catch { return null; }
+  });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("groups");
   const [ptab, setPtab] = useState("pg");
@@ -405,15 +407,25 @@ export default function TippingHQ() {
     return () => clearInterval(t);
   }, [player, fetchAll]);
 
+  const handleLogin = (p) => {
+    sessionStorage.setItem("wc_player", JSON.stringify(p));
+    setPlayer(p);
+  };
+  const handleLogout = () => {
+    sessionStorage.removeItem("wc_player");
+    setPlayer(null);
+  };
+
   if (!player) {
-    return <LoginPage onLogin={p => setPlayer(p)} />;
+    return <LoginPage onLogin={handleLogin} />;
   }
 
   // My predictions
   const myPreds = predictions.filter(p => p.playerId === player.id);
   const myBracket = bracketPredictions.find(bp => bp.playerId === player.id) || null;
 
-  // Tip count
+  // Tip count (group stage only = 72 matches)
+  const totalGroupMatches = GROUP_MATCHES.length;
   const tipCount = myPreds.filter(p => p.homeScore != null && p.awayScore != null).length;
 
   // My score
@@ -431,18 +443,11 @@ export default function TippingHQ() {
     { exact: poolSettings?.pointsExact ?? 5, gd: poolSettings?.pointsGD ?? 3, result: poolSettings?.pointsResult ?? 1 }
   );
 
-  // Predictor leaderboard
-  const predLB = players.map(p => {
-    const bp = bracketPredictions.find(b => b.playerId === p.id);
-    const advancePicks = bp?.advancePicks ? JSON.parse(bp.advancePicks) : {};
-    // Get champion from m32
-    const koTeamsForPlayer = buildKOTeams(groupPicks(bp), thirdPicks(bp), advancePicks, officialResults);
-    const champion = koTeamsForPlayer?.["m32"] ? (advancePicks["m32"] === "h" ? koTeamsForPlayer["m32"].home : koTeamsForPlayer["m32"].away) : null;
-    return { ...p, groupPts: 0, bracketPts: 0, awardPts: 0, total: 0, champion };
-  }).sort((a, b) => b.total - a.total);
+  // Predictor leaderboard (real scoring)
+  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
 
   // KO team resolution from official results
-  const koTeams = buildOfficialKOTeams(officialResults);
+  const koTeams = buildOfficialKOTeamsFromResults(officialResults);
   const koWinners = buildKOWinners(officialResults);
 
   // Save prediction
@@ -626,7 +631,7 @@ export default function TippingHQ() {
   const myGroupPicks = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
   const myThirdPicks = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
   const myAdvancePicks = myBracket?.advancePicks ? JSON.parse(myBracket.advancePicks) : {};
-  const predKOTeams = buildKOTeams(myGroupPicks, myThirdPicks, myAdvancePicks, []);
+  const predKOTeams = buildKOTeams(myGroupPicks, myThirdPicks, myAdvancePicks);
 
   const canSuggest = myPreds.filter(p => p.homeScore != null).length > 0;
 
@@ -649,7 +654,7 @@ export default function TippingHQ() {
             <div className="pt-lab">{mode === "tip" ? "tipping pts" : "predictor pts"}</div>
           </div>
           <div className="hdr-meta">
-            <div className="picks">{tipCount}/104 tips in</div>
+            <div className="picks">{tipCount}/{totalGroupMatches} tips in</div>
             <div className="ctrls">
               <span className="live"><span className="live-dot" />Live</span>
               {isAdmin && (
@@ -663,7 +668,7 @@ export default function TippingHQ() {
               {isAdmin && (
                 <button className="mini" onClick={() => setShowKickEditor(true)}>🕐 Times</button>
               )}
-              <button className="mini" onClick={() => setPlayer(null)}>Log out</button>
+              <button className="mini" onClick={handleLogout}>Log out</button>
             </div>
           </div>
         </div>
@@ -713,6 +718,7 @@ export default function TippingHQ() {
               adminEditing={adminEditing}
               onSetOfficial={onSetOfficial}
               player={player}
+              poolSettings={poolSettings}
             />
           ))}
         </div>
@@ -736,6 +742,7 @@ export default function TippingHQ() {
             onSetOfficial={onSetOfficial}
             onSetOfficialPen={onSetOfficialPen}
             player={player}
+            poolSettings={poolSettings}
           />
         </div>
       )}
@@ -764,6 +771,7 @@ export default function TippingHQ() {
           player={player}
           onRefresh={fetchAll}
           loading={loading}
+          poolSettings={poolSettings}
         />
       )}
 
@@ -833,13 +841,6 @@ export default function TippingHQ() {
   );
 }
 
-// ---- Helper: build KO team mapping from official results ----
-function buildOfficialKOTeams(officialResults) {
-  // Simplified: would need full bracket resolution logic
-  // Returns empty map for now — groups feed into KO via admin results
-  return {};
-}
-
 function buildKOWinners(officialResults) {
   const winners = {};
   for (const res of officialResults) {
@@ -862,43 +863,24 @@ function thirdPicks(bp) {
   return bp?.thirdPicks ? JSON.parse(bp.thirdPicks) : {};
 }
 
-// Build predictor's KO team map from their group/advance picks
-function buildKOTeams(gp, tp, ap, officialResults) {
-  // Slot teams into R32 based on group picks
-  const teamOf = {};
-  // R32 slots from groups (simplified - maps 1st/2nd place)
-  // m1-m16 are R32 matches
-  // We'll use a simplified resolution: m9=2A vs 2C, m10=2B vs 2D etc
-  const slotTeams = {
-    "1A": gp["A"]?.first, "2A": gp["A"]?.second,
-    "1B": gp["B"]?.first, "2B": gp["B"]?.second,
-    "1C": gp["C"]?.first, "2C": gp["C"]?.second,
-    "1D": gp["D"]?.first, "2D": gp["D"]?.second,
-    "1E": gp["E"]?.first, "2E": gp["E"]?.second,
-    "1F": gp["F"]?.first, "2F": gp["F"]?.second,
-    "1G": gp["G"]?.first, "2G": gp["G"]?.second,
-    "1H": gp["H"]?.first, "2H": gp["H"]?.second,
-    "1I": gp["I"]?.first, "2I": gp["I"]?.second,
-    "1J": gp["J"]?.first, "2J": gp["J"]?.second,
-    "1K": gp["K"]?.first, "2K": gp["K"]?.second,
-    "1L": gp["L"]?.first, "2L": gp["L"]?.second,
-  };
-
-  // Assign best-3rd teams to slots (simplified)
+// Build predictor's KO team map from their group/advance picks (for predictor UI display)
+function buildKOTeams(gp, tp, ap) {
+  const slotTeams = {};
+  for (const L of ["A","B","C","D","E","F","G","H","I","J","K","L"]) {
+    slotTeams[`1${L}`] = gp[L]?.first || null;
+    slotTeams[`2${L}`] = gp[L]?.second || null;
+  }
   const thirds = Object.entries(tp).filter(([,v]) => v).map(([L,t]) => ({ L, t }));
   const thirdSlots = ["3DEF","3ADEF","3ABEF","3ABCF","3ABCG","3BCGH","3CDGH","3EFGH","3JKL","3IKL","3IJL","3IJK"];
   thirds.forEach((tr, i) => { if (thirdSlots[i]) slotTeams[thirdSlots[i]] = tr.t; });
 
+  const teamOf = {};
   for (const m of KO_MATCHES) {
     const home = slotTeams[m.h] || null;
     const away = slotTeams[m.a] || null;
     teamOf[m.id] = { home, away };
-
-    // Apply advance picks to propagate winners to next rounds
-    const picked = ap[m.id];
-    if (picked === "h" && home) slotTeams[`W${m.id.slice(1)}`] = home;
-    if (picked === "a" && away) slotTeams[`W${m.id.slice(1)}`] = away;
+    if (ap[m.id] === "h" && home) slotTeams[`W${m.id.slice(1)}`] = home;
+    if (ap[m.id] === "a" && away) slotTeams[`W${m.id.slice(1)}`] = away;
   }
-
   return teamOf;
 }

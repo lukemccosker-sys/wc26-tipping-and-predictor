@@ -1,20 +1,16 @@
-import { DEFAULT_SETTINGS, DEFAULT_PRED_SETTINGS, scoreTip, GL, WC_GROUPS, KO_MATCHES, ROUND_ORDER } from "./wc2026data";
+import { DEFAULT_SETTINGS, DEFAULT_PRED_SETTINGS, scoreTip, GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER } from "./wc2026data";
 
-// ---- Group table calculation ----
-export function calcGroupTable(group, predictions, officialResults) {
+// ---- Group table calculation (uses GROUP_MATCHES fixture data) ----
+export function calcGroupTable(group, officialResults) {
   const teams = WC_GROUPS[group] || [];
   const table = {};
   teams.forEach(t => { table[t] = { team: t, pld: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 }; });
 
-  // Find official results for this group's matches
-  const groupMatchIds = predictions.filter(p => p.group === group).map(p => p.id);
-
-  for (const res of officialResults) {
-    if (res.homeScore == null || res.awayScore == null) continue;
-    // find which group/teams this match belongs to
-    const match = predictions.find(m => m.id === res.matchId);
-    if (!match || match.group !== group) continue;
-    const h = match.home, a = match.away;
+  const groupFixtures = GROUP_MATCHES.filter(m => m.group === group);
+  for (const fixture of groupFixtures) {
+    const res = officialResults.find(r => r.matchId === fixture.id);
+    if (!res || res.homeScore == null || res.awayScore == null) continue;
+    const h = fixture.home, a = fixture.away;
     if (!table[h] || !table[a]) continue;
     const gh = +res.homeScore, ga = +res.awayScore;
     table[h].pld++; table[a].pld++;
@@ -66,4 +62,199 @@ export function buildLeaderboard(players, allPredictions, officialResults, setti
     const score = computePlayerScore(preds, officialResults, settings);
     return { ...player, ...score };
   }).sort((a, b) => b.total - a.total || b.counts.exact - a.counts.exact);
+}
+
+// ---- Predictor scoring ----
+// Determine group rank of a team from official results
+function getGroupRank(team, officialResults) {
+  for (const group of GL) {
+    const teams = WC_GROUPS[group];
+    if (!teams.includes(team)) continue;
+    const table = calcGroupTable(group, officialResults);
+    const entry = table.find(r => r.team === team);
+    if (entry) return { group, rank: entry.rank };
+  }
+  return null;
+}
+
+// Build official KO team map from official results + GROUP_MATCHES data
+export function buildOfficialKOTeamsFromResults(officialResults) {
+  // Build group standings
+  const standings = {};
+  for (const group of GL) {
+    standings[group] = calcGroupTable(group, officialResults);
+  }
+
+  // Slot teams: 1A = 1st in group A, etc.
+  const slotTeams = {};
+  for (const group of GL) {
+    const table = standings[group] || [];
+    slotTeams[`1${group}`] = table[0]?.team || null;
+    slotTeams[`2${group}`] = table[1]?.team || null;
+    slotTeams[`3${group}`] = table[2]?.team || null;
+  }
+
+  // Best 3rd-place teams: sort all 3rd-place teams by pts/gd/gf, pick top 8
+  const thirds = GL.map(group => {
+    const table = standings[group] || [];
+    return table[2] ? { ...table[2], group } : null;
+  }).filter(Boolean).sort((a, b) =>
+    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
+  );
+  // WC2026 3rd-place slot assignments (by which groups they come from)
+  // Simplified: assign to the slots in the KO_MATCHES h/a fields positionally
+  const thirdSlots = ["3DEF","3ADEF","3ABEF","3ABCF","3ABCG","3BCGH","3CDGH","3EFGH","3JKL","3IKL","3IJL","3IJK"];
+  thirds.slice(0, 8).forEach((t, i) => { slotTeams[thirdSlots[i]] = t.team; });
+
+  // Resolve KO matches round by round using official results
+  const teamOf = {};
+  for (const m of KO_MATCHES) {
+    const home = slotTeams[m.h] || null;
+    const away = slotTeams[m.a] || null;
+    teamOf[m.id] = { home, away };
+
+    // Determine winner from official result to propagate
+    const res = officialResults.find(r => r.matchId === m.id);
+    if (res && res.homeScore != null && res.awayScore != null) {
+      const h = +res.homeScore, a = +res.awayScore;
+      let winner = null, loser = null;
+      if (h > a) { winner = home; loser = away; }
+      else if (h < a) { winner = away; loser = home; }
+      else if (res.penaltyWinner === "h") { winner = home; loser = away; }
+      else if (res.penaltyWinner === "a") { winner = away; loser = home; }
+      if (winner) slotTeams[`W${m.id.slice(1)}`] = winner;
+      if (loser) slotTeams[`L${m.id.slice(1)}`] = loser;
+    }
+  }
+  return teamOf;
+}
+
+// Score a single player's bracket prediction against official results
+export function computePredictorScore(bracketPred, officialResults, predSettings) {
+  const s = predSettings || DEFAULT_PRED_SETTINGS;
+  let groupPts = 0, bracketPts = 0, awardPts = 0;
+
+  if (!bracketPred) return { groupPts: 0, bracketPts: 0, awardPts: 0, total: 0 };
+
+  const gp = bracketPred.groupPicks ? JSON.parse(bracketPred.groupPicks) : {};
+  const tp = bracketPred.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {};
+
+  // Group picks scoring — compare against official standings
+  for (const group of GL) {
+    const table = calcGroupTable(group, officialResults);
+    const actual1st = table[0]?.team;
+    const actual2nd = table[1]?.team;
+    const actual3rd = table[2]?.team;
+    const pick = gp[group] || {};
+    if (actual1st && pick.first === actual1st) groupPts += +s.g1 || 3;
+    if (actual2nd && pick.second === actual2nd) groupPts += +s.g2 || 2;
+    // Best 3rd picks
+    if (actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
+  }
+
+  // Bracket picks — check advancement
+  const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
+  const ap = bracketPred.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
+
+  // Build a set of teams that actually reached each round from official results
+  const reachedRound = {}; // team -> highest round reached
+  for (const m of KO_MATCHES) {
+    const teams = officialKOTeams[m.id];
+    if (!teams) continue;
+    const res = officialResults.find(r => r.matchId === m.id);
+    [teams.home, teams.away].filter(Boolean).forEach(t => {
+      if (!reachedRound[t] || ROUND_ORDER.indexOf(m.round) > ROUND_ORDER.indexOf(reachedRound[t])) {
+        reachedRound[t] = m.round;
+      }
+    });
+    // Winner advances further
+    if (res && res.homeScore != null) {
+      const h = +res.homeScore, a = +res.awayScore;
+      let winner = null;
+      if (h > a) winner = teams.home;
+      else if (h < a) winner = teams.away;
+      else if (res.penaltyWinner === "h") winner = teams.home;
+      else if (res.penaltyWinner === "a") winner = teams.away;
+      const roundIdx = ROUND_ORDER.indexOf(m.round);
+      const nextRound = ROUND_ORDER[roundIdx + 1];
+      if (winner && nextRound) {
+        if (!reachedRound[winner] || ROUND_ORDER.indexOf(nextRound) > ROUND_ORDER.indexOf(reachedRound[winner])) {
+          reachedRound[winner] = nextRound;
+        }
+      }
+    }
+  }
+
+  // Score advancement picks
+  const roundPtsMap = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "sf" };
+  for (const m of KO_MATCHES) {
+    const teams = officialKOTeams[m.id];
+    if (!teams) continue;
+    const pickedSide = ap[m.id];
+    const pickedTeam = pickedSide === "h" ? teams.home : pickedSide === "a" ? teams.away : null;
+    if (!pickedTeam) continue;
+    // Check if picked team won this match (i.e., advanced)
+    const res = officialResults.find(r => r.matchId === m.id);
+    if (!res || res.homeScore == null) continue;
+    const h = +res.homeScore, a = +res.awayScore;
+    let winner = null;
+    if (h > a) winner = teams.home;
+    else if (h < a) winner = teams.away;
+    else if (res.penaltyWinner === "h") winner = teams.home;
+    else if (res.penaltyWinner === "a") winner = teams.away;
+    if (winner && winner === pickedTeam) {
+      // Award points based on which round they advance FROM
+      const key = roundPtsMap[m.round];
+      if (key && s[key]) bracketPts += +s[key];
+      // Extra points for champion (winning the Final)
+      if (m.round === "F") bracketPts += +s.champ || 12;
+      // Extra for 3rd place winner
+      if (m.round === "3rd") bracketPts += +s.third_place || 5;
+    }
+  }
+
+  // Award picks
+  const awardPicks = bracketPred.awardPicks ? JSON.parse(bracketPred.awardPicks) : {};
+  // officialAwards stored separately — passed in via bracketPred.officialAwards if present
+  // We score via a separate path in TippingHQ
+
+  return { groupPts, bracketPts, awardPts, total: groupPts + bracketPts + awardPts };
+}
+
+export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
+  const s = predSettings || DEFAULT_PRED_SETTINGS;
+
+  function awardMatch(mine, actual) {
+    if (!mine || !actual) return false;
+    const norm = str => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    return norm(mine) === norm(actual);
+  }
+
+  return players.map(player => {
+    const bp = bracketPredictions.find(b => b.playerId === player.id) || null;
+    const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s);
+
+    // Award scoring
+    let awardPts = 0;
+    if (bp?.awardPicks) {
+      const picks = JSON.parse(bp.awardPicks);
+      for (const key of Object.keys(picks)) {
+        if (awardMatch(picks[key], officialAwards?.[key])) {
+          awardPts += +s.award || 5;
+        }
+      }
+    }
+
+    const total = groupPts + bracketPts + awardPts;
+
+    // Champion prediction
+    const ap = bp?.advancePicks ? JSON.parse(bp.advancePicks) : {};
+    const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
+    const m32Teams = officialKOTeams["m32"];
+    const champion = m32Teams
+      ? (ap["m32"] === "h" ? m32Teams.home : ap["m32"] === "a" ? m32Teams.away : null)
+      : null;
+
+    return { ...player, groupPts, bracketPts, awardPts, total, champion };
+  }).sort((a, b) => b.total - a.total);
 }
