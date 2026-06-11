@@ -374,6 +374,16 @@ function dedupeBracketPredictions(bracketPredictions) {
   return Object.values(map);
 }
 
+export function buildCombinedLeaderboard(players, allPredictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings) {
+  const tippingLB = buildLeaderboard(players, allPredictions, officialResults, tippingSettings);
+  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
+  return players.map(player => {
+    const t = tippingLB.find(r => r.id === player.id) || { total: 0 };
+    const p = predLB.find(r => r.id === player.id) || { total: 0 };
+    return { ...player, tippingTotal: t.total, predictorTotal: p.total, total: t.total + p.total };
+  }).sort((a, b) => b.total - a.total);
+}
+
 export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
   const dedupedBrackets = dedupeBracketPredictions(bracketPredictions);

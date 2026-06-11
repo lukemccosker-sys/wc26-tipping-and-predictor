@@ -22,7 +22,8 @@ import {
   DEFAULT_KICKOFFS, DEFAULT_PRED_SETTINGS, DEFAULT_SETTINGS,
   scoreTip, ADMIN_NAME
 } from "@/lib/wc2026data";
-import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard } from "@/lib/scoring";
+import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard, buildCombinedLeaderboard } from "@/lib/scoring";
+import CombinedLeaderboard from "@/components/CombinedLeaderboard";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -643,6 +644,10 @@ export default function TippingHQ() {
   // Predictor leaderboard (real scoring)
   const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
 
+  // Combined leaderboard
+  const tippingSettings = { exact: poolSettings?.pointsExact ?? 5, gd: poolSettings?.pointsGD ?? 3, result: poolSettings?.pointsResult ?? 1 };
+  const combinedLB = buildCombinedLeaderboard(players, predictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings);
+
   // My predictor score (from leaderboard which includes award pts)
   const myPredRow = predLB.find(r => r.id === player.id);
   const myPredScore = myPredRow?.total ?? 0;
@@ -1003,7 +1008,7 @@ export default function TippingHQ() {
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false],["combined","Combined","Combined","🌟",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1012,7 +1017,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"],["combined","🌟","Combined"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1174,6 +1179,15 @@ export default function TippingHQ() {
             </div>
           )}
         </>
+      )}
+
+      {mode === "tip" && tab === "combined" && (
+        <CombinedLeaderboard
+          combinedLB={combinedLB}
+          player={player}
+          onRefresh={fetchAll}
+          loading={loading}
+        />
       )}
 
       {mode === "tip" && tab === "reveal" && (
@@ -1362,7 +1376,7 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"],["combined","🌟","Combined"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
