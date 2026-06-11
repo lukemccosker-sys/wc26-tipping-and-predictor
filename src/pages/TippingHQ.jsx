@@ -1010,13 +1010,14 @@ export default function TippingHQ() {
       <div className="modeswitch">
         <button className={mode === "tip" ? "on" : ""} onClick={() => setMode("tip")}>🎯 Tipping</button>
         <button className={mode === "pred" ? "on" : ""} onClick={() => setMode("pred")}>🔮 Predictor</button>
+        <button className={mode === "combined" ? "on" : ""} onClick={() => setMode("combined")}>🌟 Combined</button>
       </div>
 
       {/* Tab nav — shown on desktop via .tabs, shown on mobile via .mobile-tabnav */}
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false],["combined","Combined","Combined","🌟",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1025,7 +1026,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"],["combined","🌟","Combined"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1189,7 +1190,7 @@ export default function TippingHQ() {
         </>
       )}
 
-      {mode === "tip" && tab === "combined" && (
+      {mode === "combined" && (
         <CombinedLeaderboard
           combinedLB={combinedLB}
           player={player}
@@ -1384,11 +1385,32 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"],["combined","🌟","Combined"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
             ))}
+            <div className="desk-nav-sep" />
+            <button className={`desk-nav-btn${mode==="combined"?" act":""}`} onClick={() => setMode("combined")}>
+              <span className="dnic">🌟</span>Combined
+            </button>
+            <div className="desk-nav-sep" />
+            <a href="/live" className="desk-nav-live">
+              <span className="dnic">📺</span>Live
+            </a>
+          </>
+        ) : mode === "combined" ? (
+          <>
+            <button className="desk-nav-btn" onClick={() => setMode("tip")}>
+              <span className="dnic">🎯</span>Tipping
+            </button>
+            <button className="desk-nav-btn" onClick={() => setMode("pred")}>
+              <span className="dnic">🔮</span>Predictor
+            </button>
+            <div className="desk-nav-sep" />
+            <button className={`desk-nav-btn act`} onClick={() => setMode("combined")}>
+              <span className="dnic">🌟</span>Combined
+            </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
               <span className="dnic">📺</span>Live
@@ -1401,6 +1423,10 @@ export default function TippingHQ() {
                 <span className="dnic">{ic}</span>{lbl}
               </button>
             ))}
+            <div className="desk-nav-sep" />
+            <button className={`desk-nav-btn${mode==="combined"?" act":""}`} onClick={() => setMode("combined")}>
+              <span className="dnic">🌟</span>Combined
+            </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
               <span className="dnic">📺</span>Live
