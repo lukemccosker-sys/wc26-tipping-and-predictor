@@ -14,7 +14,6 @@ import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
-import LiveMatchTicker from "@/components/LiveMatchTicker";
 import WelcomeBackBanner from "@/components/WelcomeBackBanner";
 import CeremonyModal from "@/components/CeremonyModal";
 import LoginPage from "./Login";
@@ -953,13 +952,12 @@ export default function TippingHQ() {
           </div>
         </div>
         <div className="hdr-r">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className={`ptotal${mode === "pred" ? " pred" : ""}`}>
               <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
               <div className="pt-lab">{mode === "tip" ? "tipping pts" : "predictor pts"}</div>
             </div>
             <a href="/live" className="live" style={{ textDecoration: "none", flexShrink: 0 }}><span className="live-dot" />Live</a>
-            <LiveMatchTicker />
           </div>
           <div className="hdr-meta">
             <div className="picks">{tipCount}/{totalGroupMatches} tips in</div>
