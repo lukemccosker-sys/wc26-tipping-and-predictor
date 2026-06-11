@@ -113,8 +113,21 @@ export function calcGroupTable(group, officialResults) {
   return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
+// Deduplicate predictions — keep only the latest per matchId
+function dedupePredictions(predictions) {
+  const map = {};
+  for (const p of predictions) {
+    const existing = map[p.matchId];
+    if (!existing || p.updated_date > existing.updated_date) {
+      map[p.matchId] = p;
+    }
+  }
+  return Object.values(map);
+}
+
 // ---- Compute player tipping score ----
 export function computePlayerScore(predictions, officialResults, settings) {
+  predictions = dedupePredictions(predictions);
   const s = settings || DEFAULT_SETTINGS;
   let total = 0;
   const counts = { exact: 0, gd: 0, result: 0, miss: 0 };
