@@ -8,6 +8,20 @@ import { scoreTip } from "@/lib/wc2026data";
 
 const ROUND_SHORT = { R32:"R32", R16:"R16", QF:"QF", SF:"Semis", "3rd":"3rd", F:"Final" };
 
+function MatchStatusBadge({ kickoff, hasOfficial }) {
+  const now = Date.now();
+  if (hasOfficial) return null;
+  if (!kickoff) return <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(150,160,175,.15)", color: "#6c7384", borderRadius: 999, padding: "2px 7px" }}>Upcoming</span>;
+  const diff = kickoff - now;
+  if (diff > 0 && diff <= 90 * 60 * 1000) {
+    return <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(44,181,81,.15)", color: "#1c7a3a", borderRadius: 999, padding: "2px 7px", display: "inline-flex", alignItems: "center", gap: 3 }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#2cb551", animation: "livepulse 1.8s ease-in-out infinite", display: "inline-block" }} />Live</span>;
+  }
+  if (diff <= 0) {
+    return <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(255,176,32,.15)", color: "#9a6800", borderRadius: 999, padding: "2px 7px" }}>🔒 Locked</span>;
+  }
+  return <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(47,139,255,.12)", color: "#1f6fd6", borderRadius: 999, padding: "2px 7px" }}>Upcoming</span>;
+}
+
 function slotLabel(slot) {
   if (!slot) return "TBD";
   if (slot.startsWith("W")) return `Winner M${slot.slice(2)}`;
@@ -77,7 +91,8 @@ export default function KOBracket({
       <div className={`ko${isF ? " final" : ""}${is3rd ? " bronze" : ""}${!teamsKnown ? " pending" : ""}${scored ? " scored" : ""}`} key={m.id} id={`match-${m.id}`}>
         <div className="ko-h">
           <span>M{m.id.slice(1)}</span>
-          <span className="ko-v">{isF ? "World Cup Final" : m.venue}</span>
+          <MatchStatusBadge kickoff={getKickoff(m.id)} hasOfficial={hasOfficial} />
+          <span className="ko-v">{isF ? "Final" : m.venue}</span>
           {scored && <span className={`pts-circle t-${scored.tier}`}>{scored.pts}</span>}
         </div>
 

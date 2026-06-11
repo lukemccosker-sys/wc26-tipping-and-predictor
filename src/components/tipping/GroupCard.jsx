@@ -31,6 +31,21 @@ function fmtKick(ms) {
   return new Date(ms).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function MatchStatusBadge({ kickoff, hasOfficial }) {
+  const now = Date.now();
+  if (hasOfficial) return null; // already shown as "Final" via gm-lock-badge
+  if (!kickoff) return <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(150,160,175,.15)", color: "#6c7384", borderRadius: 999, padding: "2px 8px" }}>Upcoming</span>;
+  const diff = kickoff - now;
+  if (diff > 0 && diff <= 90 * 60 * 1000) {
+    // within 90 min of kickoff — treat as live
+    return <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(44,181,81,.15)", color: "#1c7a3a", borderRadius: 999, padding: "2px 8px", display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2cb551", animation: "livepulse 1.8s ease-in-out infinite", display: "inline-block" }} />Live</span>;
+  }
+  if (diff <= 0) {
+    return <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(255,176,32,.15)", color: "#9a6800", borderRadius: 999, padding: "2px 8px" }}>🔒 Locked</span>;
+  }
+  return <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(47,139,255,.12)", color: "#1f6fd6", borderRadius: 999, padding: "2px 8px" }}>Upcoming</span>;
+}
+
 export default function GroupCard({
   group, predictions, officialResults, kickoffs,
   onSetScore, isAdmin, adminEditing, onSetOfficial, onClearOfficial,
@@ -85,8 +100,8 @@ export default function GroupCard({
               <div className="cd-row">
                 {kicked && <span className="kick-when">{fmtKick(kicked)}</span>}
                 <Countdown kickoff={kicked} />
-                {locked && !hasOfficial && <span className="gm-lock-badge">🔒 Locked</span>}
-                {locked && hasOfficial && <span className="gm-lock-badge">🔒 Final</span>}
+                <MatchStatusBadge kickoff={kicked} hasOfficial={hasOfficial} />
+                {locked && hasOfficial && <span className="gm-lock-badge">✅ Final</span>}
                 {hasTip && !locked && <span className="tip-saved">✓ saved</span>}
                 {scored && (
                   <span className={`pts-circle t-${scored.tier}`}>{scored.pts}</span>
