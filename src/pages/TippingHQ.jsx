@@ -22,7 +22,7 @@ import {
   scoreTip, ADMIN_NAME
 } from "@/lib/wc2026data";
 import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard, buildCombinedLeaderboard } from "@/lib/scoring";
-import AllLeaderboards from "@/components/AllLeaderboards";
+import AllLeaderboards, { PredictedChampions } from "@/components/AllLeaderboards";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -1039,8 +1039,8 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pg","Groups","Groups","🥇",false],["pb","Bracket","Bracket","🏆",false],["pa","Awards","Awards","🏅",false]].map(([k,l,sh,ic,sep]) => (
-              <button key={k} className={`tab${ptab===k?" act":""}${sep?" sep":""}`} onClick={() => setPtab(k)}>
+            {[["pg","Groups","Groups","🥇"],["pb","Bracket","Bracket","🏆"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"]].map(([k,l,sh,ic]) => (
+              <button key={k} className={`tab${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
                 <span className="tab-short">{sh}</span>
@@ -1048,7 +1048,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pc","🌍","Champs"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1259,6 +1259,10 @@ export default function TippingHQ() {
                 return null;
               })()}
             </>
+          )}
+
+          {ptab === "pc" && (
+            <PredictedChampions predLB={predLB} player={player} />
           )}
 
           {ptab === "pa" && (
