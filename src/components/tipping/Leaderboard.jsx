@@ -13,11 +13,11 @@ export default function Leaderboard({ leaderboard, player, onRefresh, loading, p
         <div className="muted2">Ranked by total points.</div>
         <table className="tbl lb">
           <thead>
-            <tr><th></th><th className="tl">Player</th><th>Pts</th><th>Exact</th><th>Win</th></tr>
+            <tr><th></th><th className="tl">Player</th><th>Pts</th><th>Exact</th><th>GD</th><th>Win</th></tr>
           </thead>
           <tbody>
             {leaderboard.length === 0 && (
-              <tr><td colSpan="5" className="muted2 ctr">No scores yet — tips count once results come in.</td></tr>
+              <tr><td colSpan="6" className="muted2 ctr">No scores yet — tips count once results come in.</td></tr>
             )}
             {leaderboard.map((r, i) => (
               <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
@@ -29,7 +29,8 @@ export default function Leaderboard({ leaderboard, player, onRefresh, loading, p
                 </td>
                 <td className="pts">{r.total || 0}</td>
                 <td>{r.counts?.exact || 0}</td>
-                <td>{(r.counts?.gd || 0) + (r.counts?.result || 0)}</td>
+                <td>{r.counts?.gd || 0}</td>
+                <td>{r.counts?.result || 0}</td>
               </tr>
             ))}
           </tbody>
