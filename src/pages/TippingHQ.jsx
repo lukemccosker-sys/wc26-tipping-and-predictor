@@ -14,6 +14,8 @@ import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import WelcomeBackBanner from "@/components/WelcomeBackBanner";
+import CeremonyModal from "@/components/CeremonyModal";
 import LoginPage from "./Login";
 import {
   GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER,
@@ -396,6 +398,7 @@ export default function TippingHQ() {
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showCeremony, setShowCeremony] = useState(false);
 
   // Data state
   const [players, setPlayers] = useState([]);
@@ -576,6 +579,17 @@ export default function TippingHQ() {
       flushPendingSaves();
     };
   }, [player, fetchAll, flushPendingSaves]);
+
+  // Ceremony: show once when all 4 awards are entered
+  const AWARD_KEYS = ["boot", "ball", "young", "glove"];
+  const tournamentOver = AWARD_KEYS.every(k => officialAwards?.[k]?.trim());
+  useEffect(() => {
+    if (!player || !tournamentOver) return;
+    const key = `wc_ceremony_seen_${player.id}`;
+    if (!localStorage.getItem(key)) {
+      setShowCeremony(true);
+    }
+  }, [player?.id, tournamentOver]);
 
   const handleLogin = (p) => {
     localStorage.setItem("wc_player", JSON.stringify(p));
@@ -974,6 +988,12 @@ export default function TippingHQ() {
 
       <AnnouncementBanner />
 
+      <WelcomeBackBanner
+        player={player}
+        officialResults={officialResults}
+        onGoToLeaderboard={() => { setMode("tip"); setTab("board"); }}
+      />
+
       <div className="modeswitch">
         <button className={mode === "tip" ? "on" : ""} onClick={() => setMode("tip")}>🎯 Tipping</button>
         <button className={mode === "pred" ? "on" : ""} onClick={() => setMode("pred")}>🔮 Predictor</button>
@@ -1321,6 +1341,18 @@ export default function TippingHQ() {
           onClose={() => {
             localStorage.setItem(`wc_help_seen_${player.id}`, "1");
             setShowHelp(false);
+          }}
+        />
+      )}
+
+      {showCeremony && (
+        <CeremonyModal
+          leaderboard={leaderboard}
+          predLB={predLB}
+          player={player}
+          onClose={() => {
+            localStorage.setItem(`wc_ceremony_seen_${player.id}`, "1");
+            setShowCeremony(false);
           }}
         />
       )}
