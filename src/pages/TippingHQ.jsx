@@ -499,7 +499,15 @@ export default function TippingHQ() {
     // Real-time subscriptions — instantly reflect any change
     const unsubPlayers = base44.entities.Player.subscribe((event) => {
       if (event.type === "create") setPlayers(prev => [...prev.filter(p => p.id !== event.id), event.data]);
-      else if (event.type === "update") setPlayers(prev => prev.map(p => p.id === event.id ? event.data : p));
+      else if (event.type === "update") {
+        setPlayers(prev => prev.map(p => p.id === event.id ? event.data : p));
+        // Keep the logged-in player's session data fresh (e.g. predictorOverride changes)
+        if (event.id === playerRef.current?.id) {
+          const updated = { ...playerRef.current, ...event.data };
+          localStorage.setItem("wc_player", JSON.stringify(updated));
+          setPlayer(updated);
+        }
+      }
       else if (event.type === "delete") {
         setPlayers(prev => prev.filter(p => p.id !== event.id));
         // If the deleted player is the currently logged-in user, force logout
