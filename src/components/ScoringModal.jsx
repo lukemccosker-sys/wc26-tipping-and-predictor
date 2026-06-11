@@ -23,7 +23,7 @@ export default function ScoringModal({ poolSettings, predSettings, isAdmin, onSa
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 560,
-          maxHeight: "82vh",
+          height: "90vh",
           display: "flex",
           flexDirection: "column",
           boxShadow: "0 -12px 48px -12px rgba(0,0,0,.35)",
@@ -72,7 +72,7 @@ export default function ScoringModal({ poolSettings, predSettings, isAdmin, onSa
         </div>
 
         {/* Scrollable content */}
-        <div style={{ overflowY: "auto", padding: "0 18px 28px", flex: 1 }}>
+        <div style={{ overflowY: "auto", padding: "0 18px 80px", flex: 1, WebkitOverflowScrolling: "touch" }}>
           {tab === "tip" && (
             <TippingScoringCard poolSettings={poolSettings} isAdmin={isAdmin} onSave={onSaveSettings} />
           )}
