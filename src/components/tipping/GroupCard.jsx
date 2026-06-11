@@ -37,7 +37,14 @@ export default function GroupCard({
   player, poolSettings
 }) {
   const matches = groupMatches(group);
-  const myPreds = predictions.filter(p => p.playerId === player?.id);
+  // Deduplicate — keep only the latest prediction per match for this player
+  const myPredsRaw = predictions.filter(p => p.playerId === player?.id);
+  const myPredsMap = {};
+  for (const p of myPredsRaw) {
+    const ex = myPredsMap[p.matchId];
+    if (!ex || p.updated_date > ex.updated_date) myPredsMap[p.matchId] = p;
+  }
+  const myPreds = Object.values(myPredsMap);
 
   const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
   const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
