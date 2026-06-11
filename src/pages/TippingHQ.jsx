@@ -4,12 +4,10 @@ import Flag from "@/lib/flags";
 import GroupCard from "@/components/tipping/GroupCard";
 import KickoffView from "@/components/tipping/KickoffView";
 import KOBracket from "@/components/tipping/KOBracket";
-import Leaderboard from "@/components/tipping/Leaderboard";
 import TipsRoom from "@/components/tipping/TipsRoom";
 import PredictorGroups from "@/components/predictor/PredictorGroups";
 import PredictorBracket from "@/components/predictor/PredictorBracket";
 import PredictorAwards from "@/components/predictor/PredictorAwards";
-import PredictorLeaderboard from "@/components/predictor/PredictorLeaderboard";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
@@ -23,7 +21,7 @@ import {
   scoreTip, ADMIN_NAME
 } from "@/lib/wc2026data";
 import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard, buildCombinedLeaderboard } from "@/lib/scoring";
-import CombinedLeaderboard from "@/components/CombinedLeaderboard";
+import AllLeaderboards from "@/components/AllLeaderboards";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -1004,20 +1002,20 @@ export default function TippingHQ() {
       <WelcomeBackBanner
         player={player}
         officialResults={officialResults}
-        onGoToLeaderboard={() => { setMode("tip"); setTab("board"); }}
+        onGoToLeaderboard={() => setMode("lb")}
       />
 
       <div className="modeswitch">
         <button className={mode === "tip" ? "on" : ""} onClick={() => setMode("tip")}>🎯 Tipping</button>
         <button className={mode === "pred" ? "on" : ""} onClick={() => setMode("pred")}>🔮 Predictor</button>
-        <button className={mode === "combined" ? "on" : ""} onClick={() => setMode("combined")}>🌟 Combined</button>
+        <button className={mode === "lb" ? "on" : ""} onClick={() => setMode("lb")}>🏅 Leaderboards</button>
       </div>
 
       {/* Tab nav — shown on desktop via .tabs, shown on mobile via .mobile-tabnav */}
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["board","Leaderboard","Table","📊",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1026,7 +1024,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1038,7 +1036,7 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pg","Groups","Groups","🥇",false],["pb","Bracket","Bracket","🏆",false],["pa","Awards","Awards","🏅",false],["pl","Leaderboard","Table","📊",false]].map(([k,l,sh,ic,sep]) => (
+            {[["pg","Groups","Groups","🥇",false],["pb","Bracket","Bracket","🏆",false],["pa","Awards","Awards","🏅",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${ptab===k?" act":""}${sep?" sep":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1047,7 +1045,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Leaderboard"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1139,6 +1137,7 @@ export default function TippingHQ() {
             <div className="step-prompt" style={{ marginTop: 16 }}>
               <span className="step-prompt-txt">🎉 All 72 group tips done! Head to the Bracket tab to tip the knockouts — they unlock once group results are in.</span>
               <button className="step-prompt-btn" onClick={() => setTab("ko")}>Go to Bracket →</button>
+
             </div>
           )}
         </>
@@ -1171,32 +1170,29 @@ export default function TippingHQ() {
         </div>
       )}
 
-      {mode === "tip" && tab === "board" && (
+      {mode === "lb" && (
         <>
-          <Leaderboard
+          <AllLeaderboards
             leaderboard={leaderboard}
+            predLB={predLB}
+            combinedLB={combinedLB}
             player={player}
-            onRefresh={fetchAll}
-            loading={loading}
             poolSettings={poolSettings}
+            predSettings={predSettings}
             isAdmin={isAdmin}
             onSaveSettings={savePoolSettings}
+            onSavePredSettings={async (newSettings) => {
+              await savePoolSettings({ predSettings: JSON.stringify({ ...predSettings, ...newSettings }) });
+            }}
+            onRefresh={fetchAll}
+            loading={loading}
           />
           {isAdmin && (
-            <div className="card pad" style={{ marginTop: 16 }}>
+            <div className="card pad" style={{ marginTop: 20 }}>
               <AdminPlayerManager players={players} onRefresh={fetchAll} />
             </div>
           )}
         </>
-      )}
-
-      {mode === "combined" && (
-        <CombinedLeaderboard
-          combinedLB={combinedLB}
-          player={player}
-          onRefresh={fetchAll}
-          loading={loading}
-        />
       )}
 
       {mode === "tip" && tab === "reveal" && (
@@ -1293,7 +1289,7 @@ export default function TippingHQ() {
                 if (awardsDone) return (
                   <div className="step-prompt" style={{ marginTop: 14 }}>
                     <span className="step-prompt-txt">🎉 Predictor complete! Check the leaderboard to see how you stack up against everyone else.</span>
-                    <button className="step-prompt-btn" onClick={() => setPtab("pl")}>View Leaderboard →</button>
+                    <button className="step-prompt-btn" onClick={() => setMode("lb")}>View Leaderboards →</button>
                   </div>
                 );
                 return null;
@@ -1301,19 +1297,7 @@ export default function TippingHQ() {
             </>
           )}
 
-          {ptab === "pl" && (
-            <PredictorLeaderboard
-              predLB={predLB}
-              player={player}
-              predSettings={predSettings}
-              onRefresh={fetchAll}
-              loading={loading}
-              isAdmin={isAdmin}
-              onSavePredSettings={async (newSettings) => {
-                await savePoolSettings({ predSettings: JSON.stringify({ ...predSettings, ...newSettings }) });
-              }}
-            />
-          )}
+
         </>
       )}
 
@@ -1391,15 +1375,15 @@ export default function TippingHQ() {
               </button>
             ))}
             <div className="desk-nav-sep" />
-            <button className={`desk-nav-btn${mode==="combined"?" act":""}`} onClick={() => setMode("combined")}>
-              <span className="dnic">🌟</span>Combined
+            <button className={`desk-nav-btn${mode==="lb"?" act":""}`} onClick={() => setMode("lb")}>
+              <span className="dnic">🏅</span>Boards
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
               <span className="dnic">📺</span>Live
             </a>
           </>
-        ) : mode === "combined" ? (
+        ) : mode === "lb" ? (
           <>
             <button className="desk-nav-btn" onClick={() => setMode("tip")}>
               <span className="dnic">🎯</span>Tipping
@@ -1408,8 +1392,8 @@ export default function TippingHQ() {
               <span className="dnic">🔮</span>Predictor
             </button>
             <div className="desk-nav-sep" />
-            <button className={`desk-nav-btn act`} onClick={() => setMode("combined")}>
-              <span className="dnic">🌟</span>Combined
+            <button className="desk-nav-btn act">
+              <span className="dnic">🏅</span>Boards
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
@@ -1418,14 +1402,14 @@ export default function TippingHQ() {
           </>
         ) : (
           <>
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pl","📊","Leaderboard"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
             ))}
             <div className="desk-nav-sep" />
-            <button className={`desk-nav-btn${mode==="combined"?" act":""}`} onClick={() => setMode("combined")}>
-              <span className="dnic">🌟</span>Combined
+            <button className={`desk-nav-btn${mode==="lb"?" act":""}`} onClick={() => setMode("lb")}>
+              <span className="dnic">🏅</span>Boards
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
