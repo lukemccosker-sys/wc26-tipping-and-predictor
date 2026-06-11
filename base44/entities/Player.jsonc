@@ -11,6 +11,10 @@
     "isAdmin": {
       "type": "boolean",
       "default": false
+    },
+    "predictorOverride": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

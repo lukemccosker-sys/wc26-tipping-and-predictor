@@ -458,7 +458,7 @@ export default function TippingHQ() {
   const isAdmin = player?.isAdmin || false;
   // Lock predictor at the first game kickoff (GA0), overridable by kickoff overrides
   const firstKickoff = kickoffs["GA0"] ?? PREDICTOR_LOCK_UTC;
-  const predLocked = Date.now() >= firstKickoff;
+  const predLocked = Date.now() >= firstKickoff && !player?.predictorOverride;
 
   const fetchAll = useCallback(async () => {
     const [pl, pr, or_, bp, ps] = await Promise.all([

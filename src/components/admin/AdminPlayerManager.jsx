@@ -77,7 +77,20 @@ export default function AdminPlayerManager({ players, onRefresh }) {
                 {p.name}
                 {p.isAdmin && <span className="lb-crown">👑</span>}
               </span>
-              <div className="manage-btns">
+              <div className="manage-btns" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {!p.isAdmin && (
+                  <button
+                    className="mbtn"
+                    style={{ display: "flex", alignItems: "center", gap: 6, background: p.predictorOverride ? "rgba(123,84,240,.12)" : "", borderColor: p.predictorOverride ? "#7b54f0" : "", color: p.predictorOverride ? "#7b54f0" : "" }}
+                    title="Allow this player to edit their Predictor picks even after the tournament has started"
+                    onClick={async () => {
+                      await base44.entities.Player.update(p.id, { predictorOverride: !p.predictorOverride });
+                      onRefresh();
+                    }}
+                  >
+                    {p.predictorOverride ? "🔓 Predictor open" : "🔒 Predictor locked"}
+                  </button>
+                )}
                 <button className="mbtn" onClick={() => { setRenaming(p); setNewName(p.name); }}>✎ Rename</button>
                 {p.isAdmin ? (
                   <span className="manage-locked">admin</span>
