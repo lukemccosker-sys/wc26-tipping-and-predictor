@@ -362,8 +362,21 @@ function buildPredKOTeams(gp, tp, ap) {
   return teamOf;
 }
 
+// Deduplicate bracket predictions — keep only the latest per playerId
+function dedupeBracketPredictions(bracketPredictions) {
+  const map = {};
+  for (const b of bracketPredictions) {
+    const existing = map[b.playerId];
+    if (!existing || b.updated_date > existing.updated_date) {
+      map[b.playerId] = b;
+    }
+  }
+  return Object.values(map);
+}
+
 export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
+  const dedupedBrackets = dedupeBracketPredictions(bracketPredictions);
 
   function awardMatch(mine, actual) {
     if (!mine || !actual) return false;
@@ -374,7 +387,7 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
   }
 
   return players.map(player => {
-    const bp = bracketPredictions.find(b => b.playerId === player.id) || null;
+    const bp = dedupedBrackets.find(b => b.playerId === player.id) || null;
     const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s);
 
     // Award scoring
