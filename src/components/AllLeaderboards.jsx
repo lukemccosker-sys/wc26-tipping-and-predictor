@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Flag from "@/lib/flags";
 
 // ── Shared Podium ─────────────────────────────────────────────────────────────
@@ -180,22 +180,37 @@ export function PredictedChampions({ predLB, player }) {
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading }) {
+  const [tab, setTab] = useState("tip");
+
+  const tabs = [
+    { k: "tip", label: "🎯 Tipping" },
+    { k: "pred", label: "🔮 Predictor" },
+    { k: "combined", label: "🌟 Combined" },
+  ];
+
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
         <div>
           <div style={{ fontFamily: "'Anton', sans-serif", fontSize: "clamp(28px,5vw,48px)", fontWeight: 400, textTransform: "uppercase", lineHeight: 1, letterSpacing: ".03em" }}>
             LEADER<span style={{ color: "var(--pink)" }}>BOARDS</span>
           </div>
-          <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 600, marginTop: 4 }}>All standings in one place</div>
         </div>
-        <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh all"}</button>
+        <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, alignItems: "start" }}>
-        <TippingLB leaderboard={leaderboard} player={player} />
-        <PredictorLB predLB={predLB} player={player} />
-        <CombinedLB combinedLB={combinedLB} player={player} />
-      </div>
+
+      {/* Tab nav */}
+      <nav className="tabs" style={{ marginBottom: 18 }}>
+        {tabs.map(t => (
+          <button key={t.k} className={`tab${tab === t.k ? " act" : ""}`} onClick={() => setTab(t.k)}>
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} />}
+      {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
+      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} />}
     </div>
   );
 }
