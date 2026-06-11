@@ -62,7 +62,7 @@ function TippingScoringCard({ poolSettings, isAdmin, onSave }) {
         </div>
       </div>
       <div style={{ marginTop: 12, background: "#fff8f0", borderRadius: 11, padding: "10px 12px", fontSize: 12, color: "#6c7384", lineHeight: 1.55 }}>
-        <b style={{ color: "#222a3d" }}>🏆 Knockouts:</b> Same scoring on 90-min score. If it's a draw, admin marks the penalty winner — you still get <b>1pt</b> if you picked that team to win.
+        <b style={{ color: "#222a3d" }}>🏆 Knockouts:</b> Same scoring on 120-min score. If it's a draw, admin marks the penalty winner — you still get <b>1pt</b> if you picked that team to win.
       </div>
     </div>
   );
