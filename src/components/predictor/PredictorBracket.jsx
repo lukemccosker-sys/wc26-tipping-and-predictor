@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Flag from "@/lib/flags";
+import { Lock } from "lucide-react";
 import { KO_MATCHES, ROUND_ORDER, ROUND_NAME } from "@/lib/wc2026data";
 
 const ROUND_SHORT = { R32:"R32", R16:"R16", QF:"QF", SF:"Semis", "3rd":"3rd", F:"Final" };
@@ -118,6 +119,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
                 {team ? <><Flag name={team} size={16} /><span>{team}</span></> : <span className="ko-ph">{slotLabel(slot)}</span>}
               </span>
               {isPicked && <span className="pko-tick">{isF ? "🏆" : "✓"}</span>}
+              {locked && <Lock size={11} style={{ color: "var(--muted2)", opacity: 0.5, flexShrink: 0, marginLeft: isPicked ? 4 : "auto" }} />}
             </button>
           );
         })}

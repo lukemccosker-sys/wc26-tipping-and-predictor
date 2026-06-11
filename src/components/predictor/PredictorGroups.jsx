@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Flag from "@/lib/flags";
+import { Lock } from "lucide-react";
 import { WC_GROUPS, GL } from "@/lib/wc2026data";
 
 export default function PredictorGroups({ bracketPred, locked, onPickPos, onPickThird, onSuggest, canSuggest, suggestionKey }) {
@@ -120,11 +121,12 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
                     <div className={`pteam${isF ? " f" : ""}${isS ? " s" : ""}${isT ? " t" : ""}`} key={team}>
                       <span className="pteam-n"><Flag name={team} size={20} /><span>{team}</span></span>
                       {locked ? (
-                        <span className="pteam-res">
+                        <span className="pteam-res" style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           {isF ? <span className="medal-static m1">1st</span>
                             : isS ? <span className="medal-static m2">2nd</span>
                             : isT ? <span className="medal-static m3">3rd</span>
                             : <span className="medal-none">—</span>}
+                          <Lock size={11} style={{ color: "var(--muted2)", opacity: 0.6, flexShrink: 0 }} />
                         </span>
                       ) : (
                         <span className="pteam-btns">
