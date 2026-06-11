@@ -1,0 +1,30 @@
+{
+  "name": "LiveMatch",
+  "type": "object",
+  "properties": {
+    "fixtureId": {
+      "type": "string"
+    },
+    "homeTeam": {
+      "type": "string"
+    },
+    "awayTeam": {
+      "type": "string"
+    },
+    "homeScore": {
+      "type": "number"
+    },
+    "awayScore": {
+      "type": "number"
+    },
+    "minute": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "fixtureId"
+  ]
+}
