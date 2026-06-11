@@ -11,6 +11,7 @@ import PredictorAwards from "@/components/predictor/PredictorAwards";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
+import ScoringModal from "@/components/ScoringModal";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import WelcomeBackBanner from "@/components/WelcomeBackBanner";
 import CeremonyModal from "@/components/CeremonyModal";
@@ -397,6 +398,7 @@ export default function TippingHQ() {
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showScoring, setShowScoring] = useState(false);
   const [showCeremony, setShowCeremony] = useState(false);
 
   // Data state
@@ -987,6 +989,7 @@ export default function TippingHQ() {
               {isAdmin && (
                 <a href="/admin" className="mini" style={{ textDecoration: "none" }}>⚙️ Admin</a>
               )}
+              <button className="mini" onClick={() => setShowScoring(true)}>🏆 Scoring</button>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
               <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
@@ -1177,13 +1180,6 @@ export default function TippingHQ() {
             predLB={predLB}
             combinedLB={combinedLB}
             player={player}
-            poolSettings={poolSettings}
-            predSettings={predSettings}
-            isAdmin={isAdmin}
-            onSaveSettings={savePoolSettings}
-            onSavePredSettings={async (newSettings) => {
-              await savePoolSettings({ predSettings: JSON.stringify({ ...predSettings, ...newSettings }) });
-            }}
             onRefresh={fetchAll}
             loading={loading}
           />
@@ -1341,6 +1337,19 @@ export default function TippingHQ() {
           </div>
         );
       })()}
+
+      {showScoring && (
+        <ScoringModal
+          poolSettings={poolSettings}
+          predSettings={predSettings}
+          isAdmin={isAdmin}
+          onSaveSettings={savePoolSettings}
+          onSavePredSettings={async (newSettings) => {
+            await savePoolSettings({ predSettings: JSON.stringify({ ...predSettings, ...newSettings }) });
+          }}
+          onClose={() => setShowScoring(false)}
+        />
+      )}
 
       {showHelp && (
         <HelpModal

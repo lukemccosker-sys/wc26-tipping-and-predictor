@@ -1,9 +1,9 @@
 import React from "react";
 import Flag from "@/lib/flags";
-import { TippingScoringCard, PredictorScoringCard } from "@/components/ScoringCard";
+
 
 // ── Tipping Leaderboard ──────────────────────────────────────────────────────
-function TippingLB({ leaderboard, player, poolSettings, isAdmin, onSaveSettings }) {
+function TippingLB({ leaderboard, player }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div className="card pad">
@@ -49,13 +49,12 @@ function TippingLB({ leaderboard, player, poolSettings, isAdmin, onSaveSettings 
           );
         })()}
       </div>
-      <TippingScoringCard poolSettings={poolSettings} isAdmin={isAdmin} onSave={onSaveSettings} />
     </div>
   );
 }
 
 // ── Predictor Leaderboard ────────────────────────────────────────────────────
-function PredictorLB({ predLB, player, predSettings, isAdmin, onSavePredSettings }) {
+function PredictorLB({ predLB, player }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div className="card pad">
@@ -99,7 +98,6 @@ function PredictorLB({ predLB, player, predSettings, isAdmin, onSavePredSettings
           ))}
         </div>
       </div>
-      <PredictorScoringCard predSettings={predSettings} isAdmin={isAdmin} onSave={onSavePredSettings} />
     </div>
   );
 }
@@ -170,8 +168,6 @@ function CombinedLB({ combinedLB, player }) {
 // ── Main export ──────────────────────────────────────────────────────────────
 export default function AllLeaderboards({
   leaderboard, predLB, combinedLB, player,
-  poolSettings, predSettings, isAdmin,
-  onSaveSettings, onSavePredSettings,
   onRefresh, loading
 }) {
   return (
@@ -187,8 +183,8 @@ export default function AllLeaderboards({
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, alignItems: "start" }}>
-        <TippingLB leaderboard={leaderboard} player={player} poolSettings={poolSettings} isAdmin={isAdmin} onSaveSettings={onSaveSettings} />
-        <PredictorLB predLB={predLB} player={player} predSettings={predSettings} isAdmin={isAdmin} onSavePredSettings={onSavePredSettings} />
+        <TippingLB leaderboard={leaderboard} player={player} />
+        <PredictorLB predLB={predLB} player={player} />
         <CombinedLB combinedLB={combinedLB} player={player} />
       </div>
     </div>
