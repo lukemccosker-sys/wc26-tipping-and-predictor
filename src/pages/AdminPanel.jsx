@@ -271,17 +271,36 @@ export default function AdminPanel() {
                 {p.isAdmin && <span className="ap-badge">👑 Admin</span>}
                 {p.id === player.id && <span className="ap-you">You</span>}
               </span>
-              {p.isAdmin ? (
-                <span style={{ fontSize: 11, color: "#9aa0ad", fontWeight: 700 }}>Cannot remove admin</span>
-              ) : (
-                <button
-                  className="ap-remove-btn"
-                  disabled={removing === p.id}
-                  onClick={() => removePlayer(p)}
-                >
-                  {removing === p.id ? "Removing…" : "✕ Remove"}
-                </button>
-              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {!p.isAdmin && (
+                  <button
+                    onClick={async () => {
+                      await base44.entities.Player.update(p.id, { predictorOverride: !p.predictorOverride });
+                    }}
+                    style={{
+                      background: p.predictorOverride ? "rgba(123,84,240,.12)" : "#f4f0ff",
+                      border: `1.5px solid ${p.predictorOverride ? "#7b54f0" : "#d0c8f0"}`,
+                      color: p.predictorOverride ? "#7b54f0" : "#9aa0ad",
+                      borderRadius: 9, padding: "7px 13px", fontSize: 12.5, fontWeight: 800,
+                      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap"
+                    }}
+                    title="Toggle whether this player can edit their Predictor picks after tournament has started"
+                  >
+                    {p.predictorOverride ? "🔓 Predictor open" : "🔒 Predictor locked"}
+                  </button>
+                )}
+                {p.isAdmin ? (
+                  <span style={{ fontSize: 11, color: "#9aa0ad", fontWeight: 700 }}>Cannot remove admin</span>
+                ) : (
+                  <button
+                    className="ap-remove-btn"
+                    disabled={removing === p.id}
+                    onClick={() => removePlayer(p)}
+                  >
+                    {removing === p.id ? "Removing…" : "✕ Remove"}
+                  </button>
+                )}
+              </div>
             </div>
           ))
         )}
