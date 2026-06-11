@@ -1,0 +1,16 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "message"
+  ]
+}

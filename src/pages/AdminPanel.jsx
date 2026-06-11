@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { calcGroupTable } from "@/lib/scoring";
 import { KO_MATCHES, GL } from "@/lib/wc2026data";
+import AnnouncementManager from "@/components/admin/AnnouncementManager";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -169,6 +170,13 @@ export default function AdminPanel() {
           FIFA World Cup 2026 Tipping — admin controls
         </div>
         <a href="/" style={{ display: "inline-block", marginTop: 10, color: "#2f8bff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>← Back to TippingHQ</a>
+      </div>
+
+      {/* Announcements */}
+      <div className="ap-card">
+        <div className="ap-section-title">📢 Announcements</div>
+        <div className="ap-section-sub">Post a message that appears live for all players at the top of TippingHQ. Only one message is shown at a time.</div>
+        <AnnouncementManager />
       </div>
 
       {/* Global tipping lock */}

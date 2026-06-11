@@ -13,6 +13,7 @@ import PredictorLeaderboard from "@/components/predictor/PredictorLeaderboard";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import LoginPage from "./Login";
 import {
   GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER,
@@ -970,6 +971,8 @@ export default function TippingHQ() {
           </div>
         </div>
       </header>
+
+      <AnnouncementBanner />
 
       <div className="modeswitch">
         <button className={mode === "tip" ? "on" : ""} onClick={() => setMode("tip")}>🎯 Tipping</button>
