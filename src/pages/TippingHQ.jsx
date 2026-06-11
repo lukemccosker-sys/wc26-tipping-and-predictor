@@ -1174,21 +1174,14 @@ export default function TippingHQ() {
       )}
 
       {mode === "lb" && (
-        <>
-          <AllLeaderboards
-            leaderboard={leaderboard}
-            predLB={predLB}
-            combinedLB={combinedLB}
-            player={player}
-            onRefresh={fetchAll}
-            loading={loading}
-          />
-          {isAdmin && (
-            <div className="card pad" style={{ marginTop: 20 }}>
-              <AdminPlayerManager players={players} onRefresh={fetchAll} />
-            </div>
-          )}
-        </>
+        <AllLeaderboards
+          leaderboard={leaderboard}
+          predLB={predLB}
+          combinedLB={combinedLB}
+          player={player}
+          onRefresh={fetchAll}
+          loading={loading}
+        />
       )}
 
       {mode === "tip" && tab === "reveal" && (
