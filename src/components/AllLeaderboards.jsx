@@ -199,14 +199,14 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
       </div>
 
-      {/* Tab nav */}
-      <nav className="tabs" style={{ marginBottom: 18 }}>
+      {/* Tab nav — uses modeswitch pill style so it's always visible on mobile too */}
+      <div className="modeswitch" style={{ marginBottom: 18 }}>
         {tabs.map(t => (
-          <button key={t.k} className={`tab${tab === t.k ? " act" : ""}`} onClick={() => setTab(t.k)}>
+          <button key={t.k} className={tab === t.k ? "on" : ""} onClick={() => setTab(t.k)}>
             {t.label}
           </button>
         ))}
-      </nav>
+      </div>
 
       {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} />}
       {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
