@@ -49,7 +49,7 @@ const CSS = `
 .badge-admin{background:linear-gradient(95deg,var(--gold),var(--orange));color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 9px;}
 .hdr-r{display:flex;gap:16px;align-items:center;}
 .ptotal{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;border-radius:18px;padding:10px 20px;text-align:center;box-shadow:0 14px 30px -12px rgba(123,84,240,.6);transition:background .3s;}
-.ptotal.pred{background:linear-gradient(120deg,var(--purple),var(--blue));}
+.ptotal.pred{background:linear-gradient(120deg,var(--purple),var(--blue));}.ptotal.combined{background:linear-gradient(120deg,#2cb551,#12b3a6);}
 .pt-num{font-family:'Anton',sans-serif;font-size:40px;line-height:.9;}
 .pt-lab{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;opacity:.9;}
 .hdr-meta{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
@@ -968,7 +968,7 @@ export default function TippingHQ() {
         </div>
         <div className="hdr-r">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className={`ptotal${mode === "pred" ? " pred" : ""}`}>
+            <div className={`ptotal${mode === "pred" ? " pred" : ""}${mode === "lb" ? " combined" : ""}`}>
               <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
               <div className="pt-lab">{mode === "tip" ? "tipping pts" : mode === "pred" ? "predictor pts" : "combined pts"}</div>
             </div>
