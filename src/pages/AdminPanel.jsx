@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { calcGroupTable } from "@/lib/scoring";
 import { KO_MATCHES, GL } from "@/lib/wc2026data";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
+import TipOverrideTool from "@/components/admin/TipOverrideTool";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -252,6 +253,13 @@ export default function AdminPanel() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Tip Override */}
+      <div className="ap-card">
+        <div className="ap-section-title">✏️ Override a Player's Tip</div>
+        <div className="ap-section-sub">Manually set or update any player's score prediction for any match. Use the match ID (e.g. GA0, M73).</div>
+        <TipOverrideTool players={players} />
       </div>
 
       {/* Players list */}
