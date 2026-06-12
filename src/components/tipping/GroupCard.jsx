@@ -40,11 +40,7 @@ function MatchStatusBadge({ kickoff, hasOfficial }) {
   }
   // kicked off
   if (hasOfficial) return null; // result entered — no live badge, "Final" badge handles it
-  return (
-    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase", background: "rgba(44,181,81,.15)", color: "#1c7a3a", borderRadius: 999, padding: "2px 8px", display: "inline-flex", alignItems: "center", gap: 4 }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2cb551", animation: "livepulse 1.8s ease-in-out infinite", display: "inline-block" }} />Live
-    </span>
-  );
+  return null;
 }
 
 export default function GroupCard({
