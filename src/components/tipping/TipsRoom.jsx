@@ -92,17 +92,17 @@ export default function TipsRoom({ players, predictions, officialResults, player
                 onClick={() => toggleExpand(m.id)}
                 style={{ cursor: "pointer", userSelect: "none" }}
               >
-                <div className="rev-fix" style={{ flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
+                <div className="rev-fix" style={{ flexWrap: "nowrap", alignItems: "center", gap: 6, minWidth: 0, flex: 1, overflow: "hidden" }}>
                   {m.home && m.away ? (
                     <>
-                      <span className="tlteam" style={{ whiteSpace: "nowrap", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}><Flag name={m.home} size={18} />{m.home}</span>
-                      <span className="rev-ft" style={{ flexShrink: 0 }}>{m.official.homeScore}–{m.official.awayScore}</span>
-                      <span className="tlteam" style={{ whiteSpace: "nowrap", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{m.away}<Flag name={m.away} size={18} /></span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}><Flag name={m.home} size={14} />{m.home}</span>
+                      <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px", flexShrink: 0 }}>{m.official.homeScore}–{m.official.awayScore}</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>{m.away}<Flag name={m.away} size={14} /></span>
                     </>
                   ) : (
                     <>
                       <span className="rev-kolabel">{m.label}</span>
-                      <span className="rev-ft">{m.official.homeScore}–{m.official.awayScore}</span>
+                      <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px" }}>{m.official.homeScore}–{m.official.awayScore}</span>
                     </>
                   )}
                 </div>
