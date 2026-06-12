@@ -22,9 +22,9 @@ function TippingScoringCard({ poolSettings, isAdmin, onSave }) {
   };
 
   const rows = [
-    { label: "Exact score", sub: "e.g. tip 2–1 · result 2–1", k: "exact", color: "#2cb551" },
-    { label: "Winner + goal diff", sub: "e.g. tip 1–0 · result 2–1", k: "gd", color: "#12b3a6" },
-    { label: "Right winner / draw", sub: "e.g. tip 1–0 · result 3–0", k: "result", color: "#ffb020" },
+    { label: "Exact score", sub: "Nailed the exact scoreline — e.g. tip 1–1, result 1–1", k: "exact", color: "#2cb551" },
+    { label: "Correct winner & goal margin", sub: "Right winner, right margin, wrong score — e.g. tip 2–1, result 3–2", k: "gd", color: "#12b3a6" },
+    { label: "Correct winner or draw", sub: "Right team won (or draw), but wrong margin/score — e.g. tip 2–1, result 3–0", k: "result", color: "#ffb020" },
   ];
 
   return (
