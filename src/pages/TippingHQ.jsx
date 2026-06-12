@@ -1377,14 +1377,14 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["board","🏅","Leaderboard"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
             ))}
             <div className="desk-nav-sep" />
             <button className={`desk-nav-btn${mode==="lb"?" act":""}`} onClick={() => setMode("lb")}>
-              <span className="dnic">🏅</span>Boards
+              <span className="dnic">🏅</span>Leaderboard
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
@@ -1401,7 +1401,7 @@ export default function TippingHQ() {
             </button>
             <div className="desk-nav-sep" />
             <button className="desk-nav-btn act">
-              <span className="dnic">🏅</span>Boards
+              <span className="dnic">🏅</span>Leaderboard
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
@@ -1417,7 +1417,7 @@ export default function TippingHQ() {
             ))}
             <div className="desk-nav-sep" />
             <button className={`desk-nav-btn${mode==="lb"?" act":""}`} onClick={() => setMode("lb")}>
-              <span className="dnic">🏅</span>Boards
+              <span className="dnic">🏅</span>Leaderboard
             </button>
             <div className="desk-nav-sep" />
             <a href="/live" className="desk-nav-live">
