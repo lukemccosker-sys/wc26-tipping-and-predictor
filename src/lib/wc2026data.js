@@ -379,8 +379,8 @@ export const DEFAULT_KICKOFFS = {
 // Default predictor settings
 export const DEFAULT_PRED_SETTINGS = {
   g1: 3, g2: 2, third: 2,
-  r32: 1, r16: 3, qf: 5, sf: 8, final: 5,
-  third_place: 5, champ: 12, award: 5,
+  r32: 1, r16: 3, qf: 5, sf: 8, final: 12,
+  third_place: 5, champ: 15, award: 5,
 };
 
 export const DEFAULT_SETTINGS = {
