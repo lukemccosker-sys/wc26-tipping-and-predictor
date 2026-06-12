@@ -93,6 +93,7 @@ function PredictorScoringCard({ predSettings, isAdmin, onSave }) {
       color: "#7b54f0",
       note: "Points awarded if your picked team actually reaches that round — regardless of which slot they came from.",
       rows: [
+        { label: "Reach Round of 32", emoji: "→", k: "r32" },
         { label: "Reach Round of 16", emoji: "→", k: "r16" },
         { label: "Reach Quarter-final", emoji: "→", k: "qf" },
         { label: "Reach Semi-final", emoji: "→", k: "sf" },
