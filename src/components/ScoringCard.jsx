@@ -78,17 +78,37 @@ function PredictorScoringCard({ predSettings, isAdmin, onSave }) {
     setEditing(false);
   };
 
-  const rows = [
-    { label: "Group winner", emoji: "🥇", k: "g1" },
-    { label: "Group runner-up", emoji: "🥈", k: "g2" },
-    { label: "Best 3rd qualifier", emoji: "🥉", k: "third" },
-    { label: "Reach Round of 32", emoji: "→", k: "r32" },
-    { label: "Reach Round of 16", emoji: "→", k: "r16" },
-    { label: "Reach Quarter-final", emoji: "→", k: "qf" },
-    { label: "Reach Semi-final", emoji: "→", k: "sf" },
-    { label: "3rd place play-off win", emoji: "🥉", k: "third_place" },
-    { label: "Champion", emoji: "🏆", k: "champ" },
-    { label: "Each award winner", emoji: "🌟", k: "award" },
+  const sections = [
+    {
+      title: "Group Stage",
+      color: "#12b3a6",
+      rows: [
+        { label: "Group winner (1st)", emoji: "🥇", k: "g1" },
+        { label: "Group runner-up (2nd)", emoji: "🥈", k: "g2" },
+        { label: "Best 3rd place qualifier", emoji: "🥉", k: "third" },
+      ]
+    },
+    {
+      title: "Team Achievement (Knockouts)",
+      color: "#7b54f0",
+      note: "Points awarded if your picked team actually reaches that round — regardless of which slot they came from.",
+      rows: [
+        { label: "Reach Round of 16", emoji: "→", k: "r16" },
+        { label: "Reach Quarter-final", emoji: "→", k: "qf" },
+        { label: "Reach Semi-final", emoji: "→", k: "sf" },
+        { label: "Reach the Final", emoji: "→", k: "final" },
+        { label: "Win the tournament", emoji: "🏆", k: "champ" },
+        { label: "3rd place play-off win", emoji: "🥉", k: "third_place" },
+      ]
+    },
+    {
+      title: "Individual Awards",
+      color: "#ff7a2f",
+      note: "Golden Boot, Golden Ball, Young Player & Golden Glove.",
+      rows: [
+        { label: "Each award winner correct", emoji: "🌟", k: "award" },
+      ]
+    },
   ];
 
   return (
@@ -104,22 +124,27 @@ function PredictorScoringCard({ predSettings, isAdmin, onSave }) {
           }
         </div>
       )}
-      <div>
-        {rows.map(({ label, emoji, k }, i) => (
-          <div key={k} style={{ ...ROW, borderBottom: i === rows.length - 1 ? "none" : "1px solid #f4ebdf" }}>
-            <div style={{ ...LABEL, display: "flex", alignItems: "center", gap: 7 }}>
-              <span style={{ fontSize: 14, flexShrink: 0 }}>{emoji}</span>
-              <span>{label}</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {sections.map(({ title, color, note, rows }) => (
+          <div key={title} style={{ border: "1px solid #efe3d2", borderRadius: 11, overflow: "hidden" }}>
+            <div style={{ background: color, padding: "6px 12px", fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#fff" }}>{title}</div>
+            {note && <div style={{ fontSize: 11, color: "#9aa0ad", padding: "6px 12px 2px", lineHeight: 1.4 }}>{note}</div>}
+            <div style={{ padding: "0 12px" }}>
+              {rows.map(({ label, emoji, k }, i) => (
+                <div key={k} style={{ ...ROW, padding: "7px 0", borderBottom: i === rows.length - 1 ? "none" : "1px solid #f4ebdf" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 600, color: "#222a3d", flex: 1 }}>
+                    <span style={{ fontSize: 13, flexShrink: 0 }}>{emoji}</span>
+                    <span>{label}</span>
+                  </div>
+                  {editing && isAdmin
+                    ? <input type="number" min={0} max={99} value={vals[k] ?? 0} onChange={e => setVals(v => ({ ...v, [k]: +e.target.value }))} style={INPUT_STYLE} />
+                    : <div style={BADGE}>{vals[k] ?? 0} pts</div>
+                  }
+                </div>
+              ))}
             </div>
-            {editing && isAdmin
-              ? <input type="number" min={0} max={99} value={vals[k]} onChange={e => setVals(v => ({ ...v, [k]: +e.target.value }))} style={INPUT_STYLE} />
-              : <div style={BADGE}>{vals[k]} pts</div>
-            }
           </div>
         ))}
-      </div>
-      <div style={{ marginTop: 12, background: "#f0f0ff", borderRadius: 11, padding: "10px 12px", fontSize: 12, color: "#6c7384", lineHeight: 1.55 }}>
-        <b style={{ color: "#222a3d" }}>🌟 Awards:</b> Golden Boot, Golden Ball, Young Player &amp; Golden Glove. Locks at first kick-off.
       </div>
     </div>
   );
