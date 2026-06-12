@@ -8,6 +8,9 @@ const STAGES = [
 
 export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings }) {
   const [stage, setStage] = useState("all");
+  const [expanded, setExpanded] = useState({});
+
+  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const settings = {
     exact: poolSettings?.pointsExact ?? 5,
@@ -81,9 +84,14 @@ export default function TipsRoom({ players, predictions, officialResults, player
       <div className="rev-list">
         {revealed.map(m => {
           const top = Math.max(...m.players.map(p => p.pts), 0);
+          const isOpen = !!expanded[m.id];
           return (
             <div className="card rev-game" key={m.id}>
-              <div className="rev-head">
+              <div
+                className="rev-head"
+                onClick={() => toggleExpand(m.id)}
+                style={{ cursor: "pointer", userSelect: "none" }}
+              >
                 <div className="rev-fix">
                   {m.home && m.away ? (
                     <>
@@ -98,23 +106,28 @@ export default function TipsRoom({ players, predictions, officialResults, player
                     </>
                   )}
                 </div>
-                <div className="rev-tag">{m.stage === "group" ? m.label : ROUND_NAME[m.round]}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <div className="rev-tag">{m.stage === "group" ? m.label : ROUND_NAME[m.round]}</div>
+                  <span style={{ fontSize: 12, color: "#9aa0ad", fontWeight: 800 }}>{isOpen ? "▲" : "▼"}</span>
+                </div>
               </div>
-              <table className="tbl rev-tbl">
-                <thead><tr><th className="tl">Player</th><th>Their tip</th><th>Pts</th></tr></thead>
-                <tbody>
-                  {m.players.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
-                    <tr><td colSpan="3" className="muted2 ctr">Nobody tipped this game.</td></tr>
-                  )}
-                  {m.players.filter(p => p.pred && p.pred.homeScore != null).map(p => (
-                    <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
-                      <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                      <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
-                      <td><span className={`pbadge t-${p.tier}`}>{p.pts}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {isOpen && (
+                <table className="tbl rev-tbl">
+                  <thead><tr><th className="tl">Player</th><th>Their tip</th><th>Pts</th></tr></thead>
+                  <tbody>
+                    {m.players.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
+                      <tr><td colSpan="3" className="muted2 ctr">Nobody tipped this game.</td></tr>
+                    )}
+                    {m.players.filter(p => p.pred && p.pred.homeScore != null).map(p => (
+                      <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
+                        <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
+                        <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
+                        <td><span className={`pbadge t-${p.tier}`}>{p.pts}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           );
         })}
