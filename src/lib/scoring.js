@@ -312,7 +312,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
 
   // Score each user pick: did they pick this team to advance from this round,
   // and did the team actually reach at least that round?
-  const roundPtsMap = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "sf" };
+  const roundPtsMap = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "final" };
   for (const m of KO_MATCHES) {
     if (m.round === "3rd") {
       // 3rd place match: score separately
