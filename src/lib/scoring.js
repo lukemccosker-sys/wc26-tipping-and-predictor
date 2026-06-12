@@ -273,22 +273,25 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     if (actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
   }
 
-  // Bracket picks — check advancement
+  // Bracket picks — Team Achievement model
+  // Score based on whether the team the user picked to advance actually reached that round,
+  // regardless of which specific match slot they were assigned to.
   const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
   const ap = bracketPred.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
 
-  // Build a set of teams that actually reached each round from official results
-  const reachedRound = {}; // team -> highest round reached
+  // Build a map of team -> highest round they actually reached
+  const actualRoundReached = {}; // { teamName: "QF" }
   for (const m of KO_MATCHES) {
     const teams = officialKOTeams[m.id];
     if (!teams) continue;
     const res = officialResults.find(r => r.matchId === m.id);
+    // Both teams that appear in a match have "reached" that round
     [teams.home, teams.away].filter(Boolean).forEach(t => {
-      if (!reachedRound[t] || ROUND_ORDER.indexOf(m.round) > ROUND_ORDER.indexOf(reachedRound[t])) {
-        reachedRound[t] = m.round;
-      }
+      const idx = ROUND_ORDER.indexOf(m.round);
+      const existing = ROUND_ORDER.indexOf(actualRoundReached[t] || "");
+      if (idx > existing) actualRoundReached[t] = m.round;
     });
-    // Winner advances further
+    // The winner has reached the NEXT round too
     if (res && res.homeScore != null) {
       const h = +res.homeScore, a = +res.awayScore;
       let winner = null;
@@ -296,41 +299,56 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
       else if (h < a) winner = teams.away;
       else if (res.penaltyWinner === "h") winner = teams.home;
       else if (res.penaltyWinner === "a") winner = teams.away;
-      const roundIdx = ROUND_ORDER.indexOf(m.round);
-      const nextRound = ROUND_ORDER[roundIdx + 1];
-      if (winner && nextRound) {
-        if (!reachedRound[winner] || ROUND_ORDER.indexOf(nextRound) > ROUND_ORDER.indexOf(reachedRound[winner])) {
-          reachedRound[winner] = nextRound;
+      if (winner) {
+        const roundIdx = ROUND_ORDER.indexOf(m.round);
+        const nextRound = ROUND_ORDER[roundIdx + 1];
+        if (nextRound) {
+          const existing = ROUND_ORDER.indexOf(actualRoundReached[winner] || "");
+          if (ROUND_ORDER.indexOf(nextRound) > existing) actualRoundReached[winner] = nextRound;
         }
       }
     }
   }
 
-  // Score advancement picks
+  // Score each user pick: did they pick this team to advance from this round,
+  // and did the team actually reach at least that round?
   const roundPtsMap = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "sf" };
   for (const m of KO_MATCHES) {
+    if (m.round === "3rd") {
+      // 3rd place match: score separately
+      const teams = officialKOTeams[m.id];
+      if (!teams) continue;
+      const pickedSide = ap[m.id];
+      const pickedTeam = pickedSide === "h" ? teams.home : pickedSide === "a" ? teams.away : null;
+      if (!pickedTeam) continue;
+      const res = officialResults.find(r => r.matchId === m.id);
+      if (!res || res.homeScore == null) continue;
+      const h = +res.homeScore, a = +res.awayScore;
+      let winner = null;
+      if (h > a) winner = teams.home;
+      else if (h < a) winner = teams.away;
+      else if (res.penaltyWinner === "h") winner = teams.home;
+      else if (res.penaltyWinner === "a") winner = teams.away;
+      if (winner && winner === pickedTeam) bracketPts += +s.third_place || 5;
+      continue;
+    }
+
     const teams = officialKOTeams[m.id];
     if (!teams) continue;
     const pickedSide = ap[m.id];
     const pickedTeam = pickedSide === "h" ? teams.home : pickedSide === "a" ? teams.away : null;
     if (!pickedTeam) continue;
-    // Check if picked team won this match (i.e., advanced)
-    const res = officialResults.find(r => r.matchId === m.id);
-    if (!res || res.homeScore == null) continue;
-    const h = +res.homeScore, a = +res.awayScore;
-    let winner = null;
-    if (h > a) winner = teams.home;
-    else if (h < a) winner = teams.away;
-    else if (res.penaltyWinner === "h") winner = teams.home;
-    else if (res.penaltyWinner === "a") winner = teams.away;
-    if (winner && winner === pickedTeam) {
-      // Award points based on which round they advance FROM
+
+    // Award points if the picked team actually reached at least this round
+    const teamActualRound = actualRoundReached[pickedTeam];
+    if (!teamActualRound) continue;
+    if (ROUND_ORDER.indexOf(teamActualRound) >= ROUND_ORDER.indexOf(m.round)) {
       const key = roundPtsMap[m.round];
       if (key && s[key]) bracketPts += +s[key];
-      // Extra points for champion (winning the Final)
-      if (m.round === "F") bracketPts += +s.champ || 12;
-      // Extra for 3rd place winner
-      if (m.round === "3rd") bracketPts += +s.third_place || 5;
+      // Extra champion bonus if they won the Final
+      if (m.round === "F" && ROUND_ORDER.indexOf(teamActualRound) > ROUND_ORDER.indexOf("F")) {
+        bracketPts += +s.champ || 12;
+      }
     }
   }
 
