@@ -92,12 +92,12 @@ export default function TipsRoom({ players, predictions, officialResults, player
                 onClick={() => toggleExpand(m.id)}
                 style={{ cursor: "pointer", userSelect: "none" }}
               >
-                <div className="rev-fix">
+                <div className="rev-fix" style={{ flexWrap: "nowrap", minWidth: 0, overflow: "hidden" }}>
                   {m.home && m.away ? (
                     <>
-                      <span className="tlteam"><Flag name={m.home} size={18} />{m.home}</span>
-                      <span className="rev-ft">{m.official.homeScore}–{m.official.awayScore}</span>
-                      <span className="tlteam">{m.away}<Flag name={m.away} size={18} /></span>
+                      <span className="tlteam" style={{ whiteSpace: "nowrap", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}><Flag name={m.home} size={18} />{m.home}</span>
+                      <span className="rev-ft" style={{ flexShrink: 0 }}>{m.official.homeScore}–{m.official.awayScore}</span>
+                      <span className="tlteam" style={{ whiteSpace: "nowrap", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{m.away}<Flag name={m.away} size={18} /></span>
                     </>
                   ) : (
                     <>
