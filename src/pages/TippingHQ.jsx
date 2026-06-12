@@ -1061,13 +1061,17 @@ export default function TippingHQ() {
 
       {/* TIPPING TABS */}
       {mode === "tip" && tab === "groups" && (() => {
-        // Next untipped group match
-        const nextUntipped = GROUP_MATCHES.find(m => {
-          const ko = kickoffs[m.id];
-          if (ko && Date.now() >= ko) return false;
-          const pred = predictions.find(p => p.playerId === player.id && p.matchId === m.id);
-          return !pred || pred.homeScore == null || pred.awayScore == null;
-        });
+        // Next untipped group match — sorted by kickoff time, find first upcoming & untipped
+        const nextUntipped = GROUP_MATCHES
+          .filter(m => {
+            const ko = kickoffs[m.id];
+            return ko && Date.now() < ko; // only upcoming matches
+          })
+          .sort((a, b) => (kickoffs[a.id] || 0) - (kickoffs[b.id] || 0))
+          .find(m => {
+            const pred = predictions.find(p => p.playerId === player.id && p.matchId === m.id);
+            return !pred || pred.homeScore == null || pred.awayScore == null;
+          });
         // Next upcoming kickoff (any group match not yet started)
         const nextKickoff = GROUP_MATCHES.map(m => ({ m, ko: kickoffs[m.id] }))
           .filter(({ ko }) => ko && Date.now() < ko)
