@@ -417,6 +417,7 @@ export default function TippingHQ() {
   // Refs must be declared before any early returns (Rules of Hooks)
   const predictionsRef = useRef([]);
   const saveTimers = useRef({});
+  const savingRef = useRef({}); // tracks in-flight saves per matchId to prevent duplicate creates
   const playerRef = useRef(player);
   const bracketRef = useRef(null); // tracks latest bracket data for optimistic updates
   const bracketSaveTimer = useRef(null);
@@ -432,6 +433,8 @@ export default function TippingHQ() {
     const flushPromises = pending.map(matchId => {
       clearTimeout(timers[matchId]);
       delete timers[matchId];
+      // Skip if already being saved
+      if (savingRef.current[matchId]) return;
       const currentPlayer = playerRef.current;
       if (!currentPlayer) return;
       const pred = predictionsRef.current.find(p => p.playerId === currentPlayer.id && p.matchId === matchId);
@@ -692,20 +695,36 @@ export default function TippingHQ() {
       return next;
     });
 
-    // Debounce DB save — wait 200ms after last interaction before persisting
+    // Debounce DB save — wait 400ms after last interaction before persisting
     clearTimeout(saveTimers.current[matchId]);
     saveTimers.current[matchId] = setTimeout(async () => {
+      // If a save is already in-flight for this match, skip — the in-flight save will use the latest ref value
+      if (savingRef.current[matchId]) return;
+
       const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
       if (!pred || pred.homeScore == null || pred.awayScore == null) return;
 
-      const { homeScore, awayScore } = pred;
-      if (pred.id) {
-        await base44.entities.Prediction.update(pred.id, { homeScore, awayScore });
-      } else {
-        const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore, awayScore });
-        setPredictions(prev => prev.map(p =>
-          p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
-        ));
+      savingRef.current[matchId] = true;
+      try {
+        const { homeScore, awayScore } = pred;
+        // Re-read pred.id from ref at save time (may have been set by a prior save)
+        const latestPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+        if (!latestPred) return;
+        if (latestPred.id) {
+          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore });
+        } else {
+          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore });
+          // Update both state and ref with the saved record (now has an id)
+          setPredictions(prev => {
+            const next = prev.map(p =>
+              p.playerId === player.id && p.matchId === matchId && !p.id ? saved : p
+            );
+            predictionsRef.current = next;
+            return next;
+          });
+        }
+      } finally {
+        savingRef.current[matchId] = false;
       }
     }, 400);
   };
