@@ -114,12 +114,24 @@ export function calcGroupTable(group, officialResults) {
 }
 
 // Deduplicate predictions — keep only the latest per matchId
+// Use created_date as the tiebreaker since updated_date can have sub-second precision issues
 function dedupePredictions(predictions) {
   const map = {};
   for (const p of predictions) {
     const existing = map[p.matchId];
-    if (!existing || p.updated_date > existing.updated_date) {
+    if (!existing) {
       map[p.matchId] = p;
+    } else {
+      // Compare by updated_date first, then created_date as tiebreaker
+      const pTime = Math.max(
+        p.updated_date ? new Date(p.updated_date).getTime() : 0,
+        p.created_date ? new Date(p.created_date).getTime() : 0
+      );
+      const eTime = Math.max(
+        existing.updated_date ? new Date(existing.updated_date).getTime() : 0,
+        existing.created_date ? new Date(existing.created_date).getTime() : 0
+      );
+      if (pTime > eTime) map[p.matchId] = p;
     }
   }
   return Object.values(map);
