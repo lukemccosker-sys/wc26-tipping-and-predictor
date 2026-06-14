@@ -419,7 +419,7 @@ export function scoreTip(pred, official, settings) {
     return { pts: 0, tier: "miss" };
   }
 
-  if (pdiff === odiff && pwin === owin) return { pts: +s.gd || 3, tier: "gd" };
+  if (pwin !== "d" && pdiff === odiff && pwin === owin) return { pts: +s.gd || 3, tier: "gd" };
   if (pwin === owin) return { pts: +s.result || 1, tier: "result" };
   return { pts: 0, tier: "miss" };
 }
