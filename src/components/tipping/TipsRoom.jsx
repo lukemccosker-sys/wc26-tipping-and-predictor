@@ -9,6 +9,8 @@ const STAGES = [
 export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings }) {
   const [stage, setStage] = useState("all");
   const [expanded, setExpanded] = useState({});
+  const [selectedPlayer, setSelectedPlayer] = useState("");
+  const [playerViewOpen, setPlayerViewOpen] = useState(false);
 
   const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -63,6 +65,30 @@ export default function TipsRoom({ players, predictions, officialResults, player
   // sort by match id for consistency
   revealed.sort((a, b) => a.id.localeCompare(b.id));
 
+  // Build all-games view for selected player
+  const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
+  const selectedPlayerObj = players.find(p => p.id === selectedPlayer);
+  const playerAllTips = selectedPlayerObj ? (() => {
+    const results = [];
+    for (const res of officialResults) {
+      if (res.homeScore == null || res.awayScore == null) continue;
+      const m = allMatches.find(x => x.id === res.matchId);
+      if (!m) continue;
+      const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
+      const pred = candidates.reduce((best, pr) => {
+        if (!best) return pr;
+        const prTime = Math.max(pr.updated_date ? new Date(pr.updated_date).getTime() : 0, pr.created_date ? new Date(pr.created_date).getTime() : 0);
+        const bestTime = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
+        return prTime > bestTime ? pr : best;
+      }, null);
+      const scored = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
+      results.push({ matchId: res.matchId, home: m.home, away: m.away, official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
+    }
+    results.sort((a, b) => a.matchId.localeCompare(b.matchId));
+    return results;
+  })() : [];
+  const playerTotal = playerAllTips.reduce((s, r) => s + r.pts, 0);
+
   return (
     <div className="reveal">
       <div className="card pad filter-card">
@@ -78,6 +104,61 @@ export default function TipsRoom({ players, predictions, officialResults, player
           ))}
         </div>
         <div className="rev-count">{revealed.length} completed {revealed.length === 1 ? "game" : "games"} · {players.length} player{players.length === 1 ? "" : "s"}</div>
+
+        {/* Player lookup */}
+        <div style={{ marginTop: 12, borderTop: "1px dashed #e0d2bd", paddingTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "#9aa0ad", marginBottom: 7 }}>View a player's tips</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <select
+              value={selectedPlayer}
+              onChange={e => { setSelectedPlayer(e.target.value); setPlayerViewOpen(!!e.target.value); }}
+              style={{ flex: 1, minWidth: 160, border: "2px solid #efe3d2", borderRadius: 10, padding: "8px 12px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", background: "#fff", color: "#222a3d" }}
+            >
+              <option value="">— Pick a player —</option>
+              {players.slice().sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                <option key={p.id} value={p.id}>{p.name}{player && p.id === player.id ? " (you)" : ""}</option>
+              ))}
+            </select>
+            {selectedPlayer && (
+              <button className="mini" onClick={() => setPlayerViewOpen(v => !v)}>
+                {playerViewOpen ? "▲ Hide" : "▼ Show"}
+              </button>
+            )}
+          </div>
+
+          {selectedPlayer && playerViewOpen && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontWeight: 800, fontSize: 14 }}>{selectedPlayerObj?.name} — all tips</span>
+                <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 22, color: "#ff3d7f" }}>{playerTotal}pts</span>
+              </div>
+              <table className="tbl rev-tbl" style={{ width: "100%" }}>
+                <thead>
+                  <tr><th className="tl">Match</th><th>Result</th><th>Their tip</th><th>Pts</th></tr>
+                </thead>
+                <tbody>
+                  {playerAllTips.length === 0 && (
+                    <tr><td colSpan="4" className="muted2 ctr">No scored games yet.</td></tr>
+                  )}
+                  {playerAllTips.map(r => (
+                    <tr key={r.matchId} style={{ borderTop: "1px solid #f4ebdf" }}>
+                      <td className="tl" style={{ fontSize: 11.5, fontWeight: 600 }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <Flag name={r.home} size={12} />{r.home} v {r.away}<Flag name={r.away} size={12} />
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 800, fontSize: 13 }}>{r.official.homeScore}–{r.official.awayScore}</td>
+                      <td className="rev-pred">
+                        {r.pred ? <b>{r.pred.homeScore}–{r.pred.awayScore}</b> : <span style={{ color: "#9aa0ad" }}>—</span>}
+                      </td>
+                      <td><span className={`pbadge t-${r.tier}`}>{r.pts}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {revealed.length === 0 && (
