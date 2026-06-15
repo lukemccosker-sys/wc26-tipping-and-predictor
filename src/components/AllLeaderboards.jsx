@@ -246,9 +246,12 @@ export function PredictedChampions({ predLB, player }) {
 export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings }) {
   const [tab, setTab] = useState("tip");
 
-  // Compute rank changes once using the tipping leaderboard order (same player IDs for all boards)
-  // so tipping and combined always show identical arrows
-  const rankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
+  // Tipping rank changes: based on tipping total only
+  const tippingRankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
+
+  // Combined rank changes: based on combined total (tipping pts change affects combined rank too)
+  // We pass combinedLB rows but use ptsFromLatest from tipping predictions only (predictor pts don't change per-match-day)
+  const combinedRankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.total || 0);
 
   const tabs = [
     { k: "tip", label: "🎯 Tipping" },
@@ -275,9 +278,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         ))}
       </div>
 
-      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={rankChanges} />}
+      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
       {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
-      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={rankChanges} />}
+      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} />}
     </div>
   );
 }
