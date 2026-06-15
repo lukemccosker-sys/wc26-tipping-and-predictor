@@ -249,9 +249,18 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
   // Tipping rank changes: based on tipping total only
   const tippingRankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
 
-  // Combined rank changes: based on combined total (tipping pts change affects combined rank too)
-  // We pass combinedLB rows but use ptsFromLatest from tipping predictions only (predictor pts don't change per-match-day)
-  const combinedRankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.total || 0);
+  // Combined rank changes: tipping pts change per-day; predictor pts are batch (don't change day-to-day).
+  // Build a combined total lookup so getTotal returns the real combined value for the "before" sort.
+  const combinedTotalById = Object.fromEntries(combinedLB.map(r => [r.id, r.total || 0]));
+  // Use leaderboard rows (stable, same players) so row order matches player IDs reliably.
+  // getTotal returns the combined total so "before rank" is computed against combined ordering.
+  const combinedRankChanges = computeRankChanges(
+    leaderboard,
+    predictions,
+    officialResults,
+    settings,
+    r => combinedTotalById[r.id] || 0
+  );
 
   const tabs = [
     { k: "tip", label: "🎯 Tipping" },
