@@ -2,10 +2,79 @@ import React, { useState } from "react";
 import Flag from "@/lib/flags";
 import { GROUP_MATCHES, KO_MATCHES, scoreTip } from "@/lib/wc2026data";
 
+// ── Rank change helper ────────────────────────────────────────────────────────
+// Computes { [playerId]: rankChange } by comparing current rank to rank before the latest day's results
+function computeRankChanges(rows, predictions, officialResults, settings, getTotal) {
+  if (!predictions || !officialResults || officialResults.length === 0) return {};
+
+  // Group results by day (Sydney = UTC+10)
+  const daysMap = {};
+  for (const res of officialResults) {
+    if (res.homeScore == null || res.awayScore == null) continue;
+    const ts = res.updated_date || res.created_date;
+    if (!ts) continue;
+    const d = new Date(new Date(ts).getTime() + 10 * 3600 * 1000);
+    const day = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+    if (!daysMap[day]) daysMap[day] = [];
+    daysMap[day].push(res);
+  }
+  const sortedDays = Object.keys(daysMap).sort();
+  if (sortedDays.length < 1) return {};
+  const latestResults = daysMap[sortedDays[sortedDays.length - 1]];
+
+  // For each player compute pts from latest-day results only
+  const ptsFromLatest = {};
+  for (const r of rows) {
+    let pts = 0;
+    for (const res of latestResults) {
+      const candidates = predictions.filter(p => p.playerId === r.id && p.matchId === res.matchId);
+      const pred = candidates.reduce((best, p) => {
+        if (!best) return p;
+        const pt = Math.max(p.updated_date ? new Date(p.updated_date).getTime() : 0, p.created_date ? new Date(p.created_date).getTime() : 0);
+        const bt = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
+        return pt > bt ? p : best;
+      }, null);
+      if (!pred) continue;
+      const scored = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, res, settings);
+      pts += scored?.pts ?? 0;
+    }
+    ptsFromLatest[r.id] = pts;
+  }
+
+  // Rank before = sort by (total - ptsFromLatest)
+  const before = rows.map(r => ({ id: r.id, beforeTotal: getTotal(r) - (ptsFromLatest[r.id] || 0) }));
+  before.sort((a, b) => b.beforeTotal - a.beforeTotal);
+  const rankBefore = {};
+  before.forEach((r, i) => { rankBefore[r.id] = i + 1; });
+
+  // rankChange = rankBefore - rankNow (positive = moved up)
+  const changes = {};
+  rows.forEach((r, i) => {
+    changes[r.id] = (rankBefore[r.id] || rows.length) - (i + 1);
+  });
+  return changes;
+}
+
+// ── Rank change badge ─────────────────────────────────────────────────────────
+function RankBadge({ change }) {
+  if (change == null || change === 0) return null;
+  const up = change > 0;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 1,
+      fontSize: 10, fontWeight: 900,
+      color: up ? "#2cb551" : "#ff3d7f",
+      marginLeft: 5, verticalAlign: "middle",
+    }}>
+      {up ? "▲" : "▼"}{Math.abs(change)}
+    </span>
+  );
+}
+
 // ── Shared Podium ─────────────────────────────────────────────────────────────
-function Podium({ rows, getLabel, getPoints, getSubLabel, color }) {
+function Podium({ rows, getPoints, getSubLabel, color }) {
   if (rows.length === 0) return null;
-  const order = [1, 0, 2]; // 2nd, 1st, 3rd displayed left-to-right
+  const order = [1, 0, 2];
   const configs = [
     { label: "🥇", height: 90, bg: "linear-gradient(160deg,#ffb020,#ffce3a)", textColor: "#7a4f00" },
     { label: "🥈", height: 65, bg: "linear-gradient(160deg,#aab2c0,#c8d0dc)", textColor: "#3a4050" },
@@ -37,7 +106,8 @@ function Podium({ rows, getLabel, getPoints, getSubLabel, color }) {
 }
 
 // ── Tipping Leaderboard ───────────────────────────────────────────────────────
-function TippingLB({ leaderboard, player }) {
+function TippingLB({ leaderboard, player, predictions, officialResults, settings }) {
+  const rankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🎯 Tipping</div>
@@ -53,7 +123,10 @@ function TippingLB({ leaderboard, player }) {
           {leaderboard.map((r, i) => (
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
-              <td className="tl">{r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}</td>
+              <td className="tl">
+                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                <RankBadge change={rankChanges[r.id]} />
+              </td>
               <td className="pts">{r.total || 0}</td>
               <td>{r.counts?.exact || 0}</td>
               <td>{r.counts?.gd || 0}</td>
@@ -62,12 +135,7 @@ function TippingLB({ leaderboard, player }) {
           ))}
         </tbody>
       </table>
-      <Podium
-        rows={leaderboard}
-        getPoints={r => r.total || 0}
-        getSubLabel={r => `${r.counts?.exact||0}✓ ${r.counts?.gd||0}GD ${r.counts?.result||0}W`}
-        color="var(--pink)"
-      />
+      <Podium rows={leaderboard} getPoints={r => r.total || 0} getSubLabel={r => `${r.counts?.exact||0}✓ ${r.counts?.gd||0}GD ${r.counts?.result||0}W`} color="var(--pink)" />
       {player && (() => {
         const me = leaderboard.find(r => r.id === player.id);
         if (!me) return null;
@@ -88,7 +156,10 @@ function TippingLB({ leaderboard, player }) {
 }
 
 // ── Predictor Leaderboard ─────────────────────────────────────────────────────
-function PredictorLB({ predLB, player }) {
+function PredictorLB({ predLB, player, predictions, officialResults, settings }) {
+  // For predictor, rank changes are based on total pts; predictions are bracket-only so we pass empty for simplicity — changes show 0 which is fine since predictor pts don't come from per-match tips
+  // We reuse the same helper but derive "latest" from officialResults dates, pts from predLB totals change is not calculable without re-running predictor scoring. Instead just compare tipping predictions as a proxy for "day-based" activity.
+  // Simplest correct approach: compute rank before by subtracting nothing (predictor has no per-match tips). Just show no badges for predictor since it updates batch-style.
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🔮 Predictor</div>
@@ -113,18 +184,14 @@ function PredictorLB({ predLB, player }) {
           ))}
         </tbody>
       </table>
-      <Podium
-        rows={predLB}
-        getPoints={r => r.total || 0}
-        getSubLabel={r => `${r.groupPts||0}G ${r.bracketPts||0}B ${r.awardPts||0}A`}
-        color="var(--blue)"
-      />
+      <Podium rows={predLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.groupPts||0}G ${r.bracketPts||0}B ${r.awardPts||0}A`} color="var(--blue)" />
     </div>
   );
 }
 
 // ── Combined Leaderboard ──────────────────────────────────────────────────────
-function CombinedLB({ combinedLB, player }) {
+function CombinedLB({ combinedLB, player, predictions, officialResults, settings }) {
+  const rankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.tippingTotal || 0);
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🌟 Combined</div>
@@ -140,7 +207,10 @@ function CombinedLB({ combinedLB, player }) {
           {combinedLB.map((r, i) => (
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
-              <td className="tl">{r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}</td>
+              <td className="tl">
+                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                <RankBadge change={rankChanges[r.id]} />
+              </td>
               <td className="pts" style={{ color: "#7b54f0", fontWeight: 900 }}>{r.total}</td>
               <td style={{ color: "#ff3d7f" }}>{r.tippingTotal}</td>
               <td style={{ color: "#2f8bff" }}>{r.predictorTotal}</td>
@@ -148,12 +218,7 @@ function CombinedLB({ combinedLB, player }) {
           ))}
         </tbody>
       </table>
-      <Podium
-        rows={combinedLB}
-        getPoints={r => r.total || 0}
-        getSubLabel={r => `${r.tippingTotal}tip + ${r.predictorTotal}pred`}
-        color="var(--purple)"
-      />
+      <Podium rows={combinedLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.tippingTotal}tip + ${r.predictorTotal}pred`} color="var(--purple)" />
     </div>
   );
 }
@@ -179,170 +244,6 @@ export function PredictedChampions({ predLB, player }) {
   );
 }
 
-// ── Movers Panel ──────────────────────────────────────────────────────────────
-function MoversPanel({ leaderboard, predictions, officialResults, settings, player }) {
-  // Group official results by day (Sydney time = UTC+10)
-  const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
-
-  // Find the most recent day that has official results
-  const daysWithResults = {};
-  for (const res of officialResults) {
-    if (res.homeScore == null || res.awayScore == null) continue;
-    const ts = res.updated_date || res.created_date;
-    if (!ts) continue;
-    const d = new Date(new Date(ts).getTime() + 10 * 3600 * 1000); // shift to Sydney
-    const day = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
-    if (!daysWithResults[day]) daysWithResults[day] = [];
-    daysWithResults[day].push(res);
-  }
-
-  const sortedDays = Object.keys(daysWithResults).sort();
-  if (sortedDays.length < 1) {
-    return (
-      <div className="card pad" style={{ textAlign: "center", padding: 32 }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
-        <div style={{ fontWeight: 800, fontSize: 15 }}>No results yet</div>
-        <div className="muted2">Movers will appear once official results are posted.</div>
-      </div>
-    );
-  }
-
-  const latestDay = sortedDays[sortedDays.length - 1];
-  const latestResults = daysWithResults[latestDay];
-  const latestMatchIds = new Set(latestResults.map(r => r.matchId));
-
-  // For each player: compute pts from latest-day matches only, and rank before vs after
-  const latestMatchLabels = latestResults.map(res => {
-    const m = allMatches.find(x => x.id === res.matchId);
-    return m ? `${m.home} v ${m.away}` : res.matchId;
-  });
-
-  // Dedup helper
-  function latestPred(preds, playerId, matchId) {
-    const candidates = preds.filter(p => p.playerId === playerId && p.matchId === matchId);
-    return candidates.reduce((best, p) => {
-      if (!best) return p;
-      const pt = Math.max(p.updated_date ? new Date(p.updated_date).getTime() : 0, p.created_date ? new Date(p.created_date).getTime() : 0);
-      const bt = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
-      return pt > bt ? p : best;
-    }, null);
-  }
-
-  // Compute points per player from latest day only
-  const ptsFromLatest = {};
-  for (const p of leaderboard) {
-    let pts = 0;
-    for (const res of latestResults) {
-      const pred = latestPred(predictions, p.id, res.matchId);
-      if (!pred) continue;
-      const scored = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, res, settings);
-      pts += scored?.pts ?? 0;
-    }
-    ptsFromLatest[p.id] = pts;
-  }
-
-  // Compute rank BEFORE latest day (using total minus latest pts)
-  const beforeScores = leaderboard.map(p => ({ ...p, beforeTotal: (p.total || 0) - (ptsFromLatest[p.id] || 0) }));
-  beforeScores.sort((a, b) => b.beforeTotal - a.beforeTotal);
-  const rankBefore = {};
-  beforeScores.forEach((p, i) => { rankBefore[p.id] = i + 1; });
-
-  // Movers = rank change + pts gained, sorted by pts gained desc
-  const movers = leaderboard.map((p, i) => ({
-    ...p,
-    rankNow: i + 1,
-    rankBefore: rankBefore[p.id],
-    rankChange: (rankBefore[p.id] || leaderboard.length) - (i + 1),
-    ptsGained: ptsFromLatest[p.id] || 0,
-  })).sort((a, b) => b.ptsGained - a.ptsGained || b.rankChange - a.rankChange);
-
-  // Format the day label nicely
-  const [yyyy, mm, dd] = latestDay.split("-");
-  const dayLabel = new Date(`${latestDay}T12:00:00+10:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
-
-  return (
-    <div className="card pad">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 8 }}>
-        <div className="gtitle">📈 Latest Round Movers</div>
-        <span style={{ fontSize: 11, fontWeight: 800, background: "rgba(47,139,255,.12)", color: "#1f6fd6", borderRadius: 999, padding: "3px 10px" }}>{dayLabel}</span>
-      </div>
-      <div className="muted2" style={{ marginBottom: 12 }}>
-        Points earned from {latestResults.length} result{latestResults.length !== 1 ? "s" : ""} posted on this day. Rank change vs before.
-      </div>
-
-      {/* Match summary chips */}
-      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 14 }}>
-        {latestMatchLabels.map((label, i) => {
-          const res = latestResults[i];
-          return (
-            <span key={i} style={{ fontSize: 11, fontWeight: 700, background: "#f4ebdf", borderRadius: 8, padding: "3px 8px", color: "#6c7384" }}>
-              {label} <span style={{ fontWeight: 900, color: "#222a3d" }}>{res.homeScore}–{res.awayScore}</span>
-            </span>
-          );
-        })}
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {movers.map(r => {
-          const isMe = player && r.id === player.id;
-          const up = r.rankChange > 0;
-          const down = r.rankChange < 0;
-          const flat = r.rankChange === 0;
-          const rankColor = up ? "#2cb551" : down ? "#ff3d7f" : "#9aa0ad";
-          const rankArrow = up ? "▲" : down ? "▼" : "–";
-          return (
-            <div key={r.id} style={{
-              display: "flex", alignItems: "center", gap: 10,
-              background: isMe ? "rgba(255,176,32,.14)" : r.ptsGained > 0 ? "rgba(44,181,81,.05)" : "#fafafa",
-              border: `1.5px solid ${isMe ? "#ffb020" : r.ptsGained > 0 ? "rgba(44,181,81,.2)" : "#f0e8db"}`,
-              borderRadius: 12, padding: "10px 13px",
-            }}>
-              {/* Rank now */}
-              <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 20, color: "#222a3d", minWidth: 26, textAlign: "center" }}>{r.rankNow}</div>
-
-              {/* Name */}
-              <div style={{ flex: 1, fontWeight: 700, fontSize: 13.5, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {r.name}{r.isAdmin ? " 👑" : ""}{isMe ? " (you)" : ""}
-              </div>
-
-              {/* Rank change */}
-              <div style={{ display: "flex", alignItems: "center", gap: 3, fontWeight: 800, fontSize: 12, color: rankColor, flexShrink: 0 }}>
-                <span>{rankArrow}</span>
-                {!flat && <span>{Math.abs(r.rankChange)}</span>}
-              </div>
-
-              {/* Pts gained */}
-              <div style={{
-                fontFamily: "'Anton', sans-serif", fontSize: 20,
-                color: r.ptsGained > 0 ? "#2cb551" : "#9aa0ad",
-                minWidth: 40, textAlign: "right", flexShrink: 0
-              }}>
-                +{r.ptsGained}
-                <span style={{ fontSize: 10, fontWeight: 800, opacity: .7, marginLeft: 2 }}>pts</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Gap-to-leader callout */}
-      {(() => {
-        const leader = movers.find(r => r.rankNow === 1);
-        const closers = movers.filter(r => r.rankNow !== 1 && r.rankChange > 0).slice(0, 2);
-        if (!leader || closers.length === 0) return null;
-        return (
-          <div style={{ marginTop: 14, background: "linear-gradient(95deg,rgba(255,61,127,.08),rgba(123,84,240,.06))", border: "1.5px solid rgba(255,61,127,.2)", borderRadius: 11, padding: "10px 13px", fontSize: 12.5, fontWeight: 600, color: "#5a3fc0" }}>
-            🔥 Closing the gap: {closers.map(r => {
-              const gap = (leader.total || 0) - (r.total || 0);
-              return `${r.name} is ${gap} pt${gap !== 1 ? "s" : ""} behind`;
-            }).join(" · ")}
-          </div>
-        );
-      })()}
-    </div>
-  );
-}
-
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings }) {
   const [tab, setTab] = useState("tip");
@@ -351,7 +252,6 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
     { k: "tip", label: "🎯 Tipping" },
     { k: "pred", label: "🔮 Predictor" },
     { k: "combined", label: "🌟 Combined" },
-    { k: "movers", label: "📈 Movers" },
   ];
 
   return (
@@ -365,7 +265,6 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
       </div>
 
-      {/* Tab nav — uses modeswitch pill style so it's always visible on mobile too */}
       <div className="modeswitch" style={{ marginBottom: 18 }}>
         {tabs.map(t => (
           <button key={t.k} className={tab === t.k ? "on" : ""} onClick={() => setTab(t.k)}>
@@ -374,10 +273,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         ))}
       </div>
 
-      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} />}
+      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} predictions={predictions} officialResults={officialResults} settings={settings} />}
       {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
-      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} />}
-      {tab === "movers" && <MoversPanel leaderboard={leaderboard} predictions={predictions || []} officialResults={officialResults || []} settings={settings || { exact: 5, gd: 3, result: 1 }} player={player} />}
+      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} predictions={predictions} officialResults={officialResults} settings={settings} />}
     </div>
   );
 }
