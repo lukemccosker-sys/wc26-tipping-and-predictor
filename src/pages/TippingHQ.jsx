@@ -1206,6 +1206,9 @@ export default function TippingHQ() {
           player={player}
           onRefresh={fetchAll}
           loading={loading}
+          predictions={predictions}
+          officialResults={officialResults}
+          settings={tippingSettings}
         />
       )}
 
