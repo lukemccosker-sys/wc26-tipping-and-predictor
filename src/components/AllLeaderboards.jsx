@@ -191,7 +191,7 @@ function PredictorLB({ predLB, player, predictions, officialResults, settings })
 
 // ── Combined Leaderboard ──────────────────────────────────────────────────────
 function CombinedLB({ combinedLB, player, predictions, officialResults, settings }) {
-  const rankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.tippingTotal || 0);
+  const rankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.total || 0);
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🌟 Combined</div>
