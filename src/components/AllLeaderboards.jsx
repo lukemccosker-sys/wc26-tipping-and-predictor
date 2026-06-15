@@ -106,8 +106,7 @@ function Podium({ rows, getPoints, getSubLabel, color }) {
 }
 
 // ── Tipping Leaderboard ───────────────────────────────────────────────────────
-function TippingLB({ leaderboard, player, predictions, officialResults, settings }) {
-  const rankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
+function TippingLB({ leaderboard, player, rankChanges }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🎯 Tipping</div>
@@ -190,8 +189,7 @@ function PredictorLB({ predLB, player, predictions, officialResults, settings })
 }
 
 // ── Combined Leaderboard ──────────────────────────────────────────────────────
-function CombinedLB({ combinedLB, player, predictions, officialResults, settings }) {
-  const rankChanges = computeRankChanges(combinedLB, predictions, officialResults, settings, r => r.total || 0);
+function CombinedLB({ combinedLB, player, rankChanges }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🌟 Combined</div>
@@ -248,6 +246,10 @@ export function PredictedChampions({ predLB, player }) {
 export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings }) {
   const [tab, setTab] = useState("tip");
 
+  // Compute rank changes once using the tipping leaderboard order (same player IDs for all boards)
+  // so tipping and combined always show identical arrows
+  const rankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
+
   const tabs = [
     { k: "tip", label: "🎯 Tipping" },
     { k: "pred", label: "🔮 Predictor" },
@@ -273,9 +275,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         ))}
       </div>
 
-      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} predictions={predictions} officialResults={officialResults} settings={settings} />}
+      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={rankChanges} />}
       {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
-      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} predictions={predictions} officialResults={officialResults} settings={settings} />}
+      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={rankChanges} />}
     </div>
   );
 }
