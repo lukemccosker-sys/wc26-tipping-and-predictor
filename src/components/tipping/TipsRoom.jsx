@@ -35,7 +35,14 @@ export default function TipsRoom({ players, predictions, officialResults, player
     }
 
     const playerTips = players.map(p => {
-      const pred = predictions.find(pr => pr.playerId === p.id && pr.matchId === res.matchId);
+      // Pick the latest prediction for this player+match (same logic as leaderboard dedup)
+      const candidates = predictions.filter(pr => pr.playerId === p.id && pr.matchId === res.matchId);
+      const pred = candidates.reduce((best, pr) => {
+        if (!best) return pr;
+        const prTime = Math.max(pr.updated_date ? new Date(pr.updated_date).getTime() : 0, pr.created_date ? new Date(pr.created_date).getTime() : 0);
+        const bestTime = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
+        return prTime > bestTime ? pr : best;
+      }, null);
       const fakeOfficial = { matchId: res.matchId, homeScore: res.homeScore, awayScore: res.awayScore };
       const fakePred = pred ? { homeScore: pred.homeScore, awayScore: pred.awayScore } : null;
       const scored = fakePred ? scoreTip(fakePred, fakeOfficial, settings) : { pts: 0, tier: "miss" };
