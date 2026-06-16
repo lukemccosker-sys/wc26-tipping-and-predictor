@@ -168,7 +168,7 @@ export function buildLeaderboard(players, allPredictions, officialResults, setti
     const preds = allPredictions.filter(p => p.playerId === player.id);
     const score = computePlayerScore(preds, officialResults, settings);
     return { ...player, ...score };
-  }).sort((a, b) => b.total - a.total || b.counts.exact - a.counts.exact);
+  }).sort((a, b) => b.total - a.total || b.counts.exact - a.counts.exact || b.counts.gd - a.counts.gd || b.counts.result - a.counts.result);
 }
 
 // ---- Predictor scoring ----
@@ -404,10 +404,14 @@ export function buildCombinedLeaderboard(players, allPredictions, bracketPredict
   const tippingLB = buildLeaderboard(players, allPredictions, officialResults, tippingSettings);
   const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
   return players.map(player => {
-    const t = tippingLB.find(r => r.id === player.id) || { total: 0 };
+    const t = tippingLB.find(r => r.id === player.id) || { total: 0, counts: {} };
     const p = predLB.find(r => r.id === player.id) || { total: 0 };
-    return { ...player, tippingTotal: t.total, predictorTotal: p.total, total: t.total + p.total };
-  }).sort((a, b) => b.total - a.total);
+    return { ...player, tippingTotal: t.total, predictorTotal: p.total, total: t.total + p.total, tippingExact: t.counts?.exact || 0, tippingGD: t.counts?.gd || 0, tippingResult: t.counts?.result || 0 };
+  }).sort((a, b) => b.total - a.total
+    || b.tippingExact - a.tippingExact
+    || b.tippingGD - a.tippingGD
+    || b.tippingResult - a.tippingResult
+  );
 }
 
 export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
