@@ -41,6 +41,9 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const candidates = predictions.filter(pr => pr.playerId === p.id && pr.matchId === res.matchId);
       const pred = candidates.reduce((best, pr) => {
         if (!best) return pr;
+        // final status always wins
+        if (pr.status === 'final' && best.status !== 'final') return pr;
+        if (best.status === 'final' && pr.status !== 'final') return best;
         const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
         const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
         return prTime > bestTime ? pr : best;
@@ -77,6 +80,9 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
       const pred = candidates.reduce((best, pr) => {
         if (!best) return pr;
+        // final status always wins
+        if (pr.status === 'final' && best.status !== 'final') return pr;
+        if (best.status === 'final' && pr.status !== 'final') return best;
         const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
         const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
         return prTime > bestTime ? pr : best;

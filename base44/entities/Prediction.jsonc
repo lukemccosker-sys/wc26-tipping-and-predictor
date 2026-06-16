@@ -13,6 +13,14 @@
     },
     "awayScore": {
       "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "final"
+      ],
+      "default": "draft"
     }
   },
   "required": [

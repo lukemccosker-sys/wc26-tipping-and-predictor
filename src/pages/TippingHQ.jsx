@@ -710,10 +710,14 @@ export default function TippingHQ() {
         // Re-read pred.id from ref at save time (may have been set by a prior save)
         const latestPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
         if (!latestPred) return;
+        // Mark as final if match has already kicked off (locked), otherwise draft
+        const ko = kickoffs[matchId];
+        const isFinal = ko && Date.now() >= ko;
+        const statusField = isFinal ? 'final' : 'draft';
         if (latestPred.id) {
-          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore });
+          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, status: statusField });
         } else {
-          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore });
+          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, status: statusField });
           // Update both state and ref with the saved record (now has an id)
           setPredictions(prev => {
             const next = prev.map(p =>

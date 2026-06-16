@@ -30,6 +30,8 @@ function computeRankChanges(rows, predictions, officialResults, settings, getTot
       const candidates = predictions.filter(p => p.playerId === r.id && p.matchId === res.matchId);
       const pred = candidates.reduce((best, p) => {
         if (!best) return p;
+        if (p.status === 'final' && best.status !== 'final') return p;
+        if (best.status === 'final' && p.status !== 'final') return best;
         const pt = p.created_date ? new Date(p.created_date).getTime() : 0;
         const bt = best.created_date ? new Date(best.created_date).getTime() : 0;
         return pt > bt ? p : best;
