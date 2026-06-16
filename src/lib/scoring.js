@@ -122,15 +122,10 @@ function dedupePredictions(predictions) {
     if (!existing) {
       map[p.matchId] = p;
     } else {
-      // Compare by updated_date first, then created_date as tiebreaker
-      const pTime = Math.max(
-        p.updated_date ? new Date(p.updated_date).getTime() : 0,
-        p.created_date ? new Date(p.created_date).getTime() : 0
-      );
-      const eTime = Math.max(
-        existing.updated_date ? new Date(existing.updated_date).getTime() : 0,
-        existing.created_date ? new Date(existing.created_date).getTime() : 0
-      );
+      // Use created_date as the source of truth — the record created LAST is the user's final intent.
+      // updated_date can be misleading when a stale duplicate gets a spurious update after a newer record was already created.
+      const pTime = p.created_date ? new Date(p.created_date).getTime() : 0;
+      const eTime = existing.created_date ? new Date(existing.created_date).getTime() : 0;
       if (pTime > eTime) map[p.matchId] = p;
     }
   }

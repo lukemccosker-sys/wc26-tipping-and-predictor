@@ -41,8 +41,8 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const candidates = predictions.filter(pr => pr.playerId === p.id && pr.matchId === res.matchId);
       const pred = candidates.reduce((best, pr) => {
         if (!best) return pr;
-        const prTime = Math.max(pr.updated_date ? new Date(pr.updated_date).getTime() : 0, pr.created_date ? new Date(pr.created_date).getTime() : 0);
-        const bestTime = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
+        const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
+        const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
         return prTime > bestTime ? pr : best;
       }, null);
       const fakeOfficial = { matchId: res.matchId, homeScore: res.homeScore, awayScore: res.awayScore };
@@ -77,8 +77,8 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
       const pred = candidates.reduce((best, pr) => {
         if (!best) return pr;
-        const prTime = Math.max(pr.updated_date ? new Date(pr.updated_date).getTime() : 0, pr.created_date ? new Date(pr.created_date).getTime() : 0);
-        const bestTime = Math.max(best.updated_date ? new Date(best.updated_date).getTime() : 0, best.created_date ? new Date(best.created_date).getTime() : 0);
+        const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
+        const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
         return prTime > bestTime ? pr : best;
       }, null);
       const scored = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
