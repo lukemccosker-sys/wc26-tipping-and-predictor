@@ -203,9 +203,22 @@ export default function TipsRoom({ players, predictions, officialResults, player
 
           {selectedPlayer && playerViewOpen && (
             <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
                 <span style={{ fontWeight: 800, fontSize: 14 }}>{selectedPlayerObj?.name} — all tips</span>
                 <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 22, color: "#ff3d7f" }}>{playerTotal}pts</span>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+                {[
+                  { label: "Exact", count: playerAllTips.filter(r => r.tier === "exact").length, color: "#2cb551" },
+                  { label: "Win+GD", count: playerAllTips.filter(r => r.tier === "gd").length, color: "#12b3a6" },
+                  { label: "Winner", count: playerAllTips.filter(r => r.tier === "result").length, color: "#ffb020" },
+                  { label: "Missed", count: playerAllTips.filter(r => r.tier === "miss" && r.pred).length, color: "#b9b1a3" },
+                ].map(({ label, count, color }) => (
+                  <div key={label} style={{ background: `${color}18`, border: `1.5px solid ${color}44`, borderRadius: 8, padding: "5px 11px", textAlign: "center" }}>
+                    <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 18, color, lineHeight: 1 }}>{count}</div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color, opacity: 0.8, textTransform: "uppercase", letterSpacing: ".05em" }}>{label}</div>
+                  </div>
+                ))}
               </div>
               <table className="tbl rev-tbl" style={{ width: "100%" }}>
                 <thead>
