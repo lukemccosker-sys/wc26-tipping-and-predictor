@@ -3,33 +3,44 @@ import Flag from "@/lib/flags";
 import { GROUP_MATCHES, KO_MATCHES, scoreTip } from "@/lib/wc2026data";
 
 // ── Rank change helper ────────────────────────────────────────────────────────
-// Computes { [playerId]: rankChange } by comparing current rank to rank before the most recently entered result
+// Computes { [playerId]: rankChange } by comparing current rank to rank before the latest day's results
 function computeRankChanges(rows, predictions, officialResults, settings, getTotal) {
   if (!predictions || !officialResults || officialResults.length === 0) return {};
 
-  const scored = officialResults.filter(r => r.homeScore != null && r.awayScore != null);
-  if (scored.length === 0) return {};
+  // Group results by day (Sydney = UTC+10)
+  const daysMap = {};
+  for (const res of officialResults) {
+    if (res.homeScore == null || res.awayScore == null) continue;
+    const ts = res.updated_date || res.created_date;
+    if (!ts) continue;
+    const d = new Date(new Date(ts).getTime() + 10 * 3600 * 1000);
+    const day = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+    if (!daysMap[day]) daysMap[day] = [];
+    daysMap[day].push(res);
+  }
+  const sortedDays = Object.keys(daysMap).sort();
+  if (sortedDays.length < 1) return {};
+  const latestResults = daysMap[sortedDays[sortedDays.length - 1]];
 
-  // Find the single most recently entered result by updated_date or created_date
-  const latest = scored.reduce((best, r) => {
-    const t = new Date(r.updated_date || r.created_date || 0).getTime();
-    const bt = new Date(best.updated_date || best.created_date || 0).getTime();
-    return t > bt ? r : best;
-  });
-
-  // Points each player earned from that one result
+  // For each player compute pts from latest-day results only
   const ptsFromLatest = {};
   for (const r of rows) {
-    const candidates = predictions.filter(p => p.playerId === r.id && p.matchId === latest.matchId);
-    const pred = candidates.reduce((best, p) => {
-      if (!best) return p;
-      const pt = p.created_date ? new Date(p.created_date).getTime() : 0;
-      const bt = best.created_date ? new Date(best.created_date).getTime() : 0;
-      return pt > bt ? p : best;
-    }, null);
-    if (!pred) { ptsFromLatest[r.id] = 0; continue; }
-    const s = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, latest, settings);
-    ptsFromLatest[r.id] = s?.pts ?? 0;
+    let pts = 0;
+    for (const res of latestResults) {
+      const candidates = predictions.filter(p => p.playerId === r.id && p.matchId === res.matchId);
+      const pred = candidates.reduce((best, p) => {
+        if (!best) return p;
+        if (p.status === 'final' && best.status !== 'final') return p;
+        if (best.status === 'final' && p.status !== 'final') return best;
+        const pt = p.created_date ? new Date(p.created_date).getTime() : 0;
+        const bt = best.created_date ? new Date(best.created_date).getTime() : 0;
+        return pt > bt ? p : best;
+      }, null);
+      if (!pred) continue;
+      const scored = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, res, settings);
+      pts += scored?.pts ?? 0;
+    }
+    ptsFromLatest[r.id] = pts;
   }
 
   // Rank before = sort by (total - ptsFromLatest)
