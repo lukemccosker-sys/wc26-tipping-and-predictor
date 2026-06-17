@@ -6,13 +6,26 @@ const STAGES = [
   ["all","All"],["group","Groups"],["R32","R32"],["R16","R16"],["QF","QF"],["SF","SF"],["3rd","3rd"],["F","Final"]
 ];
 
+function getBestPred(candidates) {
+  return candidates.reduce((best, pr) => {
+    if (!best) return pr;
+    if (pr.status === 'final' && best.status !== 'final') return pr;
+    if (best.status === 'final' && pr.status !== 'final') return best;
+    const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
+    const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
+    return prTime > bestTime ? pr : best;
+  }, null);
+}
+
 export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings }) {
   const [stage, setStage] = useState("all");
-  const [expanded, setExpanded] = useState({});
+  const [expandedMatches, setExpandedMatches] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [playerViewOpen, setPlayerViewOpen] = useState(false);
 
-  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleMatch = (id) => setExpandedMatches(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleGroup = (key) => setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
 
   const settings = {
     exact: poolSettings?.pointsExact ?? 5,
@@ -30,27 +43,16 @@ export default function TipsRoom({ players, predictions, officialResults, player
     const m = gm || km;
     const isGroup = !!gm;
 
-    // filter by stage
     if (stage !== "all") {
       if (isGroup && stage !== "group") continue;
       if (!isGroup && km.round !== stage) continue;
     }
 
     const playerTips = players.map(p => {
-      // Pick the latest prediction for this player+match (same logic as leaderboard dedup)
       const candidates = predictions.filter(pr => pr.playerId === p.id && pr.matchId === res.matchId);
-      const pred = candidates.reduce((best, pr) => {
-        if (!best) return pr;
-        // final status always wins
-        if (pr.status === 'final' && best.status !== 'final') return pr;
-        if (best.status === 'final' && pr.status !== 'final') return best;
-        const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
-        const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
-        return prTime > bestTime ? pr : best;
-      }, null);
-      const fakeOfficial = { matchId: res.matchId, homeScore: res.homeScore, awayScore: res.awayScore };
+      const pred = getBestPred(candidates);
       const fakePred = pred ? { homeScore: pred.homeScore, awayScore: pred.awayScore } : null;
-      const scored = fakePred ? scoreTip(fakePred, fakeOfficial, settings) : { pts: 0, tier: "miss" };
+      const scored = fakePred ? scoreTip(fakePred, { matchId: res.matchId, homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
       return { ...p, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" };
     }).sort((a, b) => b.pts - a.pts);
 
@@ -58,15 +60,43 @@ export default function TipsRoom({ players, predictions, officialResults, player
       id: res.matchId,
       home: m.home, away: m.away,
       official: res,
+      isGroup,
+      group: isGroup ? gm.group : null,
       stage: isGroup ? "group" : km.round,
       round: isGroup ? null : km.round,
       label: isGroup ? `Group ${gm.group}` : `M${m.id.slice(1)}`,
       players: playerTips,
     });
   }
-
-  // sort by match id for consistency
   revealed.sort((a, b) => a.id.localeCompare(b.id));
+
+  // Group the revealed matches
+  // For group stage: bucket by group letter; for KO: bucket by round
+  const groupBuckets = {}; // key -> { label, color, matches[] }
+  const GROUP_COLORS = ["#ff3d7f","#ff7a2f","#12b3a6","#2f8bff","#7b54f0","#e8456e","#f0a400","#19a673","#4f6dff","#b14ce0","#ff5a4d","#0fb5c4"];
+  const GL = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+  for (const m of revealed) {
+    let key, label, color;
+    if (m.isGroup) {
+      key = `group-${m.group}`;
+      label = `Group ${m.group}`;
+      color = GROUP_COLORS[GL.indexOf(m.group)] || "#9aa0ad";
+    } else {
+      key = `ko-${m.round}`;
+      label = ROUND_NAME[m.round] || m.round;
+      color = { R32:"#ff3d7f", R16:"#ff7a2f", QF:"#12b3a6", SF:"#2f8bff", "3rd":"#f0a400", F:"#7b54f0" }[m.round] || "#9aa0ad";
+    }
+    if (!groupBuckets[key]) groupBuckets[key] = { key, label, color, matches: [] };
+    groupBuckets[key].matches.push(m);
+  }
+
+  // Order buckets: groups A-L first, then KO rounds in order
+  const koRoundOrder = ["R32","R16","QF","SF","3rd","F"];
+  const bucketKeys = [
+    ...GL.map(L => `group-${L}`).filter(k => groupBuckets[k]),
+    ...koRoundOrder.map(r => `ko-${r}`).filter(k => groupBuckets[k]),
+  ];
 
   // Build all-games view for selected player
   const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
@@ -78,15 +108,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const m = allMatches.find(x => x.id === res.matchId);
       if (!m) continue;
       const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
-      const pred = candidates.reduce((best, pr) => {
-        if (!best) return pr;
-        // final status always wins
-        if (pr.status === 'final' && best.status !== 'final') return pr;
-        if (best.status === 'final' && pr.status !== 'final') return best;
-        const prTime = pr.created_date ? new Date(pr.created_date).getTime() : 0;
-        const bestTime = best.created_date ? new Date(best.created_date).getTime() : 0;
-        return prTime > bestTime ? pr : best;
-      }, null);
+      const pred = getBestPred(candidates);
       const scored = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
       results.push({ matchId: res.matchId, home: m.home, away: m.away, official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
     }
@@ -94,6 +116,53 @@ export default function TipsRoom({ players, predictions, officialResults, player
     return results;
   })() : [];
   const playerTotal = playerAllTips.reduce((s, r) => s + r.pts, 0);
+
+  const renderMatch = (m) => {
+    const top = Math.max(...m.players.map(p => p.pts), 0);
+    const isOpen = !!expandedMatches[m.id];
+    return (
+      <div className="card rev-game" key={m.id} style={{ borderRadius: 12, marginBottom: 6 }}>
+        <div
+          className="rev-head"
+          onClick={() => toggleMatch(m.id)}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <div className="rev-fix" style={{ flexWrap: "nowrap", alignItems: "center", gap: 6, minWidth: 0, flex: 1, overflow: "hidden" }}>
+            {m.home && m.away ? (
+              <>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}><Flag name={m.home} size={14} />{m.home}</span>
+                <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px", flexShrink: 0 }}>{m.official.homeScore}–{m.official.awayScore}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>{m.away}<Flag name={m.away} size={14} /></span>
+              </>
+            ) : (
+              <>
+                <span className="rev-kolabel">{m.label}</span>
+                <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px" }}>{m.official.homeScore}–{m.official.awayScore}</span>
+              </>
+            )}
+          </div>
+          <span style={{ fontSize: 12, color: "#9aa0ad", fontWeight: 800, flexShrink: 0 }}>{isOpen ? "▲" : "▼"}</span>
+        </div>
+        {isOpen && (
+          <table className="tbl rev-tbl">
+            <thead><tr><th className="tl">Player</th><th>Their tip</th><th>Pts</th></tr></thead>
+            <tbody>
+              {m.players.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
+                <tr><td colSpan="3" className="muted2 ctr">Nobody tipped this game.</td></tr>
+              )}
+              {m.players.filter(p => p.pred && p.pred.homeScore != null).map(p => (
+                <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
+                  <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
+                  <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
+                  <td><span className={`pbadge t-${p.tier}`}>{p.pts}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="reveal">
@@ -175,52 +244,38 @@ export default function TipsRoom({ players, predictions, officialResults, player
         </div>
       )}
 
-      <div className="rev-list">
-        {revealed.map(m => {
-          const top = Math.max(...m.players.map(p => p.pts), 0);
-          const isOpen = !!expanded[m.id];
+      {/* Grouped & collapsible buckets */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {bucketKeys.map(key => {
+          const bucket = groupBuckets[key];
+          const isOpen = !!expandedGroups[key];
           return (
-            <div className="card rev-game" key={m.id}>
+            <div key={key} className="card" style={{ overflow: "hidden" }}>
+              {/* Group header */}
               <div
-                className="rev-head"
-                onClick={() => toggleExpand(m.id)}
-                style={{ cursor: "pointer", userSelect: "none" }}
+                onClick={() => toggleGroup(key)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 16px", cursor: "pointer", userSelect: "none",
+                  background: `linear-gradient(100deg, ${bucket.color}22, ${bucket.color}08)`,
+                  borderBottom: isOpen ? `1px solid ${bucket.color}33` : "none",
+                }}
               >
-                <div className="rev-fix" style={{ flexWrap: "nowrap", alignItems: "center", gap: 6, minWidth: 0, flex: 1, overflow: "hidden" }}>
-                  {m.home && m.away ? (
-                    <>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}><Flag name={m.home} size={14} />{m.home}</span>
-                      <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px", flexShrink: 0 }}>{m.official.homeScore}–{m.official.awayScore}</span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>{m.away}<Flag name={m.away} size={14} /></span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="rev-kolabel">{m.label}</span>
-                      <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px" }}>{m.official.homeScore}–{m.official.awayScore}</span>
-                    </>
-                  )}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 4, height: 28, borderRadius: 4, background: bucket.color, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 18, letterSpacing: ".03em", color: "#222a3d" }}>{bucket.label}</div>
+                    <div style={{ fontSize: 11, color: "#9aa0ad", fontWeight: 700 }}>{bucket.matches.length} {bucket.matches.length === 1 ? "match" : "matches"}</div>
+                  </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                  <div className="rev-tag">{m.stage === "group" ? m.label : ROUND_NAME[m.round]}</div>
-                  <span style={{ fontSize: 12, color: "#9aa0ad", fontWeight: 800 }}>{isOpen ? "▲" : "▼"}</span>
-                </div>
+                <span style={{ fontSize: 13, color: "#9aa0ad", fontWeight: 800 }}>{isOpen ? "▲" : "▼"}</span>
               </div>
+
+              {/* Matches inside */}
               {isOpen && (
-                <table className="tbl rev-tbl">
-                  <thead><tr><th className="tl">Player</th><th>Their tip</th><th>Pts</th></tr></thead>
-                  <tbody>
-                    {m.players.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
-                      <tr><td colSpan="3" className="muted2 ctr">Nobody tipped this game.</td></tr>
-                    )}
-                    {m.players.filter(p => p.pred && p.pred.homeScore != null).map(p => (
-                      <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
-                        <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                        <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
-                        <td><span className={`pbadge t-${p.tier}`}>{p.pts}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: 0 }}>
+                  {bucket.matches.map(renderMatch)}
+                </div>
               )}
             </div>
           );
