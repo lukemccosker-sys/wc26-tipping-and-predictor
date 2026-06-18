@@ -77,17 +77,7 @@ export default function TeamStatsPanel({ team, officialResults }) {
         <Flag name={team} size={22} />
         <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 17, letterSpacing: ".03em", color: "#222a3d" }}>{team}</div>
         {group && <div style={{ fontSize: 10, fontWeight: 800, color: "#9aa0ad", textTransform: "uppercase", letterSpacing: ".08em" }}>Group {group}</div>}
-        {/* Form pills */}
-        <div style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
-          {results.slice(-5).map((r, i) => (
-            <div key={i} style={{
-              width: 22, height: 22, borderRadius: 6,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 10, fontWeight: 900,
-              background: OUTCOME_STYLE[r.outcome].bg, color: OUTCOME_STYLE[r.outcome].color
-            }}>{r.outcome}</div>
-          ))}
-        </div>
+
       </div>
 
       {results.length === 0 && (
