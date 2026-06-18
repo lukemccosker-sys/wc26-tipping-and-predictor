@@ -55,7 +55,6 @@ const CSS = `
 .hdr-meta{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
 .picks{font-size:12px;color:var(--muted);font-weight:700;}
 .ctrls{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:100%;}
-@media(max-width:780px){.ctrls{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}.ctrls::-webkit-scrollbar{display:none;}}
 .toggle{display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line2);color:var(--muted);border-radius:999px;padding:5px 12px 5px 7px;font-size:12px;font-weight:800;cursor:pointer;}
 .toggle .knob{width:26px;height:15px;border-radius:999px;background:var(--line2);position:relative;transition:.2s;}
 .toggle .knob:after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:.2s;}
