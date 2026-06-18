@@ -71,11 +71,11 @@ export default function KickoffView({
       onClick={() => setSelectedTeam(teamName)}
       style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit" }}
     >
-      <span
-        className="tname"
-        style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}
-      >
+      <span className="tname" style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
         <Flag name={teamName} size={16} /><span>{teamName}</span>
+      </span>
+      <span style={{ display: "block", fontSize: 9, fontWeight: 800, color: "var(--teal)", letterSpacing: ".04em", textTransform: "uppercase", marginTop: 1, opacity: 0.75 }}>
+        tap for stats
       </span>
     </button>
   );
