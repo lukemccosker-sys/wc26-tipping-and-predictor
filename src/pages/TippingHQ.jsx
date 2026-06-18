@@ -1014,7 +1014,7 @@ export default function TippingHQ() {
               {isAdmin && (
                 <a href="/admin" className="mini" style={{ textDecoration: "none" }}>⚙️ Admin</a>
               )}
-              <button className="mini" onClick={() => setShowScoring(true)}>🏆 Scoring</button>
+              <button className="mini" onClick={() => setShowScoring(true)}>🔢 Scoring</button>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
               {mode === "pred" && !predLocked && <button className="mini danger" onClick={onResetPredictor}>🗑 Reset predictor</button>}
