@@ -1016,7 +1016,6 @@ export default function TippingHQ() {
               )}
               <button className="mini" onClick={() => setShowScoring(true)}>🏆 Scoring</button>
               <button className="mini" onClick={() => setShowHelp(true)}>❓ Help</button>
-              <a href="/live" className="mini" style={{ textDecoration: "none" }}>📺 Live Results</a>
               {mode === "tip" && <button className="mini danger" onClick={onResetTips}>🗑 Reset tips</button>}
               {mode === "pred" && !predLocked && <button className="mini danger" onClick={onResetPredictor}>🗑 Reset predictor</button>}
               <button className="mini" onClick={handleLogout}>Log out</button>
