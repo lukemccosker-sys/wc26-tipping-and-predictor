@@ -23,9 +23,11 @@ export default function TipsRoom({ players, predictions, officialResults, player
   const [expandedGroups, setExpandedGroups] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [playerViewOpen, setPlayerViewOpen] = useState(false);
+  const [expandedPlayerSections, setExpandedPlayerSections] = useState({});
 
   const toggleMatch = (id) => setExpandedMatches(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleGroup = (key) => setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  const togglePlayerSection = (key) => setExpandedPlayerSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const settings = {
     exact: poolSettings?.pointsExact ?? 5,
@@ -116,6 +118,35 @@ export default function TipsRoom({ players, predictions, officialResults, player
     return results;
   })() : [];
   const playerTotal = playerAllTips.reduce((s, r) => s + r.pts, 0);
+
+  // Bucket the selected player's tips by matchday (group stage) then KO round
+  const KO_ROUND_ORDER = ["R32", "R16", "QF", "SF", "3rd", "F"];
+  const KO_ROUND_COLOR = { R32: "#ff3d7f", R16: "#ff7a2f", QF: "#12b3a6", SF: "#2f8bff", "3rd": "#f0a400", F: "#7b54f0" };
+  const MD_COLOR = { 1: "#12b3a6", 2: "#2f8bff", 3: "#7b54f0" };
+  const playerTipBuckets = (() => {
+    const buckets = {};
+    for (const r of playerAllTips) {
+      const gm = GROUP_MATCHES.find(m => m.id === r.matchId);
+      let key, label, order, color;
+      if (gm) {
+        key = `md-${gm.matchday}`;
+        label = `Group Stage · Matchday ${gm.matchday}`;
+        order = gm.matchday;
+        color = MD_COLOR[gm.matchday] || "#12b3a6";
+      } else {
+        const km = KO_MATCHES.find(m => m.id === r.matchId);
+        const round = km?.round || "F";
+        key = `ko-${round}`;
+        label = ROUND_NAME[round] || round;
+        order = 10 + KO_ROUND_ORDER.indexOf(round);
+        color = KO_ROUND_COLOR[round] || "#9aa0ad";
+      }
+      if (!buckets[key]) buckets[key] = { key, label, order, color, tips: [], pts: 0 };
+      buckets[key].tips.push(r);
+      buckets[key].pts += r.pts;
+    }
+    return Object.values(buckets).sort((a, b) => a.order - b.order);
+  })();
 
   const renderMatch = (m) => {
     const top = Math.max(...m.players.map(p => p.pts), 0);
@@ -220,30 +251,61 @@ export default function TipsRoom({ players, predictions, officialResults, player
                   </div>
                 ))}
               </div>
-              <table className="tbl rev-tbl" style={{ width: "100%" }}>
-                <thead>
-                  <tr><th className="tl">Match</th><th>Result</th><th>Their tip</th><th>Pts</th></tr>
-                </thead>
-                <tbody>
-                  {playerAllTips.length === 0 && (
-                    <tr><td colSpan="4" className="muted2 ctr">No scored games yet.</td></tr>
-                  )}
-                  {playerAllTips.map(r => (
-                    <tr key={r.matchId} style={{ borderTop: "1px solid #f4ebdf" }}>
-                      <td className="tl" style={{ fontSize: 11.5, fontWeight: 600 }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <Flag name={r.home} size={12} />{r.home} v {r.away}<Flag name={r.away} size={12} />
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 800, fontSize: 13 }}>{r.official.homeScore}–{r.official.awayScore}</td>
-                      <td className="rev-pred">
-                        {r.pred ? <b>{r.pred.homeScore}–{r.pred.awayScore}</b> : <span style={{ color: "#9aa0ad" }}>—</span>}
-                      </td>
-                      <td><span className={`pbadge t-${r.tier}`}>{r.pts}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {playerAllTips.length === 0 && (
+                <div className="muted2 ctr" style={{ padding: "12px 0" }}>No scored games yet.</div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {playerTipBuckets.map(bucket => {
+                  const isOpen = !!expandedPlayerSections[bucket.key];
+                  return (
+                    <div key={bucket.key} style={{ border: `1px solid ${bucket.color}33`, borderRadius: 11, overflow: "hidden" }}>
+                      <div
+                        onClick={() => togglePlayerSection(bucket.key)}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+                          padding: "9px 12px", cursor: "pointer", userSelect: "none",
+                          background: `linear-gradient(100deg, ${bucket.color}1f, ${bucket.color}08)`,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+                          <div style={{ width: 4, height: 22, borderRadius: 4, background: bucket.color, flexShrink: 0 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 800, fontSize: 13, color: "#222a3d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{bucket.label}</div>
+                            <div style={{ fontSize: 10.5, color: "#9aa0ad", fontWeight: 700 }}>{bucket.tips.length} {bucket.tips.length === 1 ? "game" : "games"}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                          <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 16, color: bucket.color }}>{bucket.pts}pts</span>
+                          <span style={{ fontSize: 12, color: "#9aa0ad", fontWeight: 800 }}>{isOpen ? "▲" : "▼"}</span>
+                        </div>
+                      </div>
+                      {isOpen && (
+                        <table className="tbl rev-tbl" style={{ width: "100%" }}>
+                          <thead>
+                            <tr><th className="tl">Match</th><th>Result</th><th>Their tip</th><th>Pts</th></tr>
+                          </thead>
+                          <tbody>
+                            {bucket.tips.map(r => (
+                              <tr key={r.matchId} style={{ borderTop: "1px solid #f4ebdf" }}>
+                                <td className="tl" style={{ fontSize: 11.5, fontWeight: 600 }}>
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                    <Flag name={r.home} size={12} />{r.home} v {r.away}<Flag name={r.away} size={12} />
+                                  </span>
+                                </td>
+                                <td style={{ fontWeight: 800, fontSize: 13 }}>{r.official.homeScore}–{r.official.awayScore}</td>
+                                <td className="rev-pred">
+                                  {r.pred ? <b>{r.pred.homeScore}–{r.pred.awayScore}</b> : <span style={{ color: "#9aa0ad" }}>—</span>}
+                                </td>
+                                <td><span className={`pbadge t-${r.tier}`}>{r.pts}</span></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
