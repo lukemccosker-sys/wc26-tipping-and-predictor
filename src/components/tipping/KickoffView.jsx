@@ -53,15 +53,24 @@ export default function KickoffView({
     });
   };
 
+  const now = Date.now();
+
+  // Upcoming: kickoff in the future (not yet locked)
   const upcoming = [...GROUP_MATCHES]
-    .filter(m => !hasOfficialResult(m))
+    .filter(m => !hasOfficialResult(m) && (kickoffs?.[m.id] || Infinity) > now)
     .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
 
+  // Live/locked: kickoff passed but no official result yet — keep in chronological order, not pushed to bottom
+  const liveOrLocked = [...GROUP_MATCHES]
+    .filter(m => !hasOfficialResult(m) && (kickoffs?.[m.id] || Infinity) <= now)
+    .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
+
+  // Finished: official result entered
   const finished = [...GROUP_MATCHES]
     .filter(m => hasOfficialResult(m))
     .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
 
-  const sorted = [...upcoming, ...finished];
+  const sorted = [...liveOrLocked, ...upcoming, ...finished];
 
   // Group by day
   const byDay = [];
