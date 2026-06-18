@@ -35,12 +35,25 @@ export default function KickoffView({
     return Date.now() >= ko;
   };
 
-  // Sort all group matches by kickoff time
-  const sorted = [...GROUP_MATCHES].sort((a, b) => {
-    const ka = kickoffs?.[a.id] || 0;
-    const kb = kickoffs?.[b.id] || 0;
-    return ka - kb;
-  });
+  const now = Date.now();
+
+  const hasOfficial = (m) => {
+    const r = officialResults.find(r => r.matchId === m.id);
+    return r && r.homeScore != null && r.awayScore != null;
+  };
+
+  // Split into upcoming (not finished) and finished
+  // Upcoming: sorted by kickoff ascending (next to kick off is first)
+  // Finished: sorted by kickoff ascending (earliest game first, i.e. first played is at top)
+  const upcoming = [...GROUP_MATCHES]
+    .filter(m => !hasOfficial(m))
+    .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
+
+  const finished = [...GROUP_MATCHES]
+    .filter(m => hasOfficial(m))
+    .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
+
+  const sorted = [...upcoming, ...finished];
 
   // Group by day
   const byDay = [];

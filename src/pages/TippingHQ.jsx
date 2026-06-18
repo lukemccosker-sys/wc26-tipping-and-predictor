@@ -395,7 +395,7 @@ export default function TippingHQ() {
   });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("groups");
-  const [groupView, setGroupView] = useState("group"); // "group" | "kickoff"
+  const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group"
   const [ptab, setPtab] = useState("pg");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
@@ -1127,8 +1127,8 @@ export default function TippingHQ() {
         <>
           {/* View toggle */}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
             <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
+            <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
           </div>
 
           {groupView === "kickoff" ? (
