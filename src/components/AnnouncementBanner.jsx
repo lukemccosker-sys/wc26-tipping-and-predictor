@@ -40,7 +40,7 @@ export default function AnnouncementBanner() {
       boxShadow: "0 8px 24px -12px rgba(123,84,240,.5)",
     }}>
       <span style={{ fontSize: 20, flexShrink: 0 }}>📢</span>
-      <div style={{ flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.5 }}>{announcement.message}</div>
+      <div style={{ flex: 1, fontSize: 14, fontWeight: 700, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{announcement.message}</div>
       <button
         onClick={() => setDismissed(announcement.id)}
         style={{ background: "rgba(255,255,255,.2)", border: "none", borderRadius: 999, width: 26, height: 26, color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
