@@ -64,6 +64,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
       official: res,
       isGroup,
       group: isGroup ? gm.group : null,
+      matchday: isGroup ? gm.matchday : null,
       stage: isGroup ? "group" : km.round,
       round: isGroup ? null : km.round,
       label: isGroup ? `Group ${gm.group}` : `M${m.id.slice(1)}`,
@@ -73,17 +74,16 @@ export default function TipsRoom({ players, predictions, officialResults, player
   revealed.sort((a, b) => a.id.localeCompare(b.id));
 
   // Group the revealed matches
-  // For group stage: bucket by group letter; for KO: bucket by round
+  // For group stage: bucket by matchday (1/2/3); for KO: bucket by round
   const groupBuckets = {}; // key -> { label, color, matches[] }
-  const GROUP_COLORS = ["#ff3d7f","#ff7a2f","#12b3a6","#2f8bff","#7b54f0","#e8456e","#f0a400","#19a673","#4f6dff","#b14ce0","#ff5a4d","#0fb5c4"];
-  const GL = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+  const MD_COLORS = { 1: "#12b3a6", 2: "#2f8bff", 3: "#7b54f0" };
 
   for (const m of revealed) {
     let key, label, color;
     if (m.isGroup) {
-      key = `group-${m.group}`;
-      label = `Group ${m.group}`;
-      color = GROUP_COLORS[GL.indexOf(m.group)] || "#9aa0ad";
+      key = `md-${m.matchday}`;
+      label = `Group Stage · Matchday ${m.matchday}`;
+      color = MD_COLORS[m.matchday] || "#12b3a6";
     } else {
       key = `ko-${m.round}`;
       label = ROUND_NAME[m.round] || m.round;
@@ -93,10 +93,10 @@ export default function TipsRoom({ players, predictions, officialResults, player
     groupBuckets[key].matches.push(m);
   }
 
-  // Order buckets: groups A-L first, then KO rounds in order
+  // Order buckets: matchday 1-3 first, then KO rounds in order
   const koRoundOrder = ["R32","R16","QF","SF","3rd","F"];
   const bucketKeys = [
-    ...GL.map(L => `group-${L}`).filter(k => groupBuckets[k]),
+    ...[1, 2, 3].map(md => `md-${md}`).filter(k => groupBuckets[k]),
     ...koRoundOrder.map(r => `ko-${r}`).filter(k => groupBuckets[k]),
   ];
 
