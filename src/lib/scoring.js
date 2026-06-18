@@ -200,7 +200,8 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
     const table = standings[group] || [];
     const groupPlayed = table.some(r => r.pld > 0);
     if (!groupPlayed) continue; // don't assign teams from groups with no results
-    const allPlayed = table.every(r => r.pld > 0) && table.reduce((s, r) => s + r.pld, 0) >= 6;
+    // Each group has 4 teams × 3 matches each = 12 total pld entries (2 per match × 6 matches)
+    const allPlayed = table.reduce((s, r) => s + r.pld, 0) >= 12;
     // Only assign 1st/2nd once all 3 matchdays are complete (6 games played in group)
     if (allPlayed) {
       slotTeams[`1${group}`] = table[0]?.team || null;
@@ -213,7 +214,7 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
   const thirds = GL.map(group => {
     const table = standings[group] || [];
     const totalPld = table.reduce((s, r) => s + r.pld, 0);
-    if (totalPld < 6) return null; // group not finished
+    if (totalPld < 12) return null; // group not finished (12 = 6 matches × 2 pld entries per match)
     return table[2] ? { ...table[2], group } : null;
   }).filter(Boolean).sort((a, b) =>
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
@@ -270,7 +271,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   for (const group of GL) {
     const table = calcGroupTable(group, officialResults);
     const totalPld = table.reduce((s, r) => s + r.pld, 0);
-    if (totalPld < 6) continue; // group not finished, don't score yet
+    if (totalPld < 12) continue; // group not finished (12 = 6 matches × 2 pld entries per match)
     const actual1st = table[0]?.team;
     const actual2nd = table[1]?.team;
     const actual3rd = table[2]?.team;
