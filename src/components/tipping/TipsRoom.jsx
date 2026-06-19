@@ -35,9 +35,23 @@ export default function TipsRoom({ players, predictions, officialResults, player
     result: poolSettings?.pointsResult ?? 1,
   };
 
+  // Deduplicate officialResults by matchId (keep latest by created_date)
+  const dedupedResults = Object.values(
+    officialResults.reduce((acc, r) => {
+      const existing = acc[r.matchId];
+      if (!existing) { acc[r.matchId] = r; }
+      else {
+        const rTime = r.created_date ? new Date(r.created_date).getTime() : 0;
+        const eTime = existing.created_date ? new Date(existing.created_date).getTime() : 0;
+        if (rTime > eTime) acc[r.matchId] = r;
+      }
+      return acc;
+    }, {})
+  );
+
   // Build revealed matches (only those with official result)
   const revealed = [];
-  for (const res of officialResults) {
+  for (const res of dedupedResults) {
     if (res.homeScore == null || res.awayScore == null) continue;
     const gm = GROUP_MATCHES.find(m => m.id === res.matchId);
     const km = KO_MATCHES.find(m => m.id === res.matchId);
@@ -105,7 +119,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
   const selectedPlayerObj = players.find(p => p.id === selectedPlayer);
   const playerAllTips = selectedPlayerObj ? (() => {
     const results = [];
-    for (const res of officialResults) {
+    for (const res of dedupedResults) {
       if (res.homeScore == null || res.awayScore == null) continue;
       const m = allMatches.find(x => x.id === res.matchId);
       if (!m) continue;
