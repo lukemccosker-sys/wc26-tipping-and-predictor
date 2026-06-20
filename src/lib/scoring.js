@@ -87,6 +87,39 @@ export function assignThirdPlaceTeams(tp, slotTeams) {
 }
 
 // ---- Group table calculation (uses GROUP_MATCHES fixture data) ----
+
+// FIFA WC 2026 tiebreaker: head-to-head points between tied teams takes priority over overall GD
+// Returns the head-to-head points teamA earned against teamB in their direct match within the group
+function getH2HPts(teamA, teamB, group, officialResults) {
+  const fixture = GROUP_MATCHES.find(m => m.group === group &&
+    ((m.home === teamA && m.away === teamB) || (m.home === teamB && m.away === teamA)));
+  if (!fixture) return 0;
+  const res = officialResults.find(r => r.matchId === fixture.id);
+  if (!res || res.homeScore == null || res.awayScore == null) return -1; // not played yet
+  const gh = +res.homeScore, ga = +res.awayScore;
+  if (fixture.home === teamA) {
+    return gh > ga ? 3 : gh === ga ? 1 : 0;
+  } else {
+    return ga > gh ? 3 : ga === gh ? 1 : 0;
+  }
+}
+
+// Sort comparator implementing FIFA 2026 tiebreaker order:
+// 1. Overall points  2. H2H points  3. Overall GD  4. Overall GF
+function sortGroupTable(rows, group, officialResults) {
+  return rows.slice().sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    // H2H only applies when exactly two teams are tied on points
+    const h2h = getH2HPts(a.team, b.team, group, officialResults);
+    if (h2h !== -1) {
+      const h2hB = getH2HPts(b.team, a.team, group, officialResults);
+      if (h2h !== h2hB) return h2hB - h2h;
+    }
+    if (b.gd !== a.gd) return b.gd - a.gd;
+    return b.gf - a.gf;
+  });
+}
+
 export function calcGroupTable(group, officialResults) {
   const teams = WC_GROUPS[group] || [];
   const table = {};
@@ -107,9 +140,7 @@ export function calcGroupTable(group, officialResults) {
     else { table[h].d++; table[h].pts++; table[a].d++; table[a].pts++; }
   }
 
-  const sorted = Object.values(table).sort((a, b) =>
-    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
-  );
+  const sorted = sortGroupTable(Object.values(table), group, officialResults);
   return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
@@ -218,7 +249,7 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
     return table[2] ? { ...table[2], group } : null;
   }).filter(Boolean).sort((a, b) =>
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
-  );
+  ); // Best-3rd ranking: H2H doesn't apply across groups, so GD is the correct first fallback here
 
   // If admin has manually assigned 3rd-place teams to slots, use those.
   // Otherwise fall back to automatic assignment by group eligibility.

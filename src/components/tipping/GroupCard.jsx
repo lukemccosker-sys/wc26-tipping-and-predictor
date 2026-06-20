@@ -7,6 +7,17 @@ import TeamStatsPanel from "./TeamStatsPanel";
 import { groupMatches, WC_GROUPS } from "@/lib/wc2026data";
 import { scoreTip } from "@/lib/wc2026data";
 
+function getH2HPts(teamA, teamB, matches, myPreds) {
+  const fixture = matches.find(m =>
+    (m.home === teamA && m.away === teamB) || (m.home === teamB && m.away === teamA));
+  if (!fixture) return -1;
+  const pred = myPreds.find(p => p.matchId === fixture.id);
+  if (!pred || pred.homeScore == null || pred.awayScore == null) return -1;
+  const h = +pred.homeScore, a = +pred.awayScore;
+  if (fixture.home === teamA) return h > a ? 3 : h === a ? 1 : 0;
+  return a > h ? 3 : a === h ? 1 : 0;
+}
+
 function calcPredictedTable(group, matches, myPreds) {
   const teams = WC_GROUPS[group];
   const stats = {};
@@ -22,9 +33,14 @@ function calcPredictedTable(group, matches, myPreds) {
     else if (h < a) { stats[m.away].pts += 3; }
     else { stats[m.home].pts += 1; stats[m.away].pts += 1; }
   }
-  return teams.slice().sort((a, b) =>
-    stats[b].pts - stats[a].pts || stats[b].gd - stats[a].gd || stats[b].gf - stats[a].gf
-  ).map(t => ({ team: t, ...stats[t] }));
+  return teams.slice().sort((a, b) => {
+    if (stats[b].pts !== stats[a].pts) return stats[b].pts - stats[a].pts;
+    const h2hA = getH2HPts(a, b, matches, myPreds);
+    const h2hB = getH2HPts(b, a, matches, myPreds);
+    if (h2hA !== -1 && h2hB !== -1 && h2hA !== h2hB) return h2hB - h2hA;
+    if (stats[b].gd !== stats[a].gd) return stats[b].gd - stats[a].gd;
+    return stats[b].gf - stats[a].gf;
+  }).map(t => ({ team: t, ...stats[t] }));
 }
 
 function fmtKick(ms) {
