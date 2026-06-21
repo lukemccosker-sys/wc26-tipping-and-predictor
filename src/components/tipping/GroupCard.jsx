@@ -65,7 +65,16 @@ export default function GroupCard({
   onSetScore, isAdmin, adminEditing, onSetOfficial, onClearOfficial,
   player, poolSettings
 }) {
-  const matches = groupMatches(group);
+  const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
+  const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
+  const getKickoff = (matchId) => kickoffs?.[matchId] || null;
+
+  const allMatches = groupMatches(group);
+  // Hide matches that already have official results — only show games still left to tip
+  const matches = allMatches.filter(m => {
+    const official = getOfficial(m.id);
+    return !(official && official.homeScore != null && official.awayScore != null);
+  });
   // Deduplicate — keep only the latest prediction per match for this player
   const myPredsRaw = predictions.filter(p => p.playerId === player?.id);
   const myPredsMap = {};
@@ -74,10 +83,6 @@ export default function GroupCard({
     if (!ex || p.updated_date > ex.updated_date) myPredsMap[p.matchId] = p;
   }
   const myPreds = Object.values(myPredsMap);
-
-  const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
-  const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
-  const getKickoff = (matchId) => kickoffs?.[matchId] || null;
 
   const globalLock = poolSettings?.globalLockTipping ?? false;
 
