@@ -379,7 +379,12 @@ export default function TipsRoom({ players, predictions, officialResults, player
 
       {/* Grouped & collapsible buckets */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {bucketKeys.map(key => {
+        {bucketKeys.filter(key => {
+          if (!selectedPlayer) return true;
+          // Hide Matchday 1 & 2 when a player is selected
+          if (key === "md-1" || key === "md-2") return false;
+          return true;
+        }).map(key => {
           const bucket = groupBuckets[key];
           const isOpen = !!expandedGroups[key];
           return (
