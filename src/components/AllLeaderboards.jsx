@@ -101,7 +101,8 @@ function Podium({ rows, getPoints, getSubLabel, color }) {
 function TippingLB({ leaderboard, player, rankChanges }) {
   return (
     <div className="card pad">
-      <div style={{ display:"inline-block", background:"var(--panel2)", border:"1px solid var(--line2)", color:"var(--muted)", borderRadius:999, padding:"6px 14px", fontSize:11.5, fontWeight:700, letterSpacing:".02em", marginBottom:8 }}>🎯 Tipping</div>
+      <div className="gtitle" style={{ marginBottom: 6 }}>🎯 Tipping</div>
+      <div className="muted2">Ranked by tipping points.</div>
       <table className="tbl lb">
         <thead>
           <tr><th></th><th className="tl">Player</th><th>Pts</th><th>Exact</th><th>GD</th><th>Win</th></tr>
@@ -152,7 +153,8 @@ function PredictorLB({ predLB, player, predictions, officialResults, settings })
   // Simplest correct approach: compute rank before by subtracting nothing (predictor has no per-match tips). Just show no badges for predictor since it updates batch-style.
   return (
     <div className="card pad">
-      <div style={{ display:"inline-block", background:"var(--panel2)", border:"1px solid var(--line2)", color:"var(--muted)", borderRadius:999, padding:"6px 14px", fontSize:11.5, fontWeight:700, letterSpacing:".02em", marginBottom:8 }}>🔮 Predictor</div>
+      <div className="gtitle" style={{ marginBottom: 6 }}>🔮 Predictor</div>
+      <div className="muted2">Updates live as official results come in.</div>
       <table className="tbl lb pred-lb">
         <thead>
           <tr><th></th><th className="tl">Player</th><th>Groups</th><th>Bracket</th><th>Awards</th><th>Pts</th></tr>
@@ -182,7 +184,8 @@ function PredictorLB({ predLB, player, predictions, officialResults, settings })
 function CombinedLB({ combinedLB, player, rankChanges }) {
   return (
     <div className="card pad">
-      <div style={{ display:"inline-block", background:"var(--panel2)", border:"1px solid var(--line2)", color:"var(--muted)", borderRadius:999, padding:"6px 14px", fontSize:11.5, fontWeight:700, letterSpacing:".02em", marginBottom:8 }}>🌟 Combined</div>
+      <div className="gtitle" style={{ marginBottom: 6 }}>🌟 Combined</div>
+      <div className="muted2">Tipping + Predictor points combined.</div>
       <table className="tbl lb">
         <thead>
           <tr><th></th><th className="tl">Player</th><th>Total</th><th>Tipping</th><th>Predictor</th></tr>
@@ -214,7 +217,8 @@ function CombinedLB({ combinedLB, player, rankChanges }) {
 export function PredictedChampions({ predLB, player }) {
   return (
     <div className="card pad" style={{ marginTop: 14 }}>
-      <div style={{ display:"inline-block", background:"var(--panel2)", border:"1px solid var(--line2)", color:"var(--muted)", borderRadius:999, padding:"6px 14px", fontSize:11.5, fontWeight:700, letterSpacing:".02em", marginBottom:10 }}>🏆 Predicted Champions</div>
+      <div className="gtitle" style={{ marginBottom: 6, fontSize: 17 }}>🏆 Predicted Champions</div>
+      <div className="muted2" style={{ marginBottom: 10 }}>Everyone's tournament winner pick.</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {predLB.length === 0 && <div className="muted2">No picks yet.</div>}
         {predLB.map(r => (
