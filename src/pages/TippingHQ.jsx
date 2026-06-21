@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import Flag from "@/lib/flags";
 import GroupCard from "@/components/tipping/GroupCard";
 import KickoffView from "@/components/tipping/KickoffView";
+import ResultsView from "@/components/tipping/ResultsView";
 import KOBracket from "@/components/tipping/KOBracket";
 import TipsRoom from "@/components/tipping/TipsRoom";
 import PredictorGroups from "@/components/predictor/PredictorGroups";
@@ -1042,7 +1043,7 @@ export default function TippingHQ() {
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["results","Results","Results","✅",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1051,7 +1052,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["results","✅","Results"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1172,6 +1173,16 @@ export default function TippingHQ() {
             </div>
           )}
         </>
+      )}
+
+      {mode === "tip" && tab === "results" && (
+        <ResultsView
+          predictions={predictions}
+          officialResults={officialResults}
+          kickoffs={kickoffs}
+          player={player}
+          poolSettings={poolSettings}
+        />
       )}
 
       {mode === "tip" && tab === "ko" && (
@@ -1406,7 +1417,7 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["results","✅","Results"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>

@@ -65,12 +65,7 @@ export default function KickoffView({
     .filter(m => !hasOfficialResult(m) && (kickoffs?.[m.id] || Infinity) <= now)
     .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
 
-  // Finished: official result entered
-  const finished = [...GROUP_MATCHES]
-    .filter(m => hasOfficialResult(m))
-    .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
-
-  const sorted = [...liveOrLocked, ...upcoming, ...finished];
+  const sorted = [...liveOrLocked, ...upcoming];
 
   // Group by day
   const byDay = [];
