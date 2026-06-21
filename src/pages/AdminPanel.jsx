@@ -4,6 +4,7 @@ import { calcGroupTable } from "@/lib/scoring";
 import { KO_MATCHES, GL } from "@/lib/wc2026data";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import TipOverrideTool from "@/components/admin/TipOverrideTool";
+import ChangePinCard from "@/components/admin/ChangePinCard";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -261,6 +262,9 @@ export default function AdminPanel() {
         <div className="ap-section-sub">Manually set or update any player's score prediction for any match. Use the match ID (e.g. GA0, M73).</div>
         <TipOverrideTool players={players} />
       </div>
+
+      {/* Change PIN */}
+      <ChangePinCard player={player} />
 
       {/* Players list */}
       <div className="ap-card">
