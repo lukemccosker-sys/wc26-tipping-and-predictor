@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import Flag from "@/lib/flags";
 import { GROUP_MATCHES, KO_MATCHES, scoreTip } from "@/lib/wc2026data";
 
@@ -275,13 +276,13 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
             style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "6px 10px", flexShrink: 0 }}
             title="Refresh"
           >
-            <span style={{
-              display: "inline-block", width: 16, height: 16,
-              border: "2px solid currentColor", borderTopColor: "transparent",
-              borderRadius: "50%",
-              animation: loading ? "spin .7s linear infinite" : "none",
-              opacity: loading ? 1 : 0.6,
-            }} />
+            <RefreshCw
+              size={16}
+              style={{
+                animation: loading ? "spin .8s linear infinite" : "none",
+                opacity: loading ? 1 : 0.6,
+              }}
+            />
           </button>
         )}
       </div>
