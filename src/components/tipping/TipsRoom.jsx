@@ -165,7 +165,10 @@ export default function TipsRoom({ players, predictions, officialResults, player
   })();
 
   const renderMatch = (m) => {
-    const top = Math.max(...m.players.map(p => p.pts), 0);
+    const filteredPlayers = selectedPlayer
+      ? m.players.filter(p => p.id === selectedPlayer)
+      : m.players;
+    const top = Math.max(...filteredPlayers.map(p => p.pts), 0);
     const isOpen = !!expandedMatches[m.id];
     return (
       <div className="card rev-game" key={m.id} style={{ borderRadius: 12, marginBottom: 6 }}>
@@ -194,10 +197,10 @@ export default function TipsRoom({ players, predictions, officialResults, player
           <table className="tbl rev-tbl">
             <thead><tr><th className="tl">Player</th><th>Their tip</th><th>Pts</th></tr></thead>
             <tbody>
-              {m.players.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
-                <tr><td colSpan="3" className="muted2 ctr">Nobody tipped this game.</td></tr>
+              {filteredPlayers.filter(p => p.pred && p.pred.homeScore != null).length === 0 && (
+                <tr><td colSpan="3" className="muted2 ctr">No tip for this game.</td></tr>
               )}
-              {m.players.filter(p => p.pred && p.pred.homeScore != null).map(p => (
+              {filteredPlayers.filter(p => p.pred && p.pred.homeScore != null).map(p => (
                 <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
                   <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
                   <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
@@ -225,7 +228,18 @@ export default function TipsRoom({ players, predictions, officialResults, player
             <button key={k} className={`chip${stage === k ? " on" : ""}`} onClick={() => setStage(k)}>{l}</button>
           ))}
         </div>
-        <div className="rev-count">{revealed.length} completed {revealed.length === 1 ? "game" : "games"} · {players.length} player{players.length === 1 ? "" : "s"}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+          <div className="rev-count" style={{ margin: 0 }}>{revealed.length} completed {revealed.length === 1 ? "game" : "games"} · {players.length} player{players.length === 1 ? "" : "s"}</div>
+          {selectedPlayer && (
+            <button
+              className="mini"
+              onClick={() => { setSelectedPlayer(""); setComparePlayer(""); setPlayerViewOpen(false); }}
+              style={{ background: "rgba(255,61,127,.08)", borderColor: "#ffc9dc", color: "#ff3d7f" }}
+            >
+              ✕ Show all tips
+            </button>
+          )}
+        </div>
 
         {/* Player lookup */}
         <div style={{ marginTop: 12, borderTop: "1px dashed #e0d2bd", paddingTop: 12 }}>
