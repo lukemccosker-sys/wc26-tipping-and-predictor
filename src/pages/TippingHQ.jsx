@@ -1083,46 +1083,7 @@ export default function TippingHQ() {
       )}
 
       {/* TIPPING TABS */}
-      {mode === "tip" && tab === "groups" && (() => {
-        // Next untipped group match — sorted by kickoff time, find first upcoming & untipped
-        const nextUntipped = GROUP_MATCHES
-          .filter(m => {
-            const ko = kickoffs[m.id];
-            return ko && Date.now() < ko; // only upcoming matches
-          })
-          .sort((a, b) => (kickoffs[a.id] || 0) - (kickoffs[b.id] || 0))
-          .find(m => {
-            const pred = predictions.find(p => p.playerId === player.id && p.matchId === m.id);
-            return !pred || pred.homeScore == null || pred.awayScore == null;
-          });
-        // Next upcoming kickoff (any group match not yet started)
-        const nextKickoff = GROUP_MATCHES.map(m => ({ m, ko: kickoffs[m.id] }))
-          .filter(({ ko }) => ko && Date.now() < ko)
-          .sort((a, b) => a.ko - b.ko)[0];
-        return (
-          <>
-            {nextUntipped && (
-              <a href={`#match-${nextUntipped.id}`} style={{ display: "block", margin: "0 0 10px", textDecoration: "none" }}>
-                <div style={{ background: "linear-gradient(95deg,#12b3a6,#2f8bff)", color: "#fff", borderRadius: 14, padding: "11px 18px", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
-                  ⚽ Next to tip: {nextUntipped.home} v {nextUntipped.away} →
-                </div>
-              </a>
-            )}
-            {nextKickoff && (
-              <a href={`#match-${nextKickoff.m.id}`} style={{ display: "block", margin: "0 0 12px", textDecoration: "none" }}>
-                <div style={{ background: "linear-gradient(95deg,#ff7a2f,#ffb020)", color: "#fff", borderRadius: 14, padding: "10px 18px", cursor: "pointer" }}>
-                  <div style={{ fontWeight: 900, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase" }}>
-                    🔔 Next kick-off: {nextKickoff.m.home} v {nextKickoff.m.away} →
-                  </div>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, opacity: .88, marginTop: 2 }}>
-                    {fmtKick(nextKickoff.ko)} · Change before it locks
-                  </div>
-                </div>
-              </a>
-            )}
-          </>
-        );
-      })()}
+
       {mode === "tip" && tab === "groups" && (
         <>
           {/* View toggle */}
@@ -1131,6 +1092,30 @@ export default function TippingHQ() {
             <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
             <button className={`chip${groupView === "results" ? " on" : ""}`} onClick={() => setGroupView("results")}>Results</button>
           </div>
+
+          {(() => {
+            // Next untipped group match — sorted by kickoff time, find first upcoming & untipped
+            const nextUntipped = GROUP_MATCHES
+              .filter(m => {
+                const ko = kickoffs[m.id];
+                return ko && Date.now() < ko;
+              })
+              .sort((a, b) => (kickoffs[a.id] || 0) - (kickoffs[b.id] || 0))
+              .find(m => {
+                const official = officialResults.find(r => r.matchId === m.id);
+                if (official && official.homeScore != null) return false;
+                const pred = predictions.find(p => p.playerId === player.id && p.matchId === m.id);
+                return !pred || pred.homeScore == null || pred.awayScore == null;
+              });
+            if (!nextUntipped) return null;
+            return (
+              <a href={`#match-${nextUntipped.id}`} style={{ display: "block", margin: "0 0 12px", textDecoration: "none" }}>
+                <div style={{ background: "linear-gradient(95deg,#12b3a6,#2f8bff)", color: "#fff", borderRadius: 14, padding: "11px 18px", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                  ⚽ Next to tip: {nextUntipped.home} v {nextUntipped.away} →
+                </div>
+              </a>
+            );
+          })()}
 
           {groupView === "results" ? (
             <ResultsView
