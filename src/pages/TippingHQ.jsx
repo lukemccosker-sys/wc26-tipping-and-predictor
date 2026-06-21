@@ -1139,12 +1139,22 @@ export default function TippingHQ() {
                 return !pred || pred.homeScore == null || pred.awayScore == null;
               });
             if (!nextUntipped) return null;
+            const goToMatch = () => {
+              if (groupView !== "kickoff") {
+                setGroupView("kickoff");
+                setTimeout(() => {
+                  document.getElementById(`match-${nextUntipped.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 100);
+              } else {
+                document.getElementById(`match-${nextUntipped.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            };
             return (
-              <a href={`#match-${nextUntipped.id}`} style={{ display: "block", margin: "0 0 12px", textDecoration: "none" }}>
+              <button onClick={goToMatch} style={{ display: "block", margin: "0 0 12px", textDecoration: "none", border: "none", background: "none", padding: 0, width: "100%", cursor: "pointer", font: "inherit" }}>
                 <div style={{ background: "linear-gradient(95deg,#12b3a6,#2f8bff)", color: "#fff", borderRadius: 14, padding: "11px 18px", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
                   ⚽ Next to tip: {nextUntipped.home} v {nextUntipped.away} →
                 </div>
-              </a>
+              </button>
             );
           })()}
 
