@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Flag from "@/lib/flags";
 import { GROUP_MATCHES, KO_MATCHES, ROUND_NAME, scoreTip } from "@/lib/wc2026data";
+import ComparisonHub from "./ComparisonHub";
 
 const STAGES = [
   ["all","All"],["group","Groups"],["R32","R32"],["R16","R16"],["QF","QF"],["SF","SF"],["3rd","3rd"],["F","Final"]
@@ -245,6 +246,14 @@ export default function TipsRoom({ players, predictions, officialResults, player
               </button>
             )}
           </div>
+
+          <ComparisonHub
+            players={players}
+            predictions={predictions}
+            officialResults={officialResults}
+            settings={settings}
+            currentPlayer={player}
+          />
 
           {selectedPlayer && playerViewOpen && (
             <div style={{ marginTop: 10 }}>
