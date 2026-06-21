@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 
-export default function ChangePinCard({ player }) {
+export default function ChangePinCard({ player, poolSettings, onPoolSettingsChange }) {
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [saving, setSaving] = useState(false);
@@ -16,6 +16,11 @@ export default function ChangePinCard({ player }) {
     setSaving(true);
     try {
       await base44.entities.Player.update(player.id, { pin: newPin.trim() });
+      // Admin login checks poolSettings.adminPin — must update that too
+      if (poolSettings) {
+        await base44.entities.PoolSettings.update(poolSettings.id, { adminPin: newPin.trim() });
+        onPoolSettingsChange?.({ ...poolSettings, adminPin: newPin.trim() });
+      }
       const updated = { ...player, pin: newPin.trim() };
       localStorage.setItem("wc_player", JSON.stringify(updated));
       setMsg({ type: "ok", text: "PIN updated successfully." });

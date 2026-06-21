@@ -264,7 +264,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Change PIN */}
-      <ChangePinCard player={player} />
+      <ChangePinCard player={player} poolSettings={poolSettings} onPoolSettingsChange={setPoolSettings} />
 
       {/* Players list */}
       <div className="ap-card">
