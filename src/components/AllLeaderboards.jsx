@@ -262,18 +262,13 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-        <div>
-          <div style={{ fontFamily: "'Anton', sans-serif", fontSize: "clamp(28px,5vw,48px)", fontWeight: 400, textTransform: "uppercase", lineHeight: 1, letterSpacing: ".03em" }}>
-            LEADER<span style={{ color: "var(--pink)" }}>BOARDS</span>
-          </div>
-        </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
         <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
       </div>
 
-      <div className="modeswitch" style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
         {tabs.map(t => (
-          <button key={t.k} className={tab === t.k ? "on" : ""} onClick={() => setTab(t.k)}>
+          <button key={t.k} className={`chip${tab === t.k ? " on" : ""}`} onClick={() => setTab(t.k)}>
             {t.label}
           </button>
         ))}
