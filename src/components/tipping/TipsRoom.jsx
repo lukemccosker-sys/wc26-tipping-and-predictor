@@ -23,6 +23,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
   const [expandedMatches, setExpandedMatches] = useState({});
   const [expandedGroups, setExpandedGroups] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState("");
+  const [comparePlayer, setComparePlayer] = useState("");
   const [playerViewOpen, setPlayerViewOpen] = useState(false);
   const [expandedPlayerSections, setExpandedPlayerSections] = useState({});
 
@@ -232,7 +233,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <select
               value={selectedPlayer}
-              onChange={e => { setSelectedPlayer(e.target.value); setPlayerViewOpen(!!e.target.value); }}
+              onChange={e => { setSelectedPlayer(e.target.value); setPlayerViewOpen(!!e.target.value); setComparePlayer(""); }}
               style={{ flex: 1, minWidth: 160, border: "2px solid #efe3d2", borderRadius: 10, padding: "8px 12px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", background: "#fff", color: "#222a3d" }}
             >
               <option value="">— Pick a player —</option>
@@ -247,13 +248,33 @@ export default function TipsRoom({ players, predictions, officialResults, player
             )}
           </div>
 
-          <ComparisonHub
-            players={players}
-            predictions={predictions}
-            officialResults={officialResults}
-            settings={settings}
-            currentPlayer={player}
-          />
+          {selectedPlayer && (
+            <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#9aa0ad", flexShrink: 0 }}>Compare with</span>
+              <select
+                value={comparePlayer}
+                onChange={e => setComparePlayer(e.target.value)}
+                style={{ flex: 1, minWidth: 160, border: "2px solid #efe3d2", borderRadius: 10, padding: "7px 12px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", background: "#fff", color: "#222a3d" }}
+              >
+                <option value="">— Nobody —</option>
+                {players.slice().sort((a,b) => a.name.localeCompare(b.name)).filter(p => p.id !== selectedPlayer).map(p => (
+                  <option key={p.id} value={p.id}>{p.name}{player && p.id === player.id ? " (you)" : ""}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {selectedPlayer && comparePlayer && (
+            <ComparisonHub
+              players={players}
+              predictions={predictions}
+              officialResults={officialResults}
+              settings={settings}
+              currentPlayer={player}
+              playerAId={selectedPlayer}
+              playerBId={comparePlayer}
+            />
+          )}
 
           {selectedPlayer && playerViewOpen && (
             <div style={{ marginTop: 10 }}>
