@@ -290,7 +290,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
             />
           )}
 
-          {selectedPlayer && playerViewOpen && (
+          {selectedPlayer && playerViewOpen && !comparePlayer && (
             <div style={{ marginTop: 10 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6, flexWrap: "wrap", gap: 6 }}>
                 <span style={{ fontWeight: 800, fontSize: 14 }}>{selectedPlayerObj?.name} — all tips</span>
