@@ -1233,6 +1233,7 @@ export default function TippingHQ() {
           predLB={predLB}
           combinedLB={combinedLB}
           player={player}
+          onRefresh={handleRefresh}
           loading={loading}
           predictions={predictions}
           officialResults={officialResults}

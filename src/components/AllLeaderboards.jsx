@@ -262,12 +262,28 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, alignItems: "center" }}>
         {tabs.map(t => (
           <button key={t.k} className={`chip${tab === t.k ? " on" : ""}`} onClick={() => setTab(t.k)}>
             {t.label}
           </button>
         ))}
+        {onRefresh && (
+          <button
+            className="chip"
+            onClick={onRefresh}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "6px 10px", flexShrink: 0 }}
+            title="Refresh"
+          >
+            <span style={{
+              display: "inline-block", width: 16, height: 16,
+              border: "2px solid currentColor", borderTopColor: "transparent",
+              borderRadius: "50%",
+              animation: loading ? "spin .7s linear infinite" : "none",
+              opacity: loading ? 1 : 0.6,
+            }} />
+          </button>
+        )}
       </div>
 
       {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
