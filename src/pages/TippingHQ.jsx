@@ -1043,7 +1043,7 @@ export default function TippingHQ() {
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["results","Results","Results","✅",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1052,7 +1052,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["groups","⚽","Groups"],["results","✅","Results"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1129,9 +1129,18 @@ export default function TippingHQ() {
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
             <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
+            <button className={`chip${groupView === "results" ? " on" : ""}`} onClick={() => setGroupView("results")}>Results</button>
           </div>
 
-          {groupView === "kickoff" ? (
+          {groupView === "results" ? (
+            <ResultsView
+              predictions={predictions}
+              officialResults={officialResults}
+              kickoffs={kickoffs}
+              player={player}
+              poolSettings={poolSettings}
+            />
+          ) : groupView === "kickoff" ? (
             <KickoffView
               predictions={predictions}
               officialResults={officialResults}
@@ -1173,16 +1182,6 @@ export default function TippingHQ() {
             </div>
           )}
         </>
-      )}
-
-      {mode === "tip" && tab === "results" && (
-        <ResultsView
-          predictions={predictions}
-          officialResults={officialResults}
-          kickoffs={kickoffs}
-          player={player}
-          poolSettings={poolSettings}
-        />
       )}
 
       {mode === "tip" && tab === "ko" && (
@@ -1417,7 +1416,7 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["groups","⚽","Groups"],["results","✅","Results"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
+            {[["groups","⚽","Groups"],["ko","🏆","Bracket"],["reveal","👀","Tips"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
