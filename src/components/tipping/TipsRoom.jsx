@@ -247,7 +247,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <select
               value={selectedPlayer}
-              onChange={e => { setSelectedPlayer(e.target.value); setPlayerViewOpen(!!e.target.value); setComparePlayer(""); }}
+              onChange={e => { setSelectedPlayer(e.target.value); setPlayerViewOpen(true); setComparePlayer(""); }}
               style={{ flex: 1, minWidth: 160, border: "2px solid #efe3d2", borderRadius: 10, padding: "8px 12px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", background: "#fff", color: "#222a3d" }}
             >
               <option value="">— Pick a player —</option>
@@ -255,11 +255,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
                 <option key={p.id} value={p.id}>{p.name}{player && p.id === player.id ? " (you)" : ""}</option>
               ))}
             </select>
-            {selectedPlayer && (
-              <button className="mini" onClick={() => setPlayerViewOpen(v => !v)}>
-                {playerViewOpen ? "▲ Hide" : "▼ Show"}
-              </button>
-            )}
+
           </div>
 
           {selectedPlayer && (
