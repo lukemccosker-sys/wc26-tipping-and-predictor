@@ -262,10 +262,6 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-        <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
-      </div>
-
       <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
         {tabs.map(t => (
           <button key={t.k} className={`chip${tab === t.k ? " on" : ""}`} onClick={() => setTab(t.k)}>

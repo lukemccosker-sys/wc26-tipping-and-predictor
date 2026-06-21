@@ -24,10 +24,12 @@ import {
 } from "@/lib/wc2026data";
 import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard, buildCombinedLeaderboard } from "@/lib/scoring";
 import AllLeaderboards, { PredictedChampions } from "@/components/AllLeaderboards";
+import usePullToRefresh from "@/lib/usePullToRefresh";
 
 // ---- CSS Styles ----
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap');
+@keyframes spin{to{transform:rotate(360deg);}}
 .wc{
   --bg:#fff7ee;--panel:#ffffff;--panel2:#fff1e2;--line:#efe3d2;--line2:#e0d2bd;
   --ink:#222a3d;--muted:#6c7384;--muted2:#9aa0ad;
@@ -487,6 +489,13 @@ export default function TippingHQ() {
       bracketRef.current = (bp || []).find(b => b.playerId === playerRef.current?.id) || null;
     }
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
+    try { await fetchAll(); } finally { setLoading(false); }
+  }, [fetchAll]);
+
+  const { pullDistance, refreshing } = usePullToRefresh(handleRefresh);
 
   // On load, verify stored player still exists in DB — if removed, kick back to login
   useEffect(() => {
@@ -983,6 +992,26 @@ export default function TippingHQ() {
     <div className="wc">
       <style>{CSS}</style>
 
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || refreshing) && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 9998,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          height: refreshing ? 44 : pullDistance,
+          overflow: "hidden", pointerEvents: "none",
+          transition: refreshing ? "height .2s ease" : "none",
+        }}>
+          <div style={{
+            width: 30, height: 30,
+            border: "3px solid var(--line2)", borderTopColor: "var(--pink)",
+            borderRadius: "50%",
+            animation: refreshing ? "spin .7s linear infinite" : "none",
+            transform: `rotate(${pullDistance * 3}deg)`,
+            opacity: Math.min(pullDistance / 50, 1),
+          }} />
+        </div>
+      )}
+
       <header className="hdr">
         <div>
           <div className="kick">FIFA WORLD CUP 26 · 🇺🇸 🇨🇦 🇲🇽</div>
@@ -1204,7 +1233,6 @@ export default function TippingHQ() {
           predLB={predLB}
           combinedLB={combinedLB}
           player={player}
-          onRefresh={fetchAll}
           loading={loading}
           predictions={predictions}
           officialResults={officialResults}
