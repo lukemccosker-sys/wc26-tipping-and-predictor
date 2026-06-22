@@ -1062,6 +1062,7 @@ export default function TippingHQ() {
         player={player}
         officialResults={officialResults}
         onGoToLeaderboard={() => setMode("lb")}
+        onGoToTipsRoom={() => { setMode("tip"); setTab("reveal"); }}
       />
 
       <div className="modeswitch">
