@@ -6,6 +6,7 @@ import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import TipOverrideTool from "@/components/admin/TipOverrideTool";
 import ChangePinCard from "@/components/admin/ChangePinCard";
 import ResultOverrideTool from "@/components/admin/ResultOverrideTool";
+import GroupStandingsOverride from "@/components/admin/GroupStandingsOverride";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -75,6 +76,7 @@ export default function AdminPanel() {
   };
 
   const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
+  const groupStandingsOverrides = poolSettings?.groupStandingsOverrides ? JSON.parse(poolSettings.groupStandingsOverrides) : {};
 
   const setThirdSlot = async (slotKey, team) => {
     const next = { ...thirdPlaceSlots, [slotKey]: team || null };
@@ -85,7 +87,7 @@ export default function AdminPanel() {
 
   // Build list of all 3rd-place teams from finished groups
   const thirdPlaceTeams = GL.map(group => {
-    const table = calcGroupTable(group, officialResults);
+    const table = calcGroupTable(group, officialResults, groupStandingsOverrides);
     const totalPld = table.reduce((s, r) => s + r.pld, 0);
     if (totalPld < 6) return null;
     return table[2] ? { team: table[2].team, group, pts: table[2].pts, gd: table[2].gd } : null;
@@ -255,6 +257,17 @@ export default function AdminPanel() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Group Standings Override */}
+      <div className="ap-card">
+        <div className="ap-section-title">📊 Override Group Standings</div>
+        <div className="ap-section-sub">If the automatic tiebreaker calculation gets a group's final positions wrong, manually reorder teams here. This affects KO bracket resolution and predictor scoring.</div>
+        <GroupStandingsOverride
+          officialResults={officialResults}
+          poolSettings={poolSettings}
+          onSave={savePoolSettings}
+        />
       </div>
 
       {/* Result Override */}

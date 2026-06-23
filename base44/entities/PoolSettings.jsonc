@@ -35,6 +35,9 @@
     },
     "thirdPlaceSlots": {
       "type": "string"
+    },
+    "groupStandingsOverrides": {
+      "type": "string"
     }
   },
   "required": []

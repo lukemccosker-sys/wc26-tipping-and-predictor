@@ -120,7 +120,7 @@ function sortGroupTable(rows, group, officialResults) {
   });
 }
 
-export function calcGroupTable(group, officialResults) {
+export function calcGroupTable(group, officialResults, standingsOverride) {
   const teams = WC_GROUPS[group] || [];
   const table = {};
   teams.forEach(t => { table[t] = { team: t, pld: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 }; });
@@ -141,7 +141,25 @@ export function calcGroupTable(group, officialResults) {
   }
 
   const sorted = sortGroupTable(Object.values(table), group, officialResults);
-  return sorted.map((r, i) => ({ ...r, rank: i + 1 }));
+  let result = sorted.map((r, i) => ({ ...r, rank: i + 1 }));
+
+  // Apply admin override if present for this group
+  const override = standingsOverride?.[group];
+  if (override && Array.isArray(override)) {
+    const reordered = [];
+    for (const teamName of override) {
+      const row = result.find(r => r.team === teamName);
+      if (row) reordered.push({ ...row, rank: reordered.length + 1 });
+    }
+    for (const row of result) {
+      if (!override.includes(row.team)) {
+        reordered.push({ ...row, rank: reordered.length + 1 });
+      }
+    }
+    return reordered;
+  }
+
+  return result;
 }
 
 // Deduplicate predictions — prefer status==='final' records; fall back to latest by created_date
@@ -217,11 +235,11 @@ function getGroupRank(team, officialResults) {
 
 // Build official KO team map from official results + GROUP_MATCHES data
 // thirdPlaceSlots: optional admin override { [slotKey]: teamName } e.g. {"3CEFHI": "Côte d'Ivoire"}
-export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots) {
+export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, standingsOverride) {
   // Build group standings
   const standings = {};
   for (const group of GL) {
-    standings[group] = calcGroupTable(group, officialResults);
+    standings[group] = calcGroupTable(group, officialResults, standingsOverride);
   }
 
   // Slot teams: 1A = 1st in group A, etc.
@@ -288,7 +306,7 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
 }
 
 // Score a single player's bracket prediction against official results
-export function computePredictorScore(bracketPred, officialResults, predSettings) {
+export function computePredictorScore(bracketPred, officialResults, predSettings, standingsOverride) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
   let groupPts = 0, bracketPts = 0, awardPts = 0;
 
@@ -300,7 +318,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   // Group picks scoring — compare against official standings
   // Only score groups where ALL 3 matchdays are complete (6 matches played)
   for (const group of GL) {
-    const table = calcGroupTable(group, officialResults);
+    const table = calcGroupTable(group, officialResults, standingsOverride);
     const totalPld = table.reduce((s, r) => s + r.pld, 0);
     if (totalPld < 12) continue; // group not finished (12 = 6 matches × 2 pld entries per match)
     const actual1st = table[0]?.team;
@@ -316,7 +334,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   // Bracket picks — Team Achievement model
   // Score based on whether the team the user picked to advance actually reached that round,
   // regardless of which specific match slot they were assigned to.
-  const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults);
+  const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults, null, standingsOverride);
   const ap = bracketPred.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
 
   // Build a map of team -> highest round they actually reached
@@ -432,9 +450,9 @@ function dedupeBracketPredictions(bracketPredictions) {
   return Object.values(map);
 }
 
-export function buildCombinedLeaderboard(players, allPredictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings) {
+export function buildCombinedLeaderboard(players, allPredictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, standingsOverride) {
   const tippingLB = buildLeaderboard(players, allPredictions, officialResults, tippingSettings);
-  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings);
+  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride);
   return players.map(player => {
     const t = tippingLB.find(r => r.id === player.id) || { total: 0, counts: {} };
     const p = predLB.find(r => r.id === player.id) || { total: 0 };
@@ -446,7 +464,7 @@ export function buildCombinedLeaderboard(players, allPredictions, bracketPredict
   );
 }
 
-export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings) {
+export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
   const dedupedBrackets = dedupeBracketPredictions(bracketPredictions);
 
@@ -460,7 +478,7 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
 
   return players.map(player => {
     const bp = dedupedBrackets.find(b => b.playerId === player.id) || null;
-    const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s);
+    const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s, standingsOverride);
 
     // Award scoring
     let awardPts = 0;
