@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { GROUP_MATCHES, KO_MATCHES, ROUND_NAME } from "@/lib/wc2026data";
 
 export default function TipOverrideTool({ players }) {
   const [playerId, setPlayerId] = useState("");
@@ -43,14 +44,29 @@ export default function TipOverrideTool({ players }) {
           </select>
         </div>
 
-        {/* Match ID */}
-        <div style={{ flex: "1 1 120px" }}>
-          <label style={labelStyle}>Match ID</label>
-          <input
-            type="text" placeholder="e.g. GA0, M73"
-            value={matchId} onChange={e => setMatchId(e.target.value.toUpperCase())}
+        {/* Match selector */}
+        <div style={{ flex: "1 1 280px" }}>
+          <label style={labelStyle}>Match</label>
+          <select
+            value={matchId}
+            onChange={e => {
+              setMatchId(e.target.value);
+              setStatus(null);
+            }}
             style={inputStyle} required
-          />
+          >
+            <option value="">— Select match —</option>
+            <optgroup label="Group Stage">
+              {GROUP_MATCHES.map(m => (
+                <option key={m.id} value={m.id}>{m.id} — {m.home} vs {m.away} (Group {m.group})</option>
+              ))}
+            </optgroup>
+            <optgroup label="Knockout Stage">
+              {KO_MATCHES.map(m => (
+                <option key={m.id} value={m.id}>{m.id} — {ROUND_NAME[m.round] || m.round} ({m.h} vs {m.a})</option>
+              ))}
+            </optgroup>
+          </select>
         </div>
 
         {/* Home Score */}
