@@ -688,6 +688,11 @@ export default function TippingHQ() {
     { exact: poolSettings?.pointsExact ?? 5, gd: poolSettings?.pointsGD ?? 3, result: poolSettings?.pointsResult ?? 1 }
   );
 
+  // KO team resolution from official results
+  const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
+  const groupStandingsOverrides = poolSettings?.groupStandingsOverrides ? JSON.parse(poolSettings.groupStandingsOverrides) : {};
+  const koTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, groupStandingsOverrides);
+
   // Predictor leaderboard (real scoring)
   const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, groupStandingsOverrides);
 
@@ -698,11 +703,6 @@ export default function TippingHQ() {
   // My predictor score (from leaderboard which includes award pts)
   const myPredRow = predLB.find(r => r.id === player.id);
   const myPredScore = myPredRow?.total ?? 0;
-
-  // KO team resolution from official results
-  const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
-  const groupStandingsOverrides = poolSettings?.groupStandingsOverrides ? JSON.parse(poolSettings.groupStandingsOverrides) : {};
-  const koTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, groupStandingsOverrides);
   const koWinners = buildKOWinners(officialResults);
 
   // predictionsRef is kept in sync inside onSetScore's functional setter for accuracy during rapid clicks
