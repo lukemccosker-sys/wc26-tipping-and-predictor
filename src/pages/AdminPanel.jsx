@@ -5,6 +5,7 @@ import { KO_MATCHES, GL } from "@/lib/wc2026data";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import TipOverrideTool from "@/components/admin/TipOverrideTool";
 import ChangePinCard from "@/components/admin/ChangePinCard";
+import ResultOverrideTool from "@/components/admin/ResultOverrideTool";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -254,6 +255,13 @@ export default function AdminPanel() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Result Override */}
+      <div className="ap-card">
+        <div className="ap-section-title">✅ Override Official Result</div>
+        <div className="ap-section-sub">Correct a result you entered incorrectly. Pick the match, set the right score, and save — the leaderboard updates instantly.</div>
+        <ResultOverrideTool officialResults={officialResults} />
       </div>
 
       {/* Tip Override */}
