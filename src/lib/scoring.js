@@ -335,7 +335,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   // Bracket picks — Team Achievement model
   // Score based on whether the team the user picked to advance actually reached that round,
   // regardless of which specific match slot they were assigned to.
-  const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults, null, standingsOverride);
+  const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, standingsOverride);
   const ap = bracketPred.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
 
   // Build a map of team -> highest round they actually reached
