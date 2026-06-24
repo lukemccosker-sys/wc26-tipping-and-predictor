@@ -56,9 +56,20 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
       onPickPos(next, L, team, pos);
       return next;
     });
+    // Clear this team's 3rd-place pick if they're now 1st or 2nd
+    setLocalThirdPicks(prev => {
+      if (prev[L] !== team) return prev;
+      const next = { ...prev, [L]: null };
+      onPickThird(next, L, team);
+      return next;
+    });
   };
 
   const handlePickThird = (L, team) => {
+    // Don't allow picking a team as 3rd if they're already 1st or 2nd
+    const picks = localGroupPicks[L] || {};
+    if (picks.first === team || picks.second === team) return;
+
     setLocalThirdPicks(prev => {
       const next = { ...prev };
       if (next[L] === team) {
