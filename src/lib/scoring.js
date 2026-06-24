@@ -338,7 +338,11 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   const officialKOTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, standingsOverride);
   const ap = bracketPred.advancePicks ? JSON.parse(bracketPred.advancePicks) : {};
 
-  // Build a map of team -> highest round they actually reached
+  // Build the user's PREDICTED KO teams from their own group/third picks
+  // This resolves which team the user actually picked (their prediction, not the actual team)
+  const userKOTeams = buildPredKOTeams(gp, tp, ap);
+
+  // Build a map of team -> highest round they actually reached (from official results)
   const actualRoundReached = {}; // { teamName: "QF" }
   for (const m of KO_MATCHES) {
     const teams = officialKOTeams[m.id];
@@ -369,33 +373,36 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     }
   }
 
-  // Score each user pick: did they pick this team to advance from this round,
-  // and did the team actually reach at least that round?
+  // Score each user pick: resolve the user's PREDICTED team, then check if that team
+  // actually reached at least this round in the real tournament.
   const roundPtsMap = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "final" };
   for (const m of KO_MATCHES) {
     if (m.round === "3rd") {
-      // 3rd place match: score separately
-      const teams = officialKOTeams[m.id];
-      if (!teams) continue;
+      // 3rd place match: resolve user's predicted team, check if they won the actual match
+      const userTeams = userKOTeams[m.id];
+      if (!userTeams) continue;
       const pickedSide = ap[m.id];
-      const pickedTeam = pickedSide === "h" ? teams.home : pickedSide === "a" ? teams.away : null;
+      const pickedTeam = pickedSide === "h" ? userTeams.home : pickedSide === "a" ? userTeams.away : null;
       if (!pickedTeam) continue;
       const res = officialResults.find(r => r.matchId === m.id);
       if (!res || res.homeScore == null) continue;
+      // Find the actual 3rd-place match teams to determine the winner
+      const actualTeams = officialKOTeams[m.id];
+      if (!actualTeams) continue;
       const h = +res.homeScore, a = +res.awayScore;
       let winner = null;
-      if (h > a) winner = teams.home;
-      else if (h < a) winner = teams.away;
-      else if (res.penaltyWinner === "h") winner = teams.home;
-      else if (res.penaltyWinner === "a") winner = teams.away;
+      if (h > a) winner = actualTeams.home;
+      else if (h < a) winner = actualTeams.away;
+      else if (res.penaltyWinner === "h") winner = actualTeams.home;
+      else if (res.penaltyWinner === "a") winner = actualTeams.away;
       if (winner && winner === pickedTeam) bracketPts += +s.third_place || 5;
       continue;
     }
 
-    const teams = officialKOTeams[m.id];
-    if (!teams) continue;
+    const userTeams = userKOTeams[m.id];
+    if (!userTeams) continue;
     const pickedSide = ap[m.id];
-    const pickedTeam = pickedSide === "h" ? teams.home : pickedSide === "a" ? teams.away : null;
+    const pickedTeam = pickedSide === "h" ? userTeams.home : pickedSide === "a" ? userTeams.away : null;
     if (!pickedTeam) continue;
 
     // Award points if the picked team actually reached at least this round
