@@ -325,11 +325,15 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const actual1st = table[0]?.team;
     const actual2nd = table[1]?.team;
     const actual3rd = table[2]?.team;
+    const actualQualifiers = new Set([actual1st, actual2nd].filter(Boolean));
     const pick = gp[group] || {};
     if (actual1st && pick.first === actual1st) groupPts += +s.g1 || 3;
     if (actual2nd && pick.second === actual2nd) groupPts += +s.g2 || 2;
     // Best 3rd picks — only awarded once admin has assigned all 8 best-3rd slots
     if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
+    // R32 progression points — award for each correctly predicted group qualifier
+    if (pick.first && actualQualifiers.has(pick.first)) bracketPts += +s.r32 || 1;
+    if (pick.second && actualQualifiers.has(pick.second)) bracketPts += +s.r32 || 1;
   }
 
   // Bracket picks — Team Achievement model
@@ -398,6 +402,9 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
       if (winner && winner === pickedTeam) bracketPts += +s.third_place || 5;
       continue;
     }
+
+    // R32 progression is scored via group predictions above, not advance picks
+    if (m.round === "R32") continue;
 
     const userTeams = userKOTeams[m.id];
     if (!userTeams) continue;
