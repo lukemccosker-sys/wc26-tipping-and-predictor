@@ -13,6 +13,12 @@ const THIRD_SLOT_GROUPS = {
 };
 const THIRD_SLOT_KEYS = Object.keys(THIRD_SLOT_GROUPS);
 
+// Check if admin has manually assigned ALL 8 best-3rd-place teams to their R32 slots
+function allThirdSlotsFilled(thirdPlaceSlots) {
+  if (!thirdPlaceSlots) return false;
+  return THIRD_SLOT_KEYS.every(key => thirdPlaceSlots[key]);
+}
+
 // Assign best-3rd teams (tp: { groupLetter: team }) into slotTeams using backtracking
 // so that all picked teams are placed — moving teams around to maximise fit.
 export function assignThirdPlaceTeams(tp, slotTeams) {
@@ -269,17 +275,12 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
   ); // Best-3rd ranking: H2H doesn't apply across groups, so GD is the correct first fallback here
 
-  // If admin has manually assigned 3rd-place teams to slots, use those.
-  // Otherwise fall back to automatic assignment by group eligibility.
-  if (thirdPlaceSlots && Object.keys(thirdPlaceSlots).length > 0) {
+  // Only fill 3rd-place slots when admin has manually assigned ALL 8 teams.
+  // Until then, 3rd-place teams stay out of the KO bracket entirely — no auto-assignment.
+  if (allThirdSlotsFilled(thirdPlaceSlots)) {
     for (const [slotKey, team] of Object.entries(thirdPlaceSlots)) {
       if (team) slotTeams[slotKey] = team;
     }
-  } else {
-    // Build a tp-style map { groupLetter: teamName } from the top 8 thirds
-    const tpMap = {};
-    for (const t of thirds.slice(0, 8)) tpMap[t.group] = t.team;
-    assignThirdPlaceTeams(tpMap, slotTeams);
   }
 
   // Resolve KO matches round by round using official results
@@ -306,7 +307,7 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
 }
 
 // Score a single player's bracket prediction against official results
-export function computePredictorScore(bracketPred, officialResults, predSettings, standingsOverride) {
+export function computePredictorScore(bracketPred, officialResults, predSettings, standingsOverride, thirdPlaceSlots) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
   let groupPts = 0, bracketPts = 0, awardPts = 0;
 
@@ -327,8 +328,8 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const pick = gp[group] || {};
     if (actual1st && pick.first === actual1st) groupPts += +s.g1 || 3;
     if (actual2nd && pick.second === actual2nd) groupPts += +s.g2 || 2;
-    // Best 3rd picks
-    if (actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
+    // Best 3rd picks — only awarded once admin has assigned all 8 best-3rd slots
+    if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
   }
 
   // Bracket picks — Team Achievement model
@@ -450,9 +451,9 @@ function dedupeBracketPredictions(bracketPredictions) {
   return Object.values(map);
 }
 
-export function buildCombinedLeaderboard(players, allPredictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, standingsOverride) {
+export function buildCombinedLeaderboard(players, allPredictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, standingsOverride, thirdPlaceSlots) {
   const tippingLB = buildLeaderboard(players, allPredictions, officialResults, tippingSettings);
-  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride);
+  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride, thirdPlaceSlots);
   return players.map(player => {
     const t = tippingLB.find(r => r.id === player.id) || { total: 0, counts: {} };
     const p = predLB.find(r => r.id === player.id) || { total: 0 };
@@ -464,7 +465,7 @@ export function buildCombinedLeaderboard(players, allPredictions, bracketPredict
   );
 }
 
-export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride) {
+export function buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, standingsOverride, thirdPlaceSlots) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
   const dedupedBrackets = dedupeBracketPredictions(bracketPredictions);
 
@@ -478,7 +479,7 @@ export function buildPredictorLeaderboard(players, bracketPredictions, officialR
 
   return players.map(player => {
     const bp = dedupedBrackets.find(b => b.playerId === player.id) || null;
-    const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s, standingsOverride);
+    const { groupPts, bracketPts } = computePredictorScore(bp, officialResults, s, standingsOverride, thirdPlaceSlots);
 
     // Award scoring
     let awardPts = 0;

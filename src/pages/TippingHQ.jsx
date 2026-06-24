@@ -694,11 +694,11 @@ export default function TippingHQ() {
   const koTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, groupStandingsOverrides);
 
   // Predictor leaderboard (real scoring)
-  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, groupStandingsOverrides);
+  const predLB = buildPredictorLeaderboard(players, bracketPredictions, officialResults, officialAwards, predSettings, groupStandingsOverrides, thirdPlaceSlots);
 
   // Combined leaderboard
   const tippingSettings = { exact: poolSettings?.pointsExact ?? 5, gd: poolSettings?.pointsGD ?? 3, result: poolSettings?.pointsResult ?? 1 };
-  const combinedLB = buildCombinedLeaderboard(players, predictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, groupStandingsOverrides);
+  const combinedLB = buildCombinedLeaderboard(players, predictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, groupStandingsOverrides, thirdPlaceSlots);
 
   // My predictor score (from leaderboard which includes award pts)
   const myPredRow = predLB.find(r => r.id === player.id);
