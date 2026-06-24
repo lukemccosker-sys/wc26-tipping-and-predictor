@@ -22,7 +22,7 @@ function slotLabel(slot) {
   return slot;
 }
 
-export default function PredictorBracket({ bracketPred, locked, koTeams, onPickAdvance, onGoToAwards }) {
+export default function PredictorBracket({ bracketPred, locked, koTeams, onPickAdvance, onGoToAwards, officialResults, predSettings, officialKOTeams }) {
   const [round, setRound] = useState("R32");
   const topRef = useRef(null);
 
@@ -44,6 +44,65 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       initialised.current = true;
     }
   }, [bracketPred]);
+
+  // Build actualRoundReached map from official results
+  const actualRoundReached = {};
+  if (officialKOTeams && officialResults) {
+    for (const m of KO_MATCHES) {
+      const teams = officialKOTeams[m.id];
+      if (!teams) continue;
+      [teams.home, teams.away].filter(Boolean).forEach(t => {
+        const rIdx = ROUND_ORDER.indexOf(m.round);
+        const existing = ROUND_ORDER.indexOf(actualRoundReached[t] || "");
+        if (rIdx > existing) actualRoundReached[t] = m.round;
+      });
+      const res = officialResults.find(r => r.matchId === m.id);
+      if (res && res.homeScore != null) {
+        const h = +res.homeScore, a = +res.awayScore;
+        let winner = null;
+        if (h > a) winner = teams.home;
+        else if (h < a) winner = teams.away;
+        else if (res.penaltyWinner === "h") winner = teams.home;
+        else if (res.penaltyWinner === "a") winner = teams.away;
+        if (winner) {
+          const rIdx = ROUND_ORDER.indexOf(m.round);
+          const nextRound = ROUND_ORDER[rIdx + 1];
+          if (nextRound) {
+            const existing = ROUND_ORDER.indexOf(actualRoundReached[winner] || "");
+            if (ROUND_ORDER.indexOf(nextRound) > existing) actualRoundReached[winner] = nextRound;
+          }
+        }
+      }
+    }
+  }
+
+  const computeMatchEarned = (m) => {
+    if (m.round === "R32") return null;
+    const s = predSettings || {};
+    const roundPtsMap = { R16: "r16", QF: "qf", SF: "sf", F: "final", "3rd": "third_place" };
+    const pickedSide = localPicks[m.id];
+    const pickedTeam = pickedSide === "h" ? (koTeams?.[m.id]?.home) : pickedSide === "a" ? (koTeams?.[m.id]?.away) : null;
+    if (!pickedTeam) return null;
+    if (m.round === "3rd") {
+      const actualTeams = officialKOTeams?.[m.id];
+      const res = officialResults?.find(r => r.matchId === m.id);
+      if (!actualTeams || !res || res.homeScore == null) return null;
+      const h = +res.homeScore, a = +res.awayScore;
+      let winner = null;
+      if (h > a) winner = actualTeams.home;
+      else if (h < a) winner = actualTeams.away;
+      else if (res.penaltyWinner === "h") winner = actualTeams.home;
+      else if (res.penaltyWinner === "a") winner = actualTeams.away;
+      if (!winner) return null;
+      return winner === pickedTeam ? (+s.third_place || 5) : 0;
+    }
+    const teamRound = actualRoundReached[pickedTeam];
+    if (!teamRound) return null;
+    if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
+      return +s[roundPtsMap[m.round]] || 0;
+    }
+    return null;
+  };
 
   const idx = ROUND_ORDER.indexOf(round);
   const matches = KO_MATCHES.filter(m => m.round === round);
@@ -98,12 +157,16 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
     const picked = localPicks[m.id];
     const isF = m.round === "F";
     const is3rd = m.round === "3rd";
+    const earned = computeMatchEarned(m);
 
     return (
       <div className={`ko pko${isF ? " final" : ""}${is3rd ? " bronze" : ""}${!teamsKnown ? " pending" : ""}`} key={m.id}>
         <div className="ko-h">
           <span>M{m.id.slice(1)}</span>
-          <span className="ko-v">{isF ? "Champion decider" : m.venue}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {earned != null && <span className={`ko-earned${earned === 0 ? " zero" : ""}`}>+{earned} pts</span>}
+            <span className="ko-v">{isF ? "Champion decider" : m.venue}</span>
+          </span>
         </div>
 
         {[["h", home, m.h], ["a", away, m.a]].map(([side, team, slot]) => {

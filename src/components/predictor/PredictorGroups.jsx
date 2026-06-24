@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Flag from "@/lib/flags";
 import { Lock } from "lucide-react";
 import { WC_GROUPS, GL } from "@/lib/wc2026data";
+import { calcGroupTable } from "@/lib/scoring";
 
-export default function PredictorGroups({ bracketPred, locked, onPickPos, onPickThird, onSuggest, canSuggest, suggestionKey }) {
+export default function PredictorGroups({ bracketPred, locked, onPickPos, onPickThird, onSuggest, canSuggest, suggestionKey, officialResults, predSettings, standingsOverride, thirdPlaceSlots }) {
   // Local state — source of truth for the UI, prevents glitches from debounced DB saves
   const [localGroupPicks, setLocalGroupPicks] = useState(() =>
     bracketPred?.groupPicks ? JSON.parse(bracketPred.groupPicks) : {}
@@ -88,6 +89,28 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
     });
   };
 
+  const computeGroupEarned = (group) => {
+    if (!officialResults) return null;
+    const s = predSettings || {};
+    const table = calcGroupTable(group, officialResults, standingsOverride);
+    const totalPld = table.reduce((acc, r) => acc + r.pld, 0);
+    if (totalPld < 12) return null;
+    const actual1st = table[0]?.team;
+    const actual2nd = table[1]?.team;
+    const actual3rd = table[2]?.team;
+    const actualQualifiers = new Set([actual1st, actual2nd].filter(Boolean));
+    const pick = localGroupPicks[group] || {};
+    let pts = 0;
+    const earned = {};
+    if (actual1st && pick.first === actual1st) { const v = +s.g1 || 3; pts += v; earned.first = v; }
+    if (actual2nd && pick.second === actual2nd) { const v = +s.g2 || 2; pts += v; earned.second = v; }
+    if (pick.first && actualQualifiers.has(pick.first)) { const v = +s.r32 || 1; pts += v; earned.r32first = v; }
+    if (pick.second && actualQualifiers.has(pick.second)) { const v = +s.r32 || 1; pts += v; earned.r32second = v; }
+    const allSlotsFilled = thirdPlaceSlots && Object.keys(thirdPlaceSlots).filter(k => thirdPlaceSlots[k]).length >= 8;
+    if (allSlotsFilled && actual3rd && localThirdPicks[group] === actual3rd) { const v = +s.third || 2; pts += v; earned.third = v; }
+    return { pts, earned };
+  };
+
   return (
     <div>
       <div className="pg-progress">
@@ -112,15 +135,19 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
           const teams = WC_GROUPS[L] || [];
           const picks = localGroupPicks[L] || {};
           const third = localThirdPicks[L] || null;
+          const groupEarned = computeGroupEarned(L);
 
           return (
             <div className="card pgrp" key={L}>
               <div className="card-h">
                 <div className="gtitle">GROUP {L}</div>
-                <div className="pgrp-key">
-                  <span className="pk pk1">1st</span>
-                  <span className="pk pk2">2nd</span>
-                  <span className="pk pk3">3rd</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {groupEarned && <span className={`earned-badge${groupEarned.pts === 0 ? " zero" : ""}`}>+{groupEarned.pts} pts</span>}
+                  <div className="pgrp-key">
+                    <span className="pk pk1">1st</span>
+                    <span className="pk pk2">2nd</span>
+                    <span className="pk pk3">3rd</span>
+                  </div>
                 </div>
               </div>
               <div className="pgrp-teams">
@@ -137,6 +164,15 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
                             : isS ? <span className="medal-static m2">2nd</span>
                             : isT ? <span className="medal-static m3">3rd</span>
                             : <span className="medal-none">—</span>}
+                          {groupEarned && (() => {
+                            let tp = 0;
+                            if (isF && groupEarned.earned.first) tp += groupEarned.earned.first;
+                            if (isS && groupEarned.earned.second) tp += groupEarned.earned.second;
+                            if (isT && groupEarned.earned.third) tp += groupEarned.earned.third;
+                            if (isF && groupEarned.earned.r32first) tp += groupEarned.earned.r32first;
+                            if (isS && groupEarned.earned.r32second) tp += groupEarned.earned.r32second;
+                            return tp > 0 ? <span className="mini-pts">+{tp}</span> : null;
+                          })()}
                           <Lock size={11} style={{ color: "var(--muted2)", opacity: 0.6, flexShrink: 0 }} />
                         </span>
                       ) : (

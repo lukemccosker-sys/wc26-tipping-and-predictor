@@ -270,6 +270,11 @@ const CSS = `
 .medal-static{font-size:11px;font-weight:800;border-radius:999px;padding:5px 11px;color:#fff;}
 .medal-static.m1{background:var(--gold);}.medal-static.m2{background:#aab2c0;}.medal-static.m3{background:#cd7f32;}
 .medal-none{font-size:13px;color:var(--muted2);font-weight:800;padding:0 6px;}
+.earned-badge{font-size:11px;font-weight:800;color:#fff;background:linear-gradient(95deg,var(--green),var(--teal));border-radius:999px;padding:3px 10px;white-space:nowrap;}
+.earned-badge.zero{background:var(--line2);color:var(--muted2);}
+.mini-pts{font-size:10px;font-weight:800;border-radius:6px;padding:2px 6px;color:#fff;background:var(--green);white-space:nowrap;}
+.ko-earned{font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px;color:#fff;background:var(--green);white-space:nowrap;}
+.ko-earned.zero{background:var(--line2);color:var(--muted2);}
 .pko-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--panel);border-radius:11px;padding:9px 11px;margin-bottom:7px;cursor:pointer;font-family:inherit;}
 .pko-row:disabled{cursor:not-allowed;}
 .pko-row.empty{opacity:.6;cursor:default;}
@@ -1372,6 +1377,10 @@ export default function TippingHQ() {
                 onSuggest={onSuggestFromTips}
                 canSuggest={canSuggest}
                 suggestionKey={suggestionKey}
+                officialResults={officialResults}
+                predSettings={predSettings}
+                standingsOverride={groupStandingsOverrides}
+                thirdPlaceSlots={thirdPlaceSlots}
               />
               {(() => {
                 const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
@@ -1398,6 +1407,9 @@ export default function TippingHQ() {
                 koTeams={predKOTeams}
                 onPickAdvance={onPickAdvance}
                 onGoToAwards={() => setPtab("pa")}
+                officialResults={officialResults}
+                predSettings={predSettings}
+                officialKOTeams={koTeams}
               />
               {(() => {
                 const ap = myBracket?.advancePicks ? JSON.parse(myBracket.advancePicks) : {};
