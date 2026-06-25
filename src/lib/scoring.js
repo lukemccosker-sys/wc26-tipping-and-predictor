@@ -326,14 +326,19 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const actual2nd = table[1]?.team;
     const actual3rd = table[2]?.team;
     const actualQualifiers = new Set([actual1st, actual2nd].filter(Boolean));
+    // Include actual 3rd as a qualifier if they were assigned to a best-3rd slot
+    if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && Object.values(thirdPlaceSlots).includes(actual3rd)) {
+      actualQualifiers.add(actual3rd);
+    }
     const pick = gp[group] || {};
     if (actual1st && pick.first === actual1st) groupPts += +s.g1 || 3;
     if (actual2nd && pick.second === actual2nd) groupPts += +s.g2 || 2;
     // Best 3rd picks — only awarded once admin has assigned all 8 best-3rd slots
     if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
-    // R32 progression points — award for each correctly predicted group qualifier
+    // R32 progression points — award for each correctly predicted group qualifier (1st, 2nd, or 3rd pick)
     if (pick.first && actualQualifiers.has(pick.first)) bracketPts += +s.r32 || 1;
     if (pick.second && actualQualifiers.has(pick.second)) bracketPts += +s.r32 || 1;
+    if (tp[group] && actualQualifiers.has(tp[group])) bracketPts += +s.r32 || 1;
   }
 
   // Bracket picks — Team Achievement model
