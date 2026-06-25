@@ -3,6 +3,7 @@ import Flag from "@/lib/flags";
 import ScoreInput from "./ScoreInput";
 import ResultEntry from "./ResultEntry";
 import Countdown from "./Countdown";
+import TeamStatsPanel from "./TeamStatsPanel";
 import { KO_MATCHES, ROUND_ORDER, ROUND_NAME } from "@/lib/wc2026data";
 import { scoreTip } from "@/lib/wc2026data";
 
@@ -45,7 +46,16 @@ export default function KOBracket({
   player, poolSettings, groupStageComplete
 }) {
   const [round, setRound] = useState("R32");
+  const [openStats, setOpenStats] = useState({});
   const topRef = useRef(null);
+
+  const toggleStats = (matchId, side) => {
+    setOpenStats(prev => {
+      const current = prev[matchId];
+      if (current === side) return { ...prev, [matchId]: null };
+      return { ...prev, [matchId]: side };
+    });
+  };
 
   const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
   const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
@@ -96,6 +106,28 @@ export default function KOBracket({
     const is3rd = m.round === "3rd";
     const teamsKnown = !!(home && away);
     const kicked = getKickoff(m.id);
+    const openSide = openStats[m.id];
+
+    const teamBtn = (teamName, matchId, side, slot) => {
+      if (!teamName) return <span className="ko-ph">{slotLabel(slot)}</span>;
+      const isOpen = openSide === side;
+      return (
+        <button
+          onClick={() => toggleStats(matchId, side)}
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", textAlign: side === "away" ? "right" : "left" }}
+        >
+          <span className="tname" style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
+            <Flag name={teamName} size={16} /><span>{teamName}</span>
+          </span>
+          <span style={{
+            display: "block", fontSize: 9, fontWeight: 800, color: isOpen ? "var(--pink)" : "var(--teal)",
+            letterSpacing: ".04em", textTransform: "uppercase", marginTop: 1, opacity: 0.85
+          }}>
+            {isOpen ? "▲ hide" : "▼ stats"}
+          </span>
+        </button>
+      );
+    };
 
     return (
       <div className={`ko${isF ? " final" : ""}${is3rd ? " bronze" : ""}${!teamsKnown ? " pending" : ""}${scored ? " scored" : ""}`} key={m.id} id={`match-${m.id}`}>
@@ -111,9 +143,7 @@ export default function KOBracket({
 
         <div className={`gm-main${locked ? " gm-locked" : ""}`}>
           <div className="gm-team">
-            <span className="tname">
-              {home ? <><Flag name={home} size={16} /><span>{home}</span></> : <span className="ko-ph">{slotLabel(m.h)}</span>}
-            </span>
+            {teamBtn(home, m.id, "home", m.h)}
           </div>
           <div className="gm-score">
             {isAdmin && adminEditing ? (
@@ -129,13 +159,19 @@ export default function KOBracket({
             )}
           </div>
           <div className="gm-team r">
-            <span className="tname">
-              {away ? <><Flag name={away} size={16} /><span>{away}</span></> : <span className="ko-ph">{slotLabel(m.a)}</span>}
-            </span>
+            {teamBtn(away, m.id, "away", m.a)}
           </div>
         </div>
 
         {!teamsKnown && <div className="ko-pending">Teams TBD</div>}
+
+        {/* Inline stats panel */}
+        {openSide && (
+          <TeamStatsPanel
+            team={openSide === "home" ? home : away}
+            officialResults={officialResults}
+          />
+        )}
 
         {isDraw && home && away && (
           <div className="pen-row off">
