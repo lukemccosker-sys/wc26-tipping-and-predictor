@@ -237,7 +237,7 @@ export default function KOBracket({
       </div>
 
       <div className="ko-rules">
-        <b>KO rules:</b> Tip the score after <b>90 min + extra time</b>. If it's a draw at <b>120 min</b>, pens decide who advances — but your tip scores on the 120-min result (a draw counts as exact/GD/winner). The penalty winner doesn't change your points.
+        <b>KO rules:</b> Tip the score after <b>120 min</b> (90 + extra time). If it's a draw, pens decide who advances — but scoring is based on the <b>120-min scoreline</b>. A draw tip earns exact/GD/result points as normal. If you tipped a team to <b>win outright</b> and they win on pens, you still get <b>1 result point</b>.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
