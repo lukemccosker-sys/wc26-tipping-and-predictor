@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
  * Uses localStorage key `wc_last_seen_<playerId>` to track the last
  * timestamp the player was active.
  */
-export default function WelcomeBackBanner({ player, officialResults, onGoToLeaderboard, onGoToTipsRoom }) {
+export default function WelcomeBackBanner({ player, officialResults, onGoToLeaderboard, onGoToTipsRoom, onGoToPredictorRoom }) {
   const [show, setShow] = useState(false);
   const [newCount, setNewCount] = useState(0);
 
@@ -75,6 +75,19 @@ export default function WelcomeBackBanner({ player, officialResults, onGoToLeade
         >
           Tips Room →
         </button>
+        {onGoToPredictorRoom && (
+          <button
+            onClick={onGoToPredictorRoom}
+            style={{
+              background: "linear-gradient(95deg,#7b54f0,#2f8bff)",
+              color: "#fff", border: "none", borderRadius: 999,
+              padding: "6px 12px", fontSize: 11.5, fontWeight: 800,
+              cursor: "pointer", fontFamily: "inherit"
+            }}
+          >
+            🔍 Predictor Room →
+          </button>
+        )}
         <button
           onClick={() => setShow(false)}
           style={{

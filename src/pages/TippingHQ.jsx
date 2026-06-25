@@ -1184,6 +1184,7 @@ export default function TippingHQ() {
         officialResults={officialResults}
         onGoToLeaderboard={() => setMode("lb")}
         onGoToTipsRoom={() => { setMode("tip"); setTab("reveal"); }}
+        onGoToPredictorRoom={() => { setMode("pred"); setPtab("pr"); }}
       />
 
       <div className="modeswitch">
