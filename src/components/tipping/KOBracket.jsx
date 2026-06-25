@@ -237,7 +237,10 @@ export default function KOBracket({
       </div>
 
       <div className="ko-rules">
-        <b>KO rules:</b> Tip the score after <b>120 min</b> (90 + extra time). If it's a draw, pens decide who advances — but scoring is based on the <b>120-min scoreline</b>. A draw tip at <b>120 min</b> earns: <b>exact</b> (right score) or <b>1 pt result</b> (any draw) — <b>on top of your score points</b>. If you tipped a team to <b>win outright</b> and they win on pens, you still get <b>1 result point</b>.
+        <b>KO scoring:</b> Tip the score at the end of <b>120 min</b> (full time + extra time). Penalty shootouts don't count toward your tipped score.<br/>
+        • <b>Exact score</b> → full points<br/>
+        • <b>Correct result</b> (right winner, or any draw) → 1 point<br/>
+        If a match goes to penalties, it's scored as a draw at 120 min — so a draw tip still earns exact or result points as usual. <b>One exception:</b> if you tipped a team to win outright and they win on penalties, you still get <b>1 result point</b> (even though it was a draw at 120).
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
