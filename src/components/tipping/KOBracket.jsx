@@ -256,7 +256,7 @@ export default function KOBracket({
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Knockouts:</b> Scored on the 120-min result (incl. extra time, excl. pens). Tip a draw? Pick your <b>penalty winner</b> for <b>+1pt</b> on top of draw points. Tip a team to win and they win on pens? Still <b>1pt</b>.
+        🏆 <b>Knockouts:</b> Scored on the 120-min result (incl. extra time, excl. pens). Tip a draw? Pick your <b>penalty winner</b> for <b>+1pt</b> on top of draw points (exact draw = {settings.exact}+1, result draw = {settings.result}+1). Tip a team to win and they win on pens? Still <b>{settings.result}pt</b>.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
