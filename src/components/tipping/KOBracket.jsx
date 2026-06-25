@@ -72,6 +72,11 @@ export default function KOBracket({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const fmtKick = (ms) => {
+    if (!ms) return "";
+    return new Date(ms).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
   const renderMatch = (m) => {
     const home = koTeams?.[m.id]?.home;
     const away = koTeams?.[m.id]?.away;
@@ -86,35 +91,45 @@ export default function KOBracket({
     const isF = m.round === "F";
     const is3rd = m.round === "3rd";
     const teamsKnown = !!(home && away);
+    const kicked = getKickoff(m.id);
 
     return (
       <div className={`ko${isF ? " final" : ""}${is3rd ? " bronze" : ""}${!teamsKnown ? " pending" : ""}${scored ? " scored" : ""}`} key={m.id} id={`match-${m.id}`}>
-        <div className="ko-h">
-          <span>M{m.id.slice(1)}</span>
-          <MatchStatusBadge kickoff={getKickoff(m.id)} hasOfficial={hasOfficial} />
-          <span className="ko-v">{isF ? "Final" : m.venue}</span>
+        <div className="cd-row" style={{ paddingTop: 0 }}>
+          {kicked && <span className="kick-when">{fmtKick(kicked)}</span>}
+          <Countdown kickoff={kicked} />
+          <MatchStatusBadge kickoff={kicked} hasOfficial={hasOfficial} />
+          {locked && !hasOfficial && <span className="gm-lock-badge">🔒 Locked</span>}
+          {locked && hasOfficial && <span className="gm-lock-badge">✅ Final</span>}
+          {hasTip && !locked && <span className="tip-saved">✓ saved</span>}
           {scored && <span className={`pts-circle t-${scored.tier}`}>{scored.pts}</span>}
         </div>
 
-        {[["h", home, m.h], ["a", away, m.a]].map(([side, team, slot]) => (
-          <div className={`ko-row${koWinners?.[m.id] === team ? " win" : ""}`} key={side}>
-            <span className="ko-team">
-              {team ? <><Flag name={team} size={16} /><span>{team}</span></> : <span className="ko-ph">{slotLabel(slot)}</span>}
+        <div className={`gm-main${locked ? " gm-locked" : ""}`}>
+          <div className="gm-team">
+            <span className="tname">
+              {home ? <><Flag name={home} size={16} /><span>{home}</span></> : <span className="ko-ph">{slotLabel(m.h)}</span>}
             </span>
-            {!teamsKnown ? (
-              <span className="ko-osc" style={{ color: "var(--muted2)" }}>–</span>
-            ) : isAdmin && adminEditing ? (
-              <ScoreInput value={official?.[side === "h" ? "homeScore" : "awayScore"]} onChange={v => onSetOfficial(m.id, side, v)} locked={false} active />
+          </div>
+          <div className="gm-score">
+            {isAdmin && adminEditing ? (
+              <ScoreInput value={official?.homeScore} onChange={v => onSetOfficial(m.id, "h", v)} locked={false} active={hasOfficial} />
             ) : (
-              <ScoreInput
-                value={pred?.[side === "h" ? "homeScore" : "awayScore"]}
-                onChange={v => onSetScore(m.id, side, v)}
-                locked={locked}
-                active={hasTip}
-              />
+              <ScoreInput value={pred?.homeScore} onChange={v => onSetScore(m.id, "h", v)} locked={locked || !teamsKnown} active={hasTip} />
+            )}
+            <span className="vs">vs</span>
+            {isAdmin && adminEditing ? (
+              <ScoreInput value={official?.awayScore} onChange={v => onSetOfficial(m.id, "a", v)} locked={false} active={hasOfficial} />
+            ) : (
+              <ScoreInput value={pred?.awayScore} onChange={v => onSetScore(m.id, "a", v)} locked={locked || !teamsKnown} active={hasTip} />
             )}
           </div>
-        ))}
+          <div className="gm-team r">
+            <span className="tname">
+              {away ? <><Flag name={away} size={16} /><span>{away}</span></> : <span className="ko-ph">{slotLabel(m.a)}</span>}
+            </span>
+          </div>
+        </div>
 
         {!teamsKnown && <div className="ko-pending">Teams TBD</div>}
 
@@ -145,20 +160,18 @@ export default function KOBracket({
 
         {/* Result row */}
         {hasOfficial && !(isAdmin && adminEditing) && (
-          <div className="gm-result-row" style={{ marginTop: 6 }}>
+          <div className="gm-result-row">
             <span className="gm-result-lbl">✅ Result</span>
             <span className="gm-result-score">{official.homeScore} – {official.awayScore}{pen ? ` (${pen === "h" ? home : away} on pens)` : ""}</span>
           </div>
         )}
         {isAdmin && adminEditing && (
-          <div style={{ marginTop: 6 }}>
-            <ResultEntry
-              matchId={m.id}
-              official={official}
-              onSetOfficial={(mid, h, a) => onSetOfficial(mid, h, a)}
-              onClearOfficial={onClearOfficial}
-            />
-          </div>
+          <ResultEntry
+            matchId={m.id}
+            official={official}
+            onSetOfficial={(mid, h, a) => onSetOfficial(mid, h, a)}
+            onClearOfficial={onClearOfficial}
+          />
         )}
       </div>
     );
