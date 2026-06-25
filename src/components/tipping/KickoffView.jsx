@@ -84,31 +84,31 @@ export default function KickoffView({
     const isOpen = openStats[matchId] === side;
     return (
       <button
-        onClick={() => toggleStats(matchId, side)}
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", textAlign: side === "away" ? "right" : "left" }}
+      onClick={() => toggleStats(matchId, side)}
+      style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", textAlign: side === "away" ? "right" : "left", lineHeight: 1.2 }}
       >
-        <span className="tname" style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
-          <Flag name={teamName} size={16} /><span>{teamName}</span>
-        </span>
-        <span style={{
-          display: "block", fontSize: 9, fontWeight: 800, color: isOpen ? "var(--pink)" : "var(--teal)",
-          letterSpacing: ".04em", textTransform: "uppercase", marginTop: 1, opacity: 0.85
-        }}>
-          {isOpen ? "▲ hide" : "▼ stats"}
-        </span>
+      <span className="tname" style={{ fontSize: 12.5, textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
+        <Flag name={teamName} size={15} /><span>{teamName}</span>
+      </span>
+      <span style={{
+        display: "block", fontSize: 8.5, fontWeight: 800, color: isOpen ? "var(--pink)" : "var(--teal)",
+        letterSpacing: ".04em", textTransform: "uppercase", marginTop: 0, opacity: 0.85
+      }}>
+        {isOpen ? "▲ hide" : "▼ stats"}
+      </span>
       </button>
     );
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 760, margin: "0 auto", width: "100%" }}>
       {byDay.map(({ day, matches }) => (
         <div key={day}>
           <div style={{
             fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: ".04em",
             textTransform: "uppercase", color: "var(--pink)", marginBottom: 8
           }}>{day}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 560, margin: "0 auto", width: "100%" }}>
+          <div className="kickoff-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 8 }}>
             {matches.map(m => {
               const pred = predictions.find(p => p.playerId === player?.id && p.matchId === m.id);
               const official = officialResults.find(r => r.matchId === m.id);
@@ -124,7 +124,7 @@ export default function KickoffView({
                   className={`card${scored ? " scored" : ""}${locked ? " locked-match" : ""}`}
                   key={m.id}
                   id={`match-${m.id}`}
-                  style={{ padding: "10px 14px", maxWidth: 560, margin: "0 auto", width: "100%" }}
+                  style={{ padding: "9px 12px" }}
                 >
                   {/* Header row */}
                   <div className="cd-row" style={{ marginBottom: 4 }}>

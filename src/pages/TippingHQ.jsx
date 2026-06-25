@@ -346,6 +346,7 @@ const CSS = `
 .mobile-tabnav{display:none;}
 @media (max-width:780px){
   .mobile-tabnav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .kickoff-grid{grid-template-columns:1fr !important;}
   .mtn-btn{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:2px solid var(--line);color:var(--muted);border-radius:12px;padding:11px 16px;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;font-family:'Anton',sans-serif;text-decoration:none;white-space:nowrap;line-height:1;}
   .mtn-btn.act{background:linear-gradient(95deg,var(--pink),var(--orange));color:#fff;border-color:transparent;box-shadow:0 8px 20px -10px rgba(255,61,127,.6);}
   .mtn-live.act{background:linear-gradient(95deg,var(--teal),var(--blue));color:#fff;border-color:transparent;}
