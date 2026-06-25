@@ -73,7 +73,7 @@ export default function WelcomeBackBanner({ player, officialResults, onGoToLeade
             cursor: "pointer", fontFamily: "inherit"
           }}
         >
-          Tips Room →
+          Tipping Lab →
         </button>
         {onGoToPredictorRoom && (
           <button
@@ -85,7 +85,7 @@ export default function WelcomeBackBanner({ player, officialResults, onGoToLeade
               cursor: "pointer", fontFamily: "inherit"
             }}
           >
-            🔍 Predictor Room →
+            🔍 Predictor Lab →
           </button>
         )}
         <button

@@ -1197,7 +1197,7 @@ export default function TippingHQ() {
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tips Room","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["groups","Group Stage","Groups","⚽",false],["ko","Knockouts","Bracket","🏆",false],["reveal","Tipping Lab","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1218,7 +1218,7 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pg","Groups","Groups","🥇"],["pb","Bracket","Bracket","🏆"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pr","Room","Room","🔍"]].map(([k,l,sh,ic]) => (
+            {[["pg","Groups","Groups","🥇"],["pb","Bracket","Bracket","🏆"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pr","Lab","Lab","🔍"]].map(([k,l,sh,ic]) => (
               <button key={k} className={`tab${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1227,7 +1227,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pc","🌍","Champs"],["pr","🔍","Room"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pc","🌍","Champs"],["pr","🔍","Lab"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1621,7 +1621,7 @@ export default function TippingHQ() {
           </>
         ) : (
           <>
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pr","🔍","Room"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pr","🔍","Lab"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>

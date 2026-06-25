@@ -218,7 +218,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
     <div className="reveal">
       <div className="card pad filter-card">
         <div className="lb-head">
-          <div className="gtitle">Tips Room</div>
+          <div className="gtitle">Tipping Lab</div>
           <button className={`mini${loading ? " busy" : ""}`} onClick={onRefresh}>{loading ? "…" : "↻ Refresh"}</button>
         </div>
         <div className="muted2">Everyone's tips unlock here the moment the result is posted — no peeking until then.</div>

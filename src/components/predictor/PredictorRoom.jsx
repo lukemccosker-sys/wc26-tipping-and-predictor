@@ -309,7 +309,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   return (
     <div className="reveal">
       <div className="card pad filter-card">
-        <div className="lb-head"><div className="gtitle">Predictor Room</div></div>
+        <div className="lb-head"><div className="gtitle">Predictor Lab</div></div>
         <div className="muted2">Picks reveal here once a group is finalised or a knockout match is played.</div>
         <div style={{ marginTop: 12, borderTop: "1px dashed #e0d2bd", paddingTop: 12 }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", color: "#9aa0ad", marginBottom: 7 }}>View a player's predictor</div>
