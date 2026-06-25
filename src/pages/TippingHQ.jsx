@@ -118,10 +118,10 @@ const CSS = `
 .fixtures{padding:8px 12px 12px;}
 .gm{border-bottom:1px solid #f4ebdf;padding:3px 0;}
 .gm-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;}
-.gm-team{min-width:0;overflow:hidden;padding-right:8px;}
+.gm-team{min-width:0;padding-right:8px;}
 .gm-team.r{justify-self:stretch;text-align:right;padding-right:0;padding-left:8px;}
 .gm-team.r .tname{justify-content:flex-end;}
-.tname{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tname{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;}
 .gm-score{display:flex;align-items:center;gap:5px;flex:0 0 auto;}
 .vs{color:var(--muted2);font-size:11px;font-weight:800;}
 .sin{display:inline-flex;flex-direction:column;align-items:center;gap:3px;width:44px;vertical-align:middle;}
