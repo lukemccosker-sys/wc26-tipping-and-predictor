@@ -108,7 +108,7 @@ export default function KickoffView({
             fontFamily: "'Anton', sans-serif", fontSize: 15, letterSpacing: ".04em",
             textTransform: "uppercase", color: "var(--pink)", marginBottom: 8
           }}>{day}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 560, margin: "0 auto", width: "100%" }}>
             {matches.map(m => {
               const pred = predictions.find(p => p.playerId === player?.id && p.matchId === m.id);
               const official = officialResults.find(r => r.matchId === m.id);
@@ -124,7 +124,7 @@ export default function KickoffView({
                   className={`card${scored ? " scored" : ""}${locked ? " locked-match" : ""}`}
                   key={m.id}
                   id={`match-${m.id}`}
-                  style={{ padding: "10px 14px" }}
+                  style={{ padding: "10px 14px", maxWidth: 560, margin: "0 auto", width: "100%" }}
                 >
                   {/* Header row */}
                   <div className="cd-row" style={{ marginBottom: 4 }}>
