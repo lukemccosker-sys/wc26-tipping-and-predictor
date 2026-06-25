@@ -14,6 +14,13 @@
     "awayScore": {
       "type": "number"
     },
+    "penaltyPick": {
+      "type": "string",
+      "enum": [
+        "h",
+        "a"
+      ]
+    },
     "status": {
       "type": "string",
       "enum": [

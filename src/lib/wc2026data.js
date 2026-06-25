@@ -397,28 +397,31 @@ export function scoreTip(pred, official, settings) {
   const ph = +pred.homeScore, pa = +pred.awayScore;
   const oh = +official.homeScore, oa = +official.awayScore;
 
-  // Exact scoreline
-  if (ph === oh && pa === oa) return { pts: +s.exact || 5, tier: "exact" };
-
   const pdiff = ph - pa, odiff = oh - oa;
   const pwin = ph > pa ? "h" : ph < pa ? "a" : "d";
   const owin = oh > oa ? "h" : oh < oa ? "a" : "d";
 
   // KO match decided by penalties (official score is a draw, penaltyWinner set)
-  // Score the 90-min scoreline normally, but also award result points if the player
-  // picked the team that advanced (either by predicting a draw, or by picking that side to win).
   if (owin === "d" && official.penaltyWinner) {
     const pen = official.penaltyWinner; // "h" or "a"
-    // Exact draw scoreline already caught above (ph===oh && pa===oa)
-    // Correct goal difference (same diff, both drew — e.g. predicted 1-1, actual 2-2)
-    if (pwin === "d" && pdiff === odiff) return { pts: +s.gd || 3, tier: "gd" };
-    // Predicted any draw — correct 90-min outcome, 1 pt
-    if (pwin === "d") return { pts: +s.result || 1, tier: "result" };
+    // User tipped a draw — award draw points + bonus for correct penalty pick
+    if (pwin === "d") {
+      let basePts = 0;
+      let tier = "miss";
+      if (ph === oh && pa === oa) { basePts = +s.exact || 5; tier = "exact"; }
+      else if (pdiff === odiff) { basePts = +s.gd || 3; tier = "gd"; }
+      else { basePts = +s.result || 1; tier = "result"; }
+      // +1 bonus for correct penalty winner pick
+      if (pred.penaltyPick && pred.penaltyPick === pen) basePts += 1;
+      return { pts: basePts, tier };
+    }
     // Predicted one side to win outright — award result pt if they picked the penalty winner
     if (pwin === pen) return { pts: +s.result || 1, tier: "result" };
     return { pts: 0, tier: "miss" };
   }
 
+  // Exact scoreline (non-penalty matches)
+  if (ph === oh && pa === oa) return { pts: +s.exact || 5, tier: "exact" };
   if (pwin !== "d" && pdiff === odiff && pwin === owin) return { pts: +s.gd || 3, tier: "gd" };
   if (pwin === owin) return { pts: +s.result || 1, tier: "result" };
   return { pts: 0, tier: "miss" };

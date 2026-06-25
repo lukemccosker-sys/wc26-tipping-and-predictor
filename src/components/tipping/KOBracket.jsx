@@ -42,7 +42,7 @@ function slotLabel(slot) {
 
 export default function KOBracket({
   predictions, officialResults, kickoffs, koTeams, koWinners,
-  onSetScore, onSetPenalty, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen, onClearOfficial,
+  onSetScore, onSetPenaltyPick, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen, onClearOfficial,
   player, poolSettings, groupStageComplete
 }) {
   const [round, setRound] = useState("R32");
@@ -173,6 +173,25 @@ export default function KOBracket({
           />
         )}
 
+        {/* User penalty pick — shows when user tipped a draw */}
+        {hasTip && !(isAdmin && adminEditing) && +pred.homeScore === +pred.awayScore && teamsKnown && (
+          <div className="pen-row user-pen">
+            <div className="pen-lbl">🎯 Draw tipped — who wins on pens? <span style={{ color: "var(--purple)" }}>+1 bonus</span></div>
+            <div className="pen-btns">
+              {[["h", home], ["a", away]].map(([side, team]) => (
+                <button
+                  key={side}
+                  className={`pen-b${pred.penaltyPick === side ? " on" : ""}`}
+                  onClick={() => !locked && onSetPenaltyPick(m.id, side)}
+                  disabled={locked}
+                >
+                  <Flag name={team} size={16} /> {team}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {isDraw && home && away && (
           <div className="pen-row off">
             <div className="pen-lbl">Penalty winner</div>
@@ -237,7 +256,7 @@ export default function KOBracket({
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Knockouts:</b> Scored on the 120-min result (incl. extra time, excl. pens). Draws go to a shootout — tip the winning team and you still bag <b>1pt</b>.
+        🏆 <b>Knockouts:</b> Scored on the 120-min result (incl. extra time, excl. pens). Tip a draw? Pick your <b>penalty winner</b> for <b>+1pt</b> on top of draw points. Tip a team to win and they win on pens? Still <b>1pt</b>.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>

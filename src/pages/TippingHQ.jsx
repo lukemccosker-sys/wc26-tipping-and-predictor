@@ -193,6 +193,7 @@ const CSS = `
 .ko-v{color:var(--muted2);}
 .pen-row{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);}
 .pen-row.off{margin-top:4px;}
+.pen-row.user-pen{background:rgba(123,84,240,.06);border-radius:8px;padding:7px 9px;margin-top:6px;}
 .pen-lbl{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
 .pen-btns{display:flex;gap:8px;flex-wrap:wrap;}
 .pen-b{flex:1 1 auto;background:#fff;border:2px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;font-family:inherit;}
@@ -767,9 +768,17 @@ export default function TippingHQ() {
       let next;
       const existing = prev.find(p => p.playerId === player.id && p.matchId === matchId);
       if (existing) {
-        next = prev.map(p =>
-          p.playerId === player.id && p.matchId === matchId ? { ...p, [field]: value } : p
-        );
+        next = prev.map(p => {
+          if (p.playerId !== player.id || p.matchId !== matchId) return p;
+          const updated = { ...p, [field]: value };
+          // Clear penalty pick if the tip is no longer a draw
+          const newHome = field === "homeScore" ? value : existing.homeScore;
+          const newAway = field === "awayScore" ? value : existing.awayScore;
+          if (newHome != null && newAway != null && +newHome !== +newAway) {
+            updated.penaltyPick = null;
+          }
+          return updated;
+        });
       } else {
         next = [...prev, {
           playerId: player.id, matchId,
@@ -807,9 +816,9 @@ export default function TippingHQ() {
         const isFinal = ko && Date.now() >= ko;
         const statusField = isFinal ? 'final' : 'draft';
         if (latestPred.id) {
-          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, status: statusField });
+          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, penaltyPick: latestPred.penaltyPick || null, status: statusField });
         } else {
-          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, status: statusField });
+          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, penaltyPick: latestPred.penaltyPick || null, status: statusField });
           // Upsert: if the optimistic record (no id) still exists, attach the id while preserving
           // any newer edits the user made during the save. If it was lost (e.g. from a background
           // fetch replacing state), add the saved record so the tip is never blanked out.
@@ -854,9 +863,9 @@ export default function TippingHQ() {
             const ko2 = kickoffs[matchId];
             const statusField2 = (ko2 && Date.now() >= ko2) ? 'final' : 'draft';
             if (retryPred.id) {
-              await base44.entities.Prediction.update(retryPred.id, { homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, status: statusField2 });
+              await base44.entities.Prediction.update(retryPred.id, { homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField2 });
             } else {
-              const saved2 = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, status: statusField2 });
+              const saved2 = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField2 });
               setPredictions(prev => {
                 let f = false;
                 let n = prev.map(p => {
@@ -889,6 +898,31 @@ export default function TippingHQ() {
     } else {
       const saved = await base44.entities.OfficialResult.create({ matchId, ...data });
       setOfficialResults(prev => [...prev, saved]);
+    }
+  };
+
+  // Set penalty winner pick (for KO draws tipped by the user)
+  const onSetPenaltyPick = async (matchId, side) => {
+    const existing = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+    if (!existing || existing.homeScore == null || existing.awayScore == null) return;
+    if (+existing.homeScore !== +existing.awayScore) return;
+
+    const newPick = existing.penaltyPick === side ? null : side;
+
+    setPredictions(prev => {
+      const next = prev.map(p =>
+        p.playerId === player.id && p.matchId === matchId ? { ...p, penaltyPick: newPick } : p
+      );
+      predictionsRef.current = next;
+      return next;
+    });
+
+    if (existing.id) {
+      try {
+        await base44.entities.Prediction.update(existing.id, { penaltyPick: newPick });
+      } catch (err) {
+        console.error("Failed to save penalty pick:", err);
+      }
     }
   };
 
@@ -1363,7 +1397,7 @@ export default function TippingHQ() {
             koTeams={koTeams}
             koWinners={koWinners}
             onSetScore={onSetScore}
-            onSetPenalty={() => {}}
+            onSetPenaltyPick={onSetPenaltyPick}
             isAdmin={isAdmin}
             adminEditing={adminEditing}
             onSetOfficial={onSetOfficial}
