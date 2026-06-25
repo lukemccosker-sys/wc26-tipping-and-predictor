@@ -306,6 +306,38 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
   return teamOf;
 }
 
+// Build a map of team -> highest round they actually reached (from official results)
+export function buildActualRoundReached(officialKOTeams, officialResults) {
+  const actualRoundReached = {};
+  for (const m of KO_MATCHES) {
+    const teams = officialKOTeams[m.id];
+    if (!teams) continue;
+    const res = officialResults.find(r => r.matchId === m.id);
+    [teams.home, teams.away].filter(Boolean).forEach(t => {
+      const idx = ROUND_ORDER.indexOf(m.round);
+      const existing = ROUND_ORDER.indexOf(actualRoundReached[t] || "");
+      if (idx > existing) actualRoundReached[t] = m.round;
+    });
+    if (res && res.homeScore != null) {
+      const h = +res.homeScore, a = +res.awayScore;
+      let winner = null;
+      if (h > a) winner = teams.home;
+      else if (h < a) winner = teams.away;
+      else if (res.penaltyWinner === "h") winner = teams.home;
+      else if (res.penaltyWinner === "a") winner = teams.away;
+      if (winner) {
+        const roundIdx = ROUND_ORDER.indexOf(m.round);
+        const nextRound = ROUND_ORDER[roundIdx + 1];
+        if (nextRound) {
+          const existing = ROUND_ORDER.indexOf(actualRoundReached[winner] || "");
+          if (ROUND_ORDER.indexOf(nextRound) > existing) actualRoundReached[winner] = nextRound;
+        }
+      }
+    }
+  }
+  return actualRoundReached;
+}
+
 // Score a single player's bracket prediction against official results
 export function computePredictorScore(bracketPred, officialResults, predSettings, standingsOverride, thirdPlaceSlots) {
   const s = predSettings || DEFAULT_PRED_SETTINGS;
@@ -352,35 +384,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
   const userKOTeams = buildPredKOTeams(gp, tp, ap);
 
   // Build a map of team -> highest round they actually reached (from official results)
-  const actualRoundReached = {}; // { teamName: "QF" }
-  for (const m of KO_MATCHES) {
-    const teams = officialKOTeams[m.id];
-    if (!teams) continue;
-    const res = officialResults.find(r => r.matchId === m.id);
-    // Both teams that appear in a match have "reached" that round
-    [teams.home, teams.away].filter(Boolean).forEach(t => {
-      const idx = ROUND_ORDER.indexOf(m.round);
-      const existing = ROUND_ORDER.indexOf(actualRoundReached[t] || "");
-      if (idx > existing) actualRoundReached[t] = m.round;
-    });
-    // The winner has reached the NEXT round too
-    if (res && res.homeScore != null) {
-      const h = +res.homeScore, a = +res.awayScore;
-      let winner = null;
-      if (h > a) winner = teams.home;
-      else if (h < a) winner = teams.away;
-      else if (res.penaltyWinner === "h") winner = teams.home;
-      else if (res.penaltyWinner === "a") winner = teams.away;
-      if (winner) {
-        const roundIdx = ROUND_ORDER.indexOf(m.round);
-        const nextRound = ROUND_ORDER[roundIdx + 1];
-        if (nextRound) {
-          const existing = ROUND_ORDER.indexOf(actualRoundReached[winner] || "");
-          if (ROUND_ORDER.indexOf(nextRound) > existing) actualRoundReached[winner] = nextRound;
-        }
-      }
-    }
-  }
+  const actualRoundReached = buildActualRoundReached(officialKOTeams, officialResults);
 
   // Score each user pick: resolve the user's PREDICTED team, then check if that team
   // actually reached at least this round in the real tournament.
@@ -439,7 +443,7 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
 }
 
 // Build predictor KO team map from a player's own group/advance picks (mirrors TippingHQ's buildKOTeams)
-function buildPredKOTeams(gp, tp, ap) {
+export function buildPredKOTeams(gp, tp, ap) {
   const slotTeams = {};
   for (const L of GL) {
     slotTeams[`1${L}`] = gp[L]?.first || null;

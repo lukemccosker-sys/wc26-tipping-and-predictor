@@ -9,6 +9,7 @@ import TipsRoom from "@/components/tipping/TipsRoom";
 import PredictorGroups from "@/components/predictor/PredictorGroups";
 import PredictorBracket from "@/components/predictor/PredictorBracket";
 import PredictorAwards from "@/components/predictor/PredictorAwards";
+import PredictorRoom from "@/components/predictor/PredictorRoom";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
 import HelpModal from "@/components/HelpModal";
@@ -1216,7 +1217,7 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pg","Groups","Groups","🥇"],["pb","Bracket","Bracket","🏆"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"]].map(([k,l,sh,ic]) => (
+            {[["pg","Groups","Groups","🥇"],["pb","Bracket","Bracket","🏆"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pr","Room","Room","🔍"]].map(([k,l,sh,ic]) => (
               <button key={k} className={`tab${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1225,7 +1226,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pc","🌍","Champs"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pc","🌍","Champs"],["pr","🔍","Room"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1488,6 +1489,19 @@ export default function TippingHQ() {
             </>
           )}
 
+          {ptab === "pr" && (
+            <PredictorRoom
+              players={players}
+              bracketPredictions={bracketPredictions}
+              officialResults={officialResults}
+              player={player}
+              predSettings={predSettings}
+              thirdPlaceSlots={thirdPlaceSlots}
+              groupStandingsOverrides={groupStandingsOverrides}
+              officialAwards={officialAwards}
+            />
+          )}
+
 
         </>
       )}
@@ -1606,7 +1620,7 @@ export default function TippingHQ() {
           </>
         ) : (
           <>
-            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"]].map(([k,ic,lbl]) => (
+            {[["pg","🥇","Groups"],["pb","🏆","Bracket"],["pa","🏅","Awards"],["pr","🔍","Room"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
