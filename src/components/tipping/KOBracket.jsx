@@ -237,7 +237,7 @@ export default function KOBracket({
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Knockouts:</b> Same scoring, based on the score after <b>120 mins</b> (extra time included, penalties excluded). If it's a draw after 120, the admin marks who won the shootout — and if you tipped that team to win, you still pick up <b>1pt</b>.
+        🏆 <b>Knockouts:</b> Scored on the 120-min result (incl. extra time, excl. pens). Draws go to a shootout — tip the winning team and you still bag <b>1pt</b>.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
