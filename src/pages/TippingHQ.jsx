@@ -121,7 +121,7 @@ const CSS = `
 .gm-team{min-width:0;overflow:hidden;padding-right:8px;}
 .gm-team.r{justify-self:stretch;text-align:right;padding-right:0;padding-left:8px;}
 .gm-team.r .tname{justify-content:flex-end;}
-.tname{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;}
+.tname{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .gm-score{display:flex;align-items:center;gap:5px;flex:0 0 auto;}
 .vs{color:var(--muted2);font-size:11px;font-weight:800;}
 .sin{display:inline-flex;flex-direction:column;align-items:center;gap:3px;width:44px;vertical-align:middle;}
@@ -175,9 +175,9 @@ const CSS = `
 .rn-count{font-size:11px;font-weight:800;opacity:.85;text-transform:uppercase;letter-spacing:.06em;}
 .ko-rules{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-left:4px solid var(--gold);border-radius:10px;padding:9px 13px;font-size:11.5px;color:#7a5800;line-height:1.5;margin-bottom:12px;font-weight:500;}
 .ko-rules b{color:#9a6800;font-weight:800;}
-.ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px;align-items:start;}
+.ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;align-items:start;}
 .ko-grid .ko.final,.ko-grid .ko.bronze{grid-column:1/-1;max-width:420px;margin:0 auto;}
-.ko{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:8px 9px;}
+.ko{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:9px 12px;}
 .ko.final{border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(255,176,32,.18);}
 .ko.bronze{border-color:#f0cf8f;}
 .ko.pending{opacity:.92;}
@@ -375,7 +375,8 @@ const CSS = `
   .ob-input{font-size:16px;}
   .award-in{font-size:16px;}
   .tabs{display:none;}
-  .ko-grid{grid-template-columns:1fr;}
+  .ko-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+  .ko{padding:8px 9px;}
   .ko-grid .ko.final,.ko-grid .ko.bronze{max-width:none;}
   .modal-c.kickedit{max-width:none;}
   .kick-row{flex-direction:column;align-items:stretch;gap:6px;}
