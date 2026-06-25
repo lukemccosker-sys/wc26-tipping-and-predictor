@@ -1157,7 +1157,7 @@ export default function TippingHQ() {
         <div className="hdr-r">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className={`ptotal${mode === "pred" ? " pred" : ""}${mode === "lb" ? " combined" : ""}`}>
-              <div className="pt-num">{mode === "pred" ? myPredScore : myScore.total}</div>
+              <div className="pt-num">{mode === "pred" ? myPredScore : mode === "lb" ? (myScore.total + myPredScore) : myScore.total}</div>
               <div className="pt-lab">{mode === "tip" ? "tipping pts" : mode === "pred" ? "predictor pts" : "combined pts"}</div>
             </div>
             <a href="/live" className="live" style={{ textDecoration: "none", flexShrink: 0 }}><span className="live-dot" />Live</a>
