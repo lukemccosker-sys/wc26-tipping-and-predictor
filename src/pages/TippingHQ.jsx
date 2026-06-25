@@ -175,7 +175,7 @@ const CSS = `
 .rn-count{font-size:11px;font-weight:800;opacity:.85;text-transform:uppercase;letter-spacing:.06em;}
 .ko-rules{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-left:4px solid var(--gold);border-radius:10px;padding:9px 13px;font-size:11.5px;color:#7a5800;line-height:1.5;margin-bottom:12px;font-weight:500;}
 .ko-rules b{color:#9a6800;font-weight:800;}
-.ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;align-items:start;}
+.ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px;align-items:start;}
 .ko-grid .ko.final,.ko-grid .ko.bronze{grid-column:1/-1;max-width:420px;margin:0 auto;}
 .ko{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:9px 12px;}
 .ko.final{border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(255,176,32,.18);}
@@ -375,7 +375,7 @@ const CSS = `
   .ob-input{font-size:16px;}
   .award-in{font-size:16px;}
   .tabs{display:none;}
-  .ko-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;}
+  .ko-grid{grid-template-columns:1fr;}
   .ko{padding:8px 9px;}
   .ko-grid .ko.final,.ko-grid .ko.bronze{max-width:none;}
   .modal-c.kickedit{max-width:none;}
