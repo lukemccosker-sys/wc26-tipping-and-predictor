@@ -148,10 +148,7 @@ function TippingLB({ leaderboard, player, rankChanges }) {
 }
 
 // ── Predictor Leaderboard ─────────────────────────────────────────────────────
-function PredictorLB({ predLB, player, predictions, officialResults, settings }) {
-  // For predictor, rank changes are based on total pts; predictions are bracket-only so we pass empty for simplicity — changes show 0 which is fine since predictor pts don't come from per-match tips
-  // We reuse the same helper but derive "latest" from officialResults dates, pts from predLB totals change is not calculable without re-running predictor scoring. Instead just compare tipping predictions as a proxy for "day-based" activity.
-  // Simplest correct approach: compute rank before by subtracting nothing (predictor has no per-match tips). Just show no badges for predictor since it updates batch-style.
+function PredictorLB({ predLB, player, rankChanges }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🔮 Predictor</div>
@@ -167,7 +164,10 @@ function PredictorLB({ predLB, player, predictions, officialResults, settings })
           {predLB.map((r, i) => (
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
-              <td className="tl">{r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}</td>
+              <td className="tl">
+                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                <RankBadge change={rankChanges?.[r.id]} />
+              </td>
               <td>{r.groupPts || 0}</td>
               <td>{r.bracketPts || 0}</td>
               <td>{r.awardPts || 0}</td>
@@ -236,24 +236,8 @@ export function PredictedChampions({ predLB, player }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings }) {
+export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings, tippingRankChanges, predictorRankChanges, combinedRankChanges }) {
   const [tab, setTab] = useState("tip");
-
-  // Tipping rank changes: based on tipping total only
-  const tippingRankChanges = computeRankChanges(leaderboard, predictions, officialResults, settings, r => r.total || 0);
-
-  // Combined rank changes: tipping pts change per-day; predictor pts are batch (don't change day-to-day).
-  // Build a combined total lookup so getTotal returns the real combined value for the "before" sort.
-  const combinedTotalById = Object.fromEntries(combinedLB.map(r => [r.id, r.total || 0]));
-  // Use leaderboard rows (stable, same players) so row order matches player IDs reliably.
-  // getTotal returns the combined total so "before rank" is computed against combined ordering.
-  const combinedRankChanges = computeRankChanges(
-    leaderboard,
-    predictions,
-    officialResults,
-    settings,
-    r => combinedTotalById[r.id] || 0
-  );
 
   const tabs = [
     { k: "tip", label: "🎯 Tipping" },
@@ -288,7 +272,7 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
       </div>
 
       {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
-      {tab === "pred" && <PredictorLB predLB={predLB} player={player} />}
+      {tab === "pred" && <PredictorLB predLB={predLB} player={player} rankChanges={predictorRankChanges} />}
       {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} />}
     </div>
   );

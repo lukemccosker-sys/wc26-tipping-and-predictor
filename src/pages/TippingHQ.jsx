@@ -705,6 +705,36 @@ export default function TippingHQ() {
   const tippingSettings = { exact: poolSettings?.pointsExact ?? 5, gd: poolSettings?.pointsGD ?? 3, result: poolSettings?.pointsResult ?? 1 };
   const combinedLB = buildCombinedLeaderboard(players, predictions, bracketPredictions, officialResults, officialAwards, tippingSettings, predSettings, groupStandingsOverrides, thirdPlaceSlots);
 
+  // Compute rank changes for each leaderboard independently — compare current to "before latest result"
+  const latestScoredResult = officialResults.filter(r => r.homeScore != null).reduce((best, r) => {
+    if (!best) return r;
+    const bt = new Date(best.updated_date || best.created_date || 0).getTime();
+    const rt = new Date(r.updated_date || r.created_date || 0).getTime();
+    return rt > bt ? r : best;
+  }, null);
+
+  const beforeResults = latestScoredResult
+    ? officialResults.filter(r => r.id !== latestScoredResult.id)
+    : officialResults;
+
+  const beforeLeaderboard = buildLeaderboard(players, predictions, beforeResults, tippingSettings);
+  const beforePredLB = buildPredictorLeaderboard(players, bracketPredictions, beforeResults, officialAwards, predSettings, groupStandingsOverrides, thirdPlaceSlots);
+  const beforeCombinedLB = buildCombinedLeaderboard(players, predictions, bracketPredictions, beforeResults, officialAwards, tippingSettings, predSettings, groupStandingsOverrides, thirdPlaceSlots);
+
+  const computeRankChanges = (currentLB, beforeLB) => {
+    const beforeRank = {};
+    beforeLB.forEach((r, i) => { beforeRank[r.id] = i + 1; });
+    const changes = {};
+    currentLB.forEach((r, i) => {
+      changes[r.id] = (beforeRank[r.id] || currentLB.length) - (i + 1);
+    });
+    return changes;
+  };
+
+  const tippingRankChanges = computeRankChanges(leaderboard, beforeLeaderboard);
+  const predictorRankChanges = computeRankChanges(predLB, beforePredLB);
+  const combinedRankChanges = computeRankChanges(combinedLB, beforeCombinedLB);
+
   // My predictor score (from leaderboard which includes award pts)
   const myPredRow = predLB.find(r => r.id === player.id);
   const myPredScore = myPredRow?.total ?? 0;
@@ -1339,6 +1369,9 @@ export default function TippingHQ() {
           predictions={predictions}
           officialResults={officialResults}
           settings={tippingSettings}
+          tippingRankChanges={tippingRankChanges}
+          predictorRankChanges={predictorRankChanges}
+          combinedRankChanges={combinedRankChanges}
         />
       )}
 
