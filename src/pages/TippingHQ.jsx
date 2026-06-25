@@ -173,6 +173,8 @@ const CSS = `
 .rn-head.rc-3rd{background:linear-gradient(100deg,#f0a400,#ffc23d);}.rn-head.rc-F{background:linear-gradient(100deg,#7b54f0,#9a7cf5);}
 .rn-name{font-family:'Anton',sans-serif;font-size:18px;letter-spacing:.04em;text-transform:uppercase;}
 .rn-count{font-size:11px;font-weight:800;opacity:.85;text-transform:uppercase;letter-spacing:.06em;}
+.ko-rules{background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.25);border-left:4px solid var(--gold);border-radius:10px;padding:9px 13px;font-size:11.5px;color:#7a5800;line-height:1.5;margin-bottom:12px;font-weight:500;}
+.ko-rules b{color:#9a6800;font-weight:800;}
 .ko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px;align-items:start;}
 .ko-grid .ko.final,.ko-grid .ko.bronze{grid-column:1/-1;max-width:420px;margin:0 auto;}
 .ko{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:8px 9px;}

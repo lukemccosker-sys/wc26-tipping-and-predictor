@@ -236,6 +236,10 @@ export default function KOBracket({
         <span className="rn-count">{matches.length} {matches.length === 1 ? "match" : "matches"}</span>
       </div>
 
+      <div className="ko-rules">
+        <b>KO rules:</b> Tip the score after <b>90 min + extra time</b>. If it's a draw at <b>120 min</b>, pens decide who advances — but your tip scores on the 120-min result (a draw counts as exact/GD/winner). The penalty winner doesn't change your points.
+      </div>
+
       <div className="ko-grid">{matches.map(renderMatch)}</div>
 
       <div className="ko-nextbar">
