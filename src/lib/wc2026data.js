@@ -409,7 +409,6 @@ export function scoreTip(pred, official, settings) {
       let basePts = 0;
       let tier = "miss";
       if (ph === oh && pa === oa) { basePts = +s.exact || 5; tier = "exact"; }
-      else if (pdiff === odiff) { basePts = +s.gd || 3; tier = "gd"; }
       else { basePts = +s.result || 1; tier = "result"; }
       // +1 bonus for correct penalty winner pick
       if (pred.penaltyPick && pred.penaltyPick === pen) basePts += 1;
