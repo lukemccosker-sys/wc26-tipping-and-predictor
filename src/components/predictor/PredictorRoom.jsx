@@ -83,6 +83,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     if (allThirdSlotsFilled && a3 && th === a3) pts += +s.third || 2;
     if (pk.first && q.has(pk.first)) pts += +s.r32 || 1;
     if (pk.second && q.has(pk.second)) pts += +s.r32 || 1;
+    if (th && q.has(th)) pts += +s.r32 || 1;
     const breakdown = {
       first: (a1 && pk.first === a1 ? (+s.g1 || 3) : 0) + (pk.first && q.has(pk.first) ? (+s.r32 || 1) : 0),
       second: (a2 && pk.second === a2 ? (+s.g2 || 2) : 0) + (pk.second && q.has(pk.second) ? (+s.r32 || 1) : 0),
