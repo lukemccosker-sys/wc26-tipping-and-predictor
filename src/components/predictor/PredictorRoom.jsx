@@ -15,12 +15,12 @@ function awardMatch(mine, actual) {
   return gw.some(g => aw.some(a => a.includes(g) || g.includes(a)));
 }
 
-function FlagTeam({ team, correct }) {
+function FlagPts({ team, pts }) {
   if (!team) return <span style={{ color: "#9aa0ad" }}>—</span>;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-      <Flag name={team} size={12} />{team}
-      {correct && <span style={{ color: "#2cb551", fontWeight: 900 }}>✓</span>}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      <Flag name={team} size={18} />
+      {pts != null && <span style={{ fontSize: 10, fontWeight: 800, color: pts > 0 ? "#2cb551" : "#b9b1a3" }}>+{pts}</span>}
     </span>
   );
 }
@@ -83,8 +83,12 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     if (allThirdSlotsFilled && a3 && th === a3) pts += +s.third || 2;
     if (pk.first && q.has(pk.first)) pts += +s.r32 || 1;
     if (pk.second && q.has(pk.second)) pts += +s.r32 || 1;
-    if (th && q.has(th)) pts += +s.r32 || 1;
-    return { pts, a1, a2, a3 };
+    const breakdown = {
+      first: (a1 && pk.first === a1 ? (+s.g1 || 3) : 0) + (pk.first && q.has(pk.first) ? (+s.r32 || 1) : 0),
+      second: (a2 && pk.second === a2 ? (+s.g2 || 2) : 0) + (pk.second && q.has(pk.second) ? (+s.r32 || 1) : 0),
+      third: (allThirdSlotsFilled && a3 && th === a3 ? (+s.third || 2) : 0) + (th && q.has(th) ? (+s.r32 || 1) : 0),
+    };
+    return { pts, a1, a2, a3, breakdown };
   };
 
   const resolvePick = (m, picks) => {
@@ -161,12 +165,12 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       <Section key={key} title={`Group ${group}`} subtitle={`1st ${g.a1} · 2nd ${g.a2} · 3rd ${g.a3}`} color="#12b3a6" pts={g.pts} isOpen={!!expanded[key]} onToggle={() => toggle(key)}>
         <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
           {[
-            { team: pk.first, correct: pk.first === g.a1, label: "1st pick", color: "#2cb551" },
-            { team: pk.second, correct: pk.second === g.a2, label: "2nd pick", color: "#2cb551" },
-            { team: th, correct: allThirdSlotsFilled && th === g.a3, label: "3rd pick", color: "#cd7f32" },
+            { team: pk.first, pts: g.breakdown.first, label: "1st pick", color: "#2cb551" },
+            { team: pk.second, pts: g.breakdown.second, label: "2nd pick", color: "#2cb551" },
+            { team: th, pts: g.breakdown.third, label: "3rd pick", color: "#cd7f32" },
           ].map((row, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: i < 2 ? "1px solid #f4ebdf" : "none" }}>
-              <FlagTeam team={row.team} correct={row.correct} />
+              <FlagPts team={row.team} pts={row.pts} />
               <span style={{ fontSize: 11, fontWeight: 800, color: row.team ? row.color : "#9aa0ad" }}>{row.label}</span>
             </div>
           ))}
@@ -197,8 +201,8 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                   </span>
                   {pts != null && <span style={{ fontSize: 11, fontWeight: 800, color: pts > 0 ? "#2cb551" : "#b9b1a3" }}>+{pts}</span>}
                 </div>
-                <div style={{ fontSize: 11, color: "#7b54f0", fontWeight: 600, marginTop: 2 }}>
-                  Pick: {pt ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><Flag name={pt} size={12} />{pt}</span> : <span style={{ color: "#9aa0ad" }}>—</span>}
+                <div style={{ fontSize: 11, color: "#7b54f0", fontWeight: 600, marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  Pick: {pt ? <Flag name={pt} size={16} /> : <span style={{ color: "#9aa0ad" }}>—</span>}
                 </div>
               </div>
             );
@@ -251,9 +255,9 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
               return (
                 <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                   <td className="tl" style={{ fontSize: 11.5, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                  <td style={{ fontSize: 11 }}><FlagTeam team={pk.first} correct={pk.first === g.a1} /></td>
-                  <td style={{ fontSize: 11 }}><FlagTeam team={pk.second} correct={pk.second === g.a2} /></td>
-                  <td style={{ fontSize: 11 }}><FlagTeam team={th} correct={allThirdSlotsFilled && th === g.a3} /></td>
+                  <td style={{ fontSize: 11 }}><FlagPts team={pk.first} pts={r.breakdown?.first} /></td>
+                  <td style={{ fontSize: 11 }}><FlagPts team={pk.second} pts={r.breakdown?.second} /></td>
+                  <td style={{ fontSize: 11 }}><FlagPts team={th} pts={r.breakdown?.third} /></td>
                   <td><span className="pbadge" style={{ background: r.pts > 0 ? "#2cb551" : "#f0e8db", color: r.pts > 0 ? "#fff" : "#9aa0ad" }}>{r.pts}</span></td>
                 </tr>
               );
@@ -287,7 +291,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                           <td className="tl" style={{ fontSize: 11, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                          <td style={{ fontSize: 11 }}>{pt ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><Flag name={pt} size={12} />{pt}</span> : <span style={{ color: "#9aa0ad" }}>—</span>}</td>
+                          <td style={{ fontSize: 11 }}>{pt ? <Flag name={pt} size={18} /> : <span style={{ color: "#9aa0ad" }}>—</span>}</td>
                           <td>{pts != null && <span className="pbadge" style={{ background: pts > 0 ? "#2cb551" : "#f0e8db", color: pts > 0 ? "#fff" : "#9aa0ad" }}>{pts}</span>}</td>
                         </tr>
                       );
