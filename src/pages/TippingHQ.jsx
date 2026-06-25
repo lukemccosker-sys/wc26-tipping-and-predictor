@@ -406,7 +406,8 @@ export default function TippingHQ() {
   });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("groups");
-  const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group"
+  const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group" | "results"
+
   const [ptab, setPtab] = useState("pg");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
@@ -645,6 +646,18 @@ export default function TippingHQ() {
     }
   }, [player?.id, tournamentOver]);
 
+  // Auto-switch to Bracket tab when group stage completes
+  useEffect(() => {
+    if (!player) return;
+    const complete = GROUP_MATCHES.every(m => {
+      const r = officialResults.find(r => r.matchId === m.id);
+      return r && r.homeScore != null && r.awayScore != null;
+    });
+    if (complete && mode === "tip" && tab === "groups") {
+      setTab("ko");
+    }
+  }, [player, officialResults, mode, tab]);
+
   const handleLogin = (p) => {
     localStorage.setItem("wc_player", JSON.stringify(p));
     setPlayer(p);
@@ -679,7 +692,6 @@ export default function TippingHQ() {
     return r && r.homeScore != null && r.awayScore != null;
   });
 
-  // My tipping score
   const myScore = computePlayerScore(
     predictions.filter(p => p.playerId === player.id),
     officialResults,

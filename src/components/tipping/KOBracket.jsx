@@ -65,7 +65,11 @@ export default function KOBracket({
     result: poolSettings?.pointsResult ?? 1,
   };
   const idx = ROUND_ORDER.indexOf(round);
-  const matches = KO_MATCHES.filter(m => m.round === round);
+  const matches = KO_MATCHES.filter(m => m.round === round).sort((a, b) => {
+    const ka = getKickoff(a.id) || Infinity;
+    const kb = getKickoff(b.id) || Infinity;
+    return ka - kb;
+  });
 
   const goRound = (r) => {
     setRound(r);
