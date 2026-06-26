@@ -64,8 +64,8 @@ export default function KOBracket({
     const finals = matches.filter(p => p.status === 'final');
     const pool = finals.length > 0 ? finals : matches;
     return pool.reduce((best, p) => {
-      const bt = p.created_date ? new Date(p.created_date).getTime() : 0;
-      const et = best.created_date ? new Date(best.created_date).getTime() : 0;
+      const bt = new Date(p.updated_date || p.created_date || 0).getTime();
+      const et = new Date(best.updated_date || best.created_date || 0).getTime();
       return bt > et ? p : best;
     }, pool[0]);
   };

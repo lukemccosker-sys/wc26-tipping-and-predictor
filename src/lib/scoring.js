@@ -162,7 +162,7 @@ export function calcGroupTable(group, officialResults, standingsOverride) {
   return result;
 }
 
-// Deduplicate predictions — prefer status==='final' records; fall back to latest by created_date
+// Deduplicate predictions — prefer status==='final' records; fall back to latest by updated_date
 function dedupePredictions(predictions) {
   const map = {};
   for (const p of predictions) {
@@ -173,9 +173,9 @@ function dedupePredictions(predictions) {
       // Final status always wins over draft
       if (p.status === 'final' && existing.status !== 'final') { map[p.matchId] = p; continue; }
       if (existing.status === 'final' && p.status !== 'final') continue;
-      // Both same status — use latest created_date
-      const pTime = p.created_date ? new Date(p.created_date).getTime() : 0;
-      const eTime = existing.created_date ? new Date(existing.created_date).getTime() : 0;
+      // Both same status — use latest updated_date (fall back to created_date)
+      const pTime = new Date(p.updated_date || p.created_date || 0).getTime();
+      const eTime = new Date(existing.updated_date || existing.created_date || 0).getTime();
       if (pTime > eTime) map[p.matchId] = p;
     }
   }
