@@ -936,11 +936,15 @@ export default function TippingHQ() {
       return next;
     });
 
+    // Guard against realtime overwrites during the save
     if (existing.id) {
+      savingRef.current[matchId] = true;
       try {
         await base44.entities.Prediction.update(existing.id, { penaltyPick: newPick });
       } catch (err) {
         console.error("Failed to save penalty pick:", err);
+      } finally {
+        savingRef.current[matchId] = false;
       }
     }
   };
