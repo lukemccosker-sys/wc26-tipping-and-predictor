@@ -99,9 +99,9 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
     const actual2nd = table[1]?.team;
     const actual3rd = table[2]?.team;
     const actualQualifiers = new Set([actual1st, actual2nd].filter(Boolean));
-    const allSlotsFilled = thirdPlaceSlots && Object.keys(thirdPlaceSlots).filter(k => thirdPlaceSlots[k]).length >= 8;
-    // Include actual 3rd as a qualifier if they were assigned to a best-3rd slot
-    if (allSlotsFilled && actual3rd && Object.values(thirdPlaceSlots).includes(actual3rd)) {
+    const slotsAssigned = thirdPlaceSlots || {};
+    // Include actual 3rd as a qualifier if they were assigned to a best-3rd slot (incremental)
+    if (actual3rd && Object.values(slotsAssigned).includes(actual3rd)) {
       actualQualifiers.add(actual3rd);
     }
     const pick = localGroupPicks[group] || {};
@@ -112,7 +112,7 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
     if (pick.first && actualQualifiers.has(pick.first)) { const v = +s.r32 || 1; pts += v; earned.r32first = v; }
     if (pick.second && actualQualifiers.has(pick.second)) { const v = +s.r32 || 1; pts += v; earned.r32second = v; }
     if (localThirdPicks[group] && actualQualifiers.has(localThirdPicks[group])) { const v = +s.r32 || 1; pts += v; earned.r32third = v; }
-    if (allSlotsFilled && actual3rd && localThirdPicks[group] === actual3rd) { const v = +s.third || 2; pts += v; earned.third = v; }
+    if (actual3rd && localThirdPicks[group] === actual3rd && Object.values(slotsAssigned).includes(actual3rd)) { const v = +s.third || 2; pts += v; earned.third = v; }
     return { pts, earned };
   };
 
@@ -131,8 +131,8 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
         </div>
       )}
 
-      {groupsDone === 12 && thirdsCount === 8 && !locked && (
-        <div className="nudge-go">✅ All group picks done! Pick your knockout bracket next.</div>
+      {groupsDone === 12 && !locked && (
+        <div className="nudge-go">✅ All 1st & 2nd picks done! Pick your best-3rds and knockout bracket next.</div>
       )}
 
       <div className="groups-grid">

@@ -137,7 +137,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   const thirdPicks = bracketPred?.thirdPicks ? JSON.parse(bracketPred.thirdPicks) : {};
   const groupsDone = Object.keys(groupPicks).filter(L => groupPicks[L]?.first && groupPicks[L]?.second).length;
   const thirdsCount = Object.keys(thirdPicks).filter(k => thirdPicks[k]).length;
-  const predGroupsComplete = groupsDone === 12 && thirdsCount === 8;
+  const predGroupsComplete = groupsDone === 12;
 
   // Per-round completion prompts
   const picksByRound = {};
@@ -195,7 +195,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   return (
     <div className="bracket-wrap" ref={topRef}>
       {!predGroupsComplete && (
-        <div className="alert-red">⚠️ Finish picking groups first — go to the Groups tab to set 1st, 2nd & best-3rd for each group.</div>
+        <div className="alert-red">⚠️ Finish picking 1st & 2nd for all 12 groups first — go to the Groups tab.</div>
       )}
 
       {champion && (

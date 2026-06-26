@@ -1496,10 +1496,9 @@ export default function TippingHQ() {
                 const gp = myBracket?.groupPicks ? JSON.parse(myBracket.groupPicks) : {};
                 const tp = myBracket?.thirdPicks ? JSON.parse(myBracket.thirdPicks) : {};
                 const groupsDone = GL.filter(L => gp[L]?.first && gp[L]?.second).length === 12;
-                const thirdsDone = Object.values(tp).filter(Boolean).length >= 8;
-                if (groupsDone && thirdsDone) return (
+                if (groupsDone) return (
                   <div className="step-prompt" style={{ marginTop: 14 }}>
-                    <span className="step-prompt-txt">✅ All groups & best 3rd picks done! Now click winners through the knockout bracket.</span>
+                    <span className="step-prompt-txt">✅ All 1st & 2nd picks done! Now pick your best-3rds and click winners through the knockout bracket.</span>
                     <button className="step-prompt-btn" onClick={() => setPtab("pb")}>Go to Bracket →</button>
                   </div>
                 );
