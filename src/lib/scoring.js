@@ -13,12 +13,6 @@ const THIRD_SLOT_GROUPS = {
 };
 const THIRD_SLOT_KEYS = Object.keys(THIRD_SLOT_GROUPS);
 
-// Check if admin has manually assigned ALL 8 best-3rd-place teams to their R32 slots
-function allThirdSlotsFilled(thirdPlaceSlots) {
-  if (!thirdPlaceSlots) return false;
-  return THIRD_SLOT_KEYS.every(key => thirdPlaceSlots[key]);
-}
-
 // Assign best-3rd teams (tp: { groupLetter: team }) into slotTeams using backtracking
 // so that all picked teams are placed — moving teams around to maximise fit.
 export function assignThirdPlaceTeams(tp, slotTeams) {
@@ -275,9 +269,9 @@ export function buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots
     b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
   ); // Best-3rd ranking: H2H doesn't apply across groups, so GD is the correct first fallback here
 
-  // Only fill 3rd-place slots when admin has manually assigned ALL 8 teams.
-  // Until then, 3rd-place teams stay out of the KO bracket entirely — no auto-assignment.
-  if (allThirdSlotsFilled(thirdPlaceSlots)) {
+  // Fill 3rd-place slots that the admin has manually assigned.
+  // Individually-filled slots show immediately — no need for all 8 to be filled.
+  if (thirdPlaceSlots) {
     for (const [slotKey, team] of Object.entries(thirdPlaceSlots)) {
       if (team) slotTeams[slotKey] = team;
     }
@@ -359,14 +353,14 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const actual3rd = table[2]?.team;
     const actualQualifiers = new Set([actual1st, actual2nd].filter(Boolean));
     // Include actual 3rd as a qualifier if they were assigned to a best-3rd slot
-    if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && Object.values(thirdPlaceSlots).includes(actual3rd)) {
+    if (actual3rd && thirdPlaceSlots && Object.values(thirdPlaceSlots).includes(actual3rd)) {
       actualQualifiers.add(actual3rd);
     }
     const pick = gp[group] || {};
     if (actual1st && pick.first === actual1st) groupPts += +s.g1 || 3;
     if (actual2nd && pick.second === actual2nd) groupPts += +s.g2 || 2;
-    // Best 3rd picks — only awarded once admin has assigned all 8 best-3rd slots
-    if (allThirdSlotsFilled(thirdPlaceSlots) && actual3rd && tp[group] === actual3rd) groupPts += +s.third || 2;
+    // Best 3rd picks — awarded for each individually-filled slot
+    if (actual3rd && thirdPlaceSlots && tp[group] === actual3rd && Object.values(thirdPlaceSlots).includes(actual3rd)) groupPts += +s.third || 2;
     // R32 progression points — award for each correctly predicted group qualifier (1st, 2nd, or 3rd pick)
     if (pick.first && actualQualifiers.has(pick.first)) bracketPts += +s.r32 || 1;
     if (pick.second && actualQualifiers.has(pick.second)) bracketPts += +s.r32 || 1;
