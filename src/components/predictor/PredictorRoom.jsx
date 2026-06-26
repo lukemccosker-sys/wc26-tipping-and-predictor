@@ -51,7 +51,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   const [expanded, setExpanded] = useState({});
 
   const s = predSettings || DEFAULT_PRED_SETTINGS;
-  const allThirdSlotsFilled = thirdPlaceSlots && Object.keys(thirdPlaceSlots).filter(k => thirdPlaceSlots[k]).length >= 8;
+  const slotsAssigned = thirdPlaceSlots || {};
   const toggle = (key) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
 
   // Pre-compute picks for all players
@@ -75,19 +75,19 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     const table = calcGroupTable(group, officialResults, groupStandingsOverrides);
     const a1 = table[0]?.team, a2 = table[1]?.team, a3 = table[2]?.team;
     const q = new Set([a1, a2].filter(Boolean));
-    if (allThirdSlotsFilled && a3 && Object.values(thirdPlaceSlots).includes(a3)) q.add(a3);
+    if (a3 && Object.values(slotsAssigned).includes(a3)) q.add(a3);
     const pk = picks?.gp[group] || {}, th = picks?.tp[group];
     let pts = 0;
     if (a1 && pk.first === a1) pts += +s.g1 || 3;
     if (a2 && pk.second === a2) pts += +s.g2 || 2;
-    if (allThirdSlotsFilled && a3 && th === a3) pts += +s.third || 2;
+    if (a3 && th === a3 && Object.values(slotsAssigned).includes(a3)) pts += +s.third || 2;
     if (pk.first && q.has(pk.first)) pts += +s.r32 || 1;
     if (pk.second && q.has(pk.second)) pts += +s.r32 || 1;
     if (th && q.has(th)) pts += +s.r32 || 1;
     const breakdown = {
       first: (a1 && pk.first === a1 ? (+s.g1 || 3) : 0) + (pk.first && q.has(pk.first) ? (+s.r32 || 1) : 0),
       second: (a2 && pk.second === a2 ? (+s.g2 || 2) : 0) + (pk.second && q.has(pk.second) ? (+s.r32 || 1) : 0),
-      third: (allThirdSlotsFilled && a3 && th === a3 ? (+s.third || 2) : 0) + (th && q.has(th) ? (+s.r32 || 1) : 0),
+      third: (a3 && th === a3 && Object.values(slotsAssigned).includes(a3) ? (+s.third || 2) : 0) + (th && q.has(th) ? (+s.r32 || 1) : 0),
     };
     return { pts, a1, a2, a3, breakdown };
   };
