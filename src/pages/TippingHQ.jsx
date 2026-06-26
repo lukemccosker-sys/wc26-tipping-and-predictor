@@ -497,8 +497,25 @@ export default function TippingHQ() {
       base44.entities.PoolSettings.list(),
     ]);
     setPlayers(pl || []);
-    predictionsRef.current = pr || [];
-    setPredictions(pr || []);
+    // Merge DB predictions with optimistic (unsaved) ones to avoid losing user input
+    // when the 30s poll or initial load fires during the 400ms debounce save window
+    setPredictions(prev => {
+      const dbList = pr || [];
+      // Keep optimistic predictions that have a pending debounce save or in-flight save
+      const pending = prev.filter(p =>
+        (saveTimers.current[p.matchId] || savingRef.current[p.matchId])
+      );
+      const pendingIds = new Set(pending.map(p => p.id).filter(Boolean));
+      const pendingMatchKeys = new Set(pending.map(p => `${p.playerId}_${p.matchId}`));
+      // DB predictions, excluding any that have a pending optimistic version
+      const fromDb = dbList.filter(dp =>
+        !pendingIds.has(dp.id) &&
+        !pendingMatchKeys.has(`${dp.playerId}_${dp.matchId}`)
+      );
+      const merged = [...fromDb, ...pending];
+      predictionsRef.current = merged;
+      return merged;
+    });
     setOfficialResults(or_ || []);
     setBracketPredictions(bp || []);
     setPoolSettings(ps?.[0] || null);

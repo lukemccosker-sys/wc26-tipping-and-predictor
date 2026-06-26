@@ -57,7 +57,18 @@ export default function KOBracket({
     });
   };
 
-  const getPred = (matchId) => predictions.find(p => p.playerId === player?.id && p.matchId === matchId);
+  const getPred = (matchId) => {
+    const matches = predictions.filter(p => p.playerId === player?.id && p.matchId === matchId);
+    if (matches.length <= 1) return matches[0] || null;
+    // Deduplicate: prefer 'final' status, then latest created_date
+    const finals = matches.filter(p => p.status === 'final');
+    const pool = finals.length > 0 ? finals : matches;
+    return pool.reduce((best, p) => {
+      const bt = p.created_date ? new Date(p.created_date).getTime() : 0;
+      const et = best.created_date ? new Date(best.created_date).getTime() : 0;
+      return bt > et ? p : best;
+    }, pool[0]);
+  };
   const getOfficial = (matchId) => officialResults.find(r => r.matchId === matchId);
   const getKickoff = (matchId) => kickoffs?.[matchId] || null;
   const globalLock = poolSettings?.globalLockTipping ?? false;
