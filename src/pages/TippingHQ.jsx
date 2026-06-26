@@ -414,6 +414,7 @@ export default function TippingHQ() {
   const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group" | "results"
 
   const [ptab, setPtab] = useState("pg");
+  const [lbTab, setLbTab] = useState("tip");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -1194,9 +1195,9 @@ export default function TippingHQ() {
         </div>
         <div className="hdr-r">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className={`ptotal${mode === "pred" ? " pred" : ""}${mode === "lb" ? " combined" : ""}`}>
-              <div className="pt-num">{mode === "pred" ? myPredScore : mode === "lb" ? (myScore.total + myPredScore) : myScore.total}</div>
-              <div className="pt-lab">{mode === "tip" ? "tipping pts" : mode === "pred" ? "predictor pts" : "combined pts"}</div>
+            <div className={`ptotal${mode === "pred" ? " pred" : ""}${mode === "lb" && lbTab === "combined" ? " combined" : ""}${mode === "lb" && lbTab === "tip" ? "" : ""}${mode === "lb" && lbTab === "pred" ? " pred" : ""}`}>
+              <div className="pt-num">{mode === "pred" ? myPredScore : mode === "lb" ? (lbTab === "tip" ? myScore.total : lbTab === "pred" ? myPredScore : (myScore.total + myPredScore)) : myScore.total}</div>
+              <div className="pt-lab">{mode === "tip" ? "tipping pts" : mode === "pred" ? "predictor pts" : lbTab === "tip" ? "tipping pts" : lbTab === "pred" ? "predictor pts" : "combined pts"}</div>
             </div>
             <a href="/live" className="live" style={{ textDecoration: "none", flexShrink: 0 }}><span className="live-dot" />Live</a>
           </div>
@@ -1424,6 +1425,8 @@ export default function TippingHQ() {
           tippingRankChanges={tippingRankChanges}
           predictorRankChanges={predictorRankChanges}
           combinedRankChanges={combinedRankChanges}
+          tab={lbTab}
+          setTab={setLbTab}
         />
       )}
 

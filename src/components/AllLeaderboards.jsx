@@ -236,8 +236,8 @@ export function PredictedChampions({ predLB, player }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings, tippingRankChanges, predictorRankChanges, combinedRankChanges }) {
-  const [tab, setTab] = useState("tip");
+export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings, tippingRankChanges, predictorRankChanges, combinedRankChanges, tab, setTab }) {
+  const lbTab = tab || "tip";
 
   const tabs = [
     { k: "tip", label: "🎯 Tipping" },
@@ -249,7 +249,7 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 18, alignItems: "center" }}>
         {tabs.map(t => (
-          <button key={t.k} className={`chip${tab === t.k ? " on" : ""}`} onClick={() => setTab(t.k)}>
+          <button key={t.k} className={`chip${lbTab === t.k ? " on" : ""}`} onClick={() => setTab(t.k)}>
             {t.label}
           </button>
         ))}
@@ -271,9 +271,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         )}
       </div>
 
-      {tab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
-      {tab === "pred" && <PredictorLB predLB={predLB} player={player} rankChanges={predictorRankChanges} />}
-      {tab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} />}
+      {lbTab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
+      {lbTab === "pred" && <PredictorLB predLB={predLB} player={player} rankChanges={predictorRankChanges} />}
+      {lbTab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} />}
     </div>
   );
 }
