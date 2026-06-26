@@ -705,10 +705,15 @@ export default function TippingHQ() {
   const myPreds = predictions.filter(p => p.playerId === player.id);
   const myBracket = bracketPredictions.find(bp => bp.playerId === player.id) || null;
 
-  // Tip count (group stage only = 72 matches)
+  // Tip count (group stage only = 72 matches) — deduplicate by matchId
   const totalGroupMatches = GROUP_MATCHES.length;
   const validGroupIds = new Set(GROUP_MATCHES.map(m => m.id));
-  const tipCount = myPreds.filter(p => p.homeScore != null && p.awayScore != null && validGroupIds.has(p.matchId)).length;
+  const tippedMatchIds = new Set(
+    myPreds
+      .filter(p => p.homeScore != null && p.awayScore != null && validGroupIds.has(p.matchId))
+      .map(p => p.matchId)
+  );
+  const tipCount = tippedMatchIds.size;
 
   // Group stage complete = all 72 matches have official results
   const groupStageComplete = GROUP_MATCHES.every(m => {
