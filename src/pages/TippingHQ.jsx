@@ -501,8 +501,9 @@ export default function TippingHQ() {
     // when the 30s poll or initial load fires during the 400ms debounce save window
     setPredictions(prev => {
       const dbList = pr || [];
-      // Keep optimistic predictions that have a pending debounce save or in-flight save
+      // Keep the current user's optimistic predictions that have a pending debounce save or in-flight save
       const pending = prev.filter(p =>
+        p.playerId === playerRef.current?.id &&
         (saveTimers.current[p.matchId] || savingRef.current[p.matchId])
       );
       const pendingIds = new Set(pending.map(p => p.id).filter(Boolean));
@@ -571,22 +572,22 @@ export default function TippingHQ() {
     });
 
     const unsubPred = base44.entities.Prediction.subscribe((event) => {
-      // Skip if a save is currently in-flight for this match (our optimistic state is newer)
-      const isSaving = event.data?.matchId && savingRef.current[event.data.matchId];
+      // Skip if a save is in-flight OR a debounce timer is pending for this match
+      // (our optimistic state is newer than whatever the realtime event carries)
+      const matchId = event.data?.matchId;
+      const isBusy = matchId && (savingRef.current[matchId] || saveTimers.current[matchId]);
       if (event.type === "create") {
-        if (isSaving) return;
+        if (isBusy) return;
         setPredictions(prev => {
-          // Don't duplicate if already in state by id
           if (prev.some(p => p.id === event.id)) return prev;
-          // Don't add if there's an optimistic record (no id) for this match — the save will attach the id
-          const hasOptimistic = prev.some(p => !p.id && p.playerId === player.id && p.matchId === event.data.matchId);
+          const hasOptimistic = prev.some(p => !p.id && p.playerId === player.id && p.matchId === matchId);
           if (hasOptimistic) return prev;
           const next = [...prev.filter(p => p.id !== event.id), event.data];
           predictionsRef.current = next;
           return next;
         });
       } else if (event.type === "update") {
-        if (isSaving) return;
+        if (isBusy) return;
         setPredictions(prev => {
           const next = prev.map(p => p.id === event.id ? event.data : p);
           predictionsRef.current = next;
