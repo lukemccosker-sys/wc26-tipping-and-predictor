@@ -117,7 +117,7 @@ const CSS = `
 .groups-grid .card:nth-child(12n+12) .card-h{background:linear-gradient(100deg,#0fb5c4,#39ccd8);}
 .fixtures{padding:8px 12px 12px;}
 .gm{border-bottom:1px solid #f4ebdf;padding:3px 0;}
-.gm-main{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:10px;justify-content:space-between;}
+.gm-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;}
 .gm-team{min-width:0;}
 .gm-team.r{text-align:right;}
 .gm-team.r .tname{justify-content:flex-end;}
