@@ -414,7 +414,7 @@ export default function TippingHQ() {
   const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group" | "results"
 
   const [ptab, setPtab] = useState("pg");
-  const [lbTab, setLbTab] = useState("tip");
+  const [lbTab, setLbTab] = useState("combined");
   const [adminEditing, setAdminEditing] = useState(false);
   const [showKickEditor, setShowKickEditor] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
