@@ -240,9 +240,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
   const lbTab = tab || "tip";
 
   const tabs = [
+    { k: "combined", label: "🌟 Combined" },
     { k: "tip", label: "🎯 Tipping" },
     { k: "pred", label: "🔮 Predictor" },
-    { k: "combined", label: "🌟 Combined" },
   ];
 
   return (
