@@ -4,9 +4,21 @@ import Flag from "@/lib/flags";
 import { GL, WC_GROUPS, GROUP_MATCHES, KO_MATCHES, ROUND_ORDER, ROUND_NAME } from "@/lib/wc2026data";
 import { calcGroupTable, buildOfficialKOTeamsFromResults } from "@/lib/scoring";
 
-function getBest3rdGroups(officialResults) {
-  // Returns a Set of group letters whose 3rd-place team qualifies (top 8 best 3rds)
-  // Only consider groups where all 6 matches have been played
+function getBest3rdGroups(officialResults, thirdPlaceSlots) {
+  // If admin has assigned 3rd-place teams to slots, use those
+  const assigned = new Set();
+  if (thirdPlaceSlots) {
+    for (const team of Object.values(thirdPlaceSlots)) {
+      if (!team) continue;
+      const group = GL.find(L => {
+        const table = calcGroupTable(L, officialResults);
+        return table[2]?.team === team;
+      });
+      if (group) assigned.add(group);
+    }
+    if (assigned.size > 0) return assigned;
+  }
+  // Fallback: compute top 8 best 3rds from groups where all 6 matches have been played
   const thirds = GL.map(group => {
     const table = calcGroupTable(group, officialResults);
     const totalPld = table.reduce((s, r) => s + r.pld, 0);
@@ -103,31 +115,43 @@ const CSS = `
 export default function LiveResults() {
   const [tab, setTab] = useState("groups");
   const [officialResults, setOfficialResults] = useState([]);
+  const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchResults = useCallback(async () => {
-    const res = await base44.entities.OfficialResult.list();
+    const [res, ps] = await Promise.all([
+      base44.entities.OfficialResult.list(),
+      base44.entities.PoolSettings.list(),
+    ]);
     setOfficialResults(res || []);
+    setPoolSettings(ps?.[0] || null);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchResults();
 
-    const unsub = base44.entities.OfficialResult.subscribe((event) => {
+    const unsubResults = base44.entities.OfficialResult.subscribe((event) => {
       setLoading(false);
       if (event.type === "create") setOfficialResults(prev => [...prev.filter(r => r.id !== event.id), event.data]);
       else if (event.type === "update") setOfficialResults(prev => prev.map(r => r.id === event.id ? event.data : r));
       else if (event.type === "delete") setOfficialResults(prev => prev.filter(r => r.id !== event.id));
     });
 
+    const unsubSettings = base44.entities.PoolSettings.subscribe((event) => {
+      if (event.type === "delete") setPoolSettings(null);
+      else setPoolSettings(event.data);
+    });
+
     const t = setInterval(fetchResults, 30000);
-    return () => { unsub(); clearInterval(t); };
+    return () => { unsubResults(); unsubSettings(); clearInterval(t); };
   }, [fetchResults]);
 
   const getResult = (matchId) => officialResults.find(r => r.matchId === matchId);
 
-  const koTeams = buildOfficialKOTeamsFromResults(officialResults);
+  const thirdPlaceSlots = poolSettings?.thirdPlaceSlots ? JSON.parse(poolSettings.thirdPlaceSlots) : {};
+  const groupStandingsOverrides = poolSettings?.groupStandingsOverrides ? JSON.parse(poolSettings.groupStandingsOverrides) : {};
+  const koTeams = buildOfficialKOTeamsFromResults(officialResults, thirdPlaceSlots, groupStandingsOverrides);
 
   // Determine KO winners
   const koWinners = {};
@@ -207,9 +231,9 @@ export default function LiveResults() {
       {!loading && tab === "tables" && (
         <div className="lr-grid">
           {(() => {
-            const best3rdGroups = getBest3rdGroups(officialResults);
+            const best3rdGroups = getBest3rdGroups(officialResults, thirdPlaceSlots, groupStandingsOverrides);
             return GL.map(L => {
-            const table = calcGroupTable(L, officialResults);
+            const table = calcGroupTable(L, officialResults, groupStandingsOverrides);
             return (
               <div className="lr-card" key={L}>
                 <div className={`lr-card-h gc-${L}`}>
