@@ -163,14 +163,12 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       <div className={`ko pko${isF ? " final" : ""}${is3rd ? " bronze" : ""}${!teamsKnown ? " pending" : ""}`} key={m.id}>
         <div className="ko-h">
           <span>M{m.id.slice(1)}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {earned != null && <span className={`ko-earned${earned === 0 ? " zero" : ""}`}>+{earned} pts</span>}
-            <span className="ko-v">{isF ? "Champion decider" : m.venue}</span>
-          </span>
+          <span className="ko-v">{isF ? "Champion decider" : m.venue}</span>
         </div>
 
         {[["h", home, m.h], ["a", away, m.a]].map(([side, team, slot]) => {
           const isPicked = picked === side;
+          const sideEarned = isPicked ? earned : null;
           return (
             <button
               key={side}
@@ -181,8 +179,11 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
               <span className="ko-team">
                 {team ? <><Flag name={team} size={16} /><span>{team}</span></> : <span className="ko-ph">{slotLabel(slot)}</span>}
               </span>
-              {isPicked && <span className="pko-tick">{isF ? "🏆" : "✓"}</span>}
-              {locked && <Lock size={11} style={{ color: "var(--muted2)", opacity: 0.5, flexShrink: 0, marginLeft: isPicked ? 4 : "auto" }} />}
+              <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                {sideEarned != null && sideEarned > 0 && <span className="mini-pts">+{sideEarned}</span>}
+                {isPicked && <span className="pko-tick">{isF ? "🏆" : "✓"}</span>}
+                {locked && <Lock size={11} style={{ color: "var(--muted2)", opacity: 0.5, flexShrink: 0 }} />}
+              </span>
             </button>
           );
         })}
