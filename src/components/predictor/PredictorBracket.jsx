@@ -77,7 +77,18 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
   }
 
   const computeMatchEarned = (m) => {
-    if (m.round === "R32") return null;
+    if (m.round === "R32") {
+      const s = predSettings || {};
+      const pickedSide = localPicks[m.id];
+      const pickedTeam = pickedSide === "h" ? (koTeams?.[m.id]?.home) : pickedSide === "a" ? (koTeams?.[m.id]?.away) : null;
+      if (!pickedTeam) return null;
+      const teamRound = actualRoundReached[pickedTeam];
+      if (!teamRound) return null;
+      if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
+        return +s.r32 || 1;
+      }
+      return 0;
+    }
     const s = predSettings || {};
     const roundPtsMap = { R16: "r16", QF: "qf", SF: "sf", F: "final", "3rd": "third_place" };
     const pickedSide = localPicks[m.id];
@@ -195,6 +206,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
 
   const s = predSettings || {};
   const roundPts = {
+    "R32": +s.r32 || 1,
     "R16": +s.r16 || 2,
     "QF": +s.qf || 4,
     "SF": +s.sf || 6,
@@ -231,7 +243,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R16: <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
+        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R32: <b>{roundPts.R32}pts</b> · R16: <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>

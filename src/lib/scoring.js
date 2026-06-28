@@ -409,9 +409,6 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
       continue;
     }
 
-    // R32 progression is scored via group predictions above, not advance picks
-    if (m.round === "R32") continue;
-
     const userTeams = userKOTeams[m.id];
     if (!userTeams) continue;
     const pickedSide = ap[m.id];
