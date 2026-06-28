@@ -1,6 +1,7 @@
 import React from "react";
 import Flag from "@/lib/flags";
-import { GROUP_MATCHES, KO_MATCHES, WC_GROUPS, GL } from "@/lib/wc2026data";
+import { GROUP_MATCHES, KO_MATCHES, WC_GROUPS, GL, ROUND_NAME } from "@/lib/wc2026data";
+import { buildOfficialKOTeamsFromResults } from "@/lib/scoring";
 
 function getTeamGroup(team) {
   for (const L of GL) {
@@ -9,10 +10,11 @@ function getTeamGroup(team) {
   return null;
 }
 
-function getTeamResults(team, officialResults) {
-  const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
+function getTeamResults(team, officialResults, koTeamsMap) {
   const results = [];
-  for (const m of allMatches) {
+
+  // Group stage matches — use fixture team names directly
+  for (const m of GROUP_MATCHES) {
     if (m.home !== team && m.away !== team) continue;
     const res = officialResults.find(r => r.matchId === m.id);
     if (!res || res.homeScore == null || res.awayScore == null) continue;
@@ -25,29 +27,30 @@ function getTeamResults(team, officialResults) {
       const wonPen = (isHome && res.penaltyWinner === "h") || (!isHome && res.penaltyWinner === "a");
       outcome = wonPen ? "W" : "L";
     }
-    results.push({ matchId: m.id, opponent, gf, ga, outcome });
+    results.push({ matchId: m.id, round: null, opponent, gf, ga, outcome });
   }
-  return results;
-}
 
-function getGroupStandings(team, officialResults) {
-  const group = getTeamGroup(team);
-  if (!group) return null;
-  const teams = WC_GROUPS[group];
-  const table = {};
-  teams.forEach(t => { table[t] = { team: t, pld: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
-  for (const m of GROUP_MATCHES.filter(m => m.group === group)) {
+  // KO matches — resolve actual teams from official KO teams map
+  for (const m of KO_MATCHES) {
+    const teams = koTeamsMap?.[m.id];
+    if (!teams) continue;
+    const isHome = teams.home === team;
+    const isAway = teams.away === team;
+    if (!isHome && !isAway) continue;
     const res = officialResults.find(r => r.matchId === m.id);
-    if (!res || res.homeScore == null) continue;
-    const h = +res.homeScore, a = +res.awayScore;
-    table[m.home].pld++; table[m.away].pld++;
-    table[m.home].gf += h; table[m.home].ga += a;
-    table[m.away].gf += a; table[m.away].ga += h;
-    if (h > a) { table[m.home].w++; table[m.home].pts += 3; table[m.away].l++; }
-    else if (h < a) { table[m.away].w++; table[m.away].pts += 3; table[m.home].l++; }
-    else { table[m.home].d++; table[m.home].pts++; table[m.away].d++; table[m.away].pts++; }
+    if (!res || res.homeScore == null || res.awayScore == null) continue;
+    const opponent = isHome ? teams.away : teams.home;
+    const gf = isHome ? +res.homeScore : +res.awayScore;
+    const ga = isHome ? +res.awayScore : +res.homeScore;
+    let outcome = gf > ga ? "W" : gf < ga ? "L" : "D";
+    if (outcome === "D" && res.penaltyWinner) {
+      const wonPen = (isHome && res.penaltyWinner === "h") || (!isHome && res.penaltyWinner === "a");
+      outcome = wonPen ? "W" : "L";
+    }
+    results.push({ matchId: m.id, round: m.round, opponent, gf, ga, outcome });
   }
-  return { group, rows: Object.values(table).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) };
+
+  return results;
 }
 
 const OUTCOME_STYLE = {
@@ -59,8 +62,9 @@ const OUTCOME_STYLE = {
 export default function TeamStatsPanel({ team, officialResults }) {
   if (!team) return null;
 
-  const results = getTeamResults(team, officialResults);
-  const standings = getGroupStandings(team, officialResults);
+  // Resolve KO teams from official results so we can match the team to KO fixtures
+  const koTeamsMap = buildOfficialKOTeamsFromResults(officialResults, {}, {});
+  const results = getTeamResults(team, officialResults, koTeamsMap);
   const group = getTeamGroup(team);
 
   return (
@@ -77,7 +81,6 @@ export default function TeamStatsPanel({ team, officialResults }) {
         <Flag name={team} size={22} />
         <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 17, letterSpacing: ".03em", color: "#222a3d" }}>{team}</div>
         {group && <div style={{ fontSize: 10, fontWeight: 800, color: "#9aa0ad", textTransform: "uppercase", letterSpacing: ".08em" }}>Group {group}</div>}
-
       </div>
 
       {results.length === 0 && (
@@ -99,6 +102,11 @@ export default function TeamStatsPanel({ team, officialResults }) {
                   fontSize: 11, fontWeight: 900,
                   background: OUTCOME_STYLE[r.outcome].bg, color: OUTCOME_STYLE[r.outcome].color
                 }}>{r.outcome}</div>
+                {r.round && (
+                  <span style={{ fontSize: 8.5, fontWeight: 800, color: "#9aa0ad", textTransform: "uppercase", letterSpacing: ".04em", flexShrink: 0 }}>
+                    {r.round}
+                  </span>
+                )}
                 <span style={{ fontSize: 12, fontWeight: 700, flex: 1, display: "inline-flex", alignItems: "center", gap: 5 }}>
                   vs <Flag name={r.opponent} size={13} /> {r.opponent}
                 </span>
@@ -125,48 +133,6 @@ export default function TeamStatsPanel({ team, officialResults }) {
                 <div style={{ fontSize: 9, fontWeight: 800, color, opacity: .75, textTransform: "uppercase", letterSpacing: ".05em", marginTop: 2 }}>{label}</div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Group standings */}
-      {standings && (
-        <div>
-          <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".1em", color: "#9aa0ad", marginBottom: 6 }}>Group {standings.group} Standings</div>
-          <div style={{ background: "#fff", border: "1px solid #efe3d2", borderRadius: 10, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "#fff1e2" }}>
-                  <th style={{ padding: "6px 8px", textAlign: "left", fontWeight: 800, fontSize: 9.5, letterSpacing: ".06em", textTransform: "uppercase", color: "#9aa0ad" }}>Team</th>
-                  {["P","W","D","L","GD","Pts"].map(h => (
-                    <th key={h} style={{ padding: "6px 4px", textAlign: "center", fontWeight: 800, fontSize: 9.5, color: "#9aa0ad" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {standings.rows.map((r, i) => {
-                  const isTeam = r.team === team;
-                  const gd = r.gf - r.ga;
-                  return (
-                    <tr key={r.team} style={{ borderTop: "1px solid #f4ebdf", background: isTeam ? "rgba(255,176,32,.14)" : "transparent" }}>
-                      <td style={{ padding: "7px 8px", fontWeight: isTeam ? 800 : 600 }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                          <span style={{ fontSize: 9.5, fontWeight: 800, color: "#9aa0ad", width: 12 }}>{i + 1}</span>
-                          <Flag name={r.team} size={13} />
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 80 }}>{r.team}</span>
-                        </span>
-                      </td>
-                      <td style={{ textAlign: "center", color: "#6c7384" }}>{r.pld}</td>
-                      <td style={{ textAlign: "center", color: "#2cb551", fontWeight: 700 }}>{r.w}</td>
-                      <td style={{ textAlign: "center", color: "#ffb020", fontWeight: 700 }}>{r.d}</td>
-                      <td style={{ textAlign: "center", color: "#ff3d7f", fontWeight: 700 }}>{r.l}</td>
-                      <td style={{ textAlign: "center", color: gd > 0 ? "#2cb551" : gd < 0 ? "#ff3d7f" : "#6c7384", fontWeight: 700 }}>{gd > 0 ? `+${gd}` : gd}</td>
-                      <td style={{ textAlign: "center", fontFamily: "'Anton', sans-serif", fontSize: 15, color: isTeam ? "#ff7a2f" : "#222a3d" }}>{r.pts}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
           </div>
         </div>
       )}
