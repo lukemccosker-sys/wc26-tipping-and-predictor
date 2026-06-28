@@ -18,7 +18,7 @@ function getBestPred(candidates) {
   }, null);
 }
 
-export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings }) {
+export default function TipsRoom({ players, predictions, officialResults, player, onRefresh, loading, poolSettings, koTeams }) {
   const [stage, setStage] = useState("all");
   const [expandedMatches, setExpandedMatches] = useState({});
   const [expandedGroups, setExpandedGroups] = useState({});
@@ -74,9 +74,11 @@ export default function TipsRoom({ players, predictions, officialResults, player
       return { ...p, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" };
     }).sort((a, b) => b.pts - a.pts);
 
+    const koData = !isGroup ? koTeams?.[res.matchId] : null;
     revealed.push({
       id: res.matchId,
-      home: m.home, away: m.away,
+      home: isGroup ? m.home : (koData?.home || null),
+      away: isGroup ? m.away : (koData?.away || null),
       official: res,
       isGroup,
       group: isGroup ? gm.group : null,
@@ -128,7 +130,9 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
       const pred = getBestPred(candidates);
       const scored = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
-      results.push({ matchId: res.matchId, home: m.home, away: m.away, official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
+      const isGrp = !!GROUP_MATCHES.find(g => g.id === res.matchId);
+      const koData = !isGrp ? koTeams?.[res.matchId] : null;
+      results.push({ matchId: res.matchId, home: isGrp ? m.home : (koData?.home || null), away: isGrp ? m.away : (koData?.away || null), official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
     }
     results.sort((a, b) => a.matchId.localeCompare(b.matchId));
     return results;
@@ -189,6 +193,9 @@ export default function TipsRoom({ players, predictions, officialResults, player
                 <span className="rev-kolabel">{m.label}</span>
                 <span className="rev-ft" style={{ fontSize: 13, padding: "1px 7px" }}>{m.official.homeScore}–{m.official.awayScore}</span>
               </>
+            )}
+            {m.official.penaltyWinner && (
+              <span style={{ fontSize: 10, fontWeight: 800, color: "var(--muted2)" }}>(P)</span>
             )}
           </div>
           <span style={{ fontSize: 12, color: "#9aa0ad", fontWeight: 800, flexShrink: 0 }}>{isOpen ? "▲" : "▼"}</span>
@@ -342,9 +349,13 @@ export default function TipsRoom({ players, predictions, officialResults, player
                             {bucket.tips.map(r => (
                               <tr key={r.matchId} style={{ borderTop: "1px solid #f4ebdf" }}>
                                 <td className="tl" style={{ fontSize: 11.5, fontWeight: 600 }}>
-                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                    <Flag name={r.home} size={12} />{r.home} v {r.away}<Flag name={r.away} size={12} />
-                                  </span>
+                                  {r.home && r.away ? (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                      <Flag name={r.home} size={12} />{r.home} v {r.away}<Flag name={r.away} size={12} />
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: "var(--muted2)" }}>M{r.matchId.slice(1)}</span>
+                                  )}
                                 </td>
                                 <td style={{ fontWeight: 800, fontSize: 13 }}>{r.official.homeScore}–{r.official.awayScore}</td>
                                 <td className="rev-pred">

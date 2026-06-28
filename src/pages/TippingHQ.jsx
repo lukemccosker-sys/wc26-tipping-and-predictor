@@ -1453,6 +1453,7 @@ export default function TippingHQ() {
           onRefresh={fetchAll}
           loading={loading}
           poolSettings={poolSettings}
+          koTeams={koTeams}
         />
       )}
 
