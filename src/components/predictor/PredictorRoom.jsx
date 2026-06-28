@@ -101,6 +101,30 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     return side === "h" ? ut.home : side === "a" ? ut.away : null;
   };
 
+  // Did the player have `team` anywhere in their bracket at this round?
+  const playerHadTeamAtRound = (picks, team, round) => {
+    if (!picks || !team) return false;
+    const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
+    return KO_MATCHES.filter(m => m.round === round).some(m => {
+      const ut = kt[m.id];
+      return ut && (ut.home === team || ut.away === team);
+    });
+  };
+
+  // Actual winner of a KO match from official results
+  const matchWinner = (m) => {
+    const res = officialResults.find(r => r.matchId === m.id);
+    if (!res || res.homeScore == null) return null;
+    const at = officialKOTeams[m.id];
+    if (!at) return null;
+    const h = +res.homeScore, a = +res.awayScore;
+    if (h > a) return at.home;
+    if (h < a) return at.away;
+    if (res.penaltyWinner === "h") return at.home;
+    if (res.penaltyWinner === "a") return at.away;
+    return null;
+  };
+
   const computeKOPts = (m, picks) => {
     const pt = resolvePick(m, picks);
     if (!pt) return null;
@@ -198,7 +222,8 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
           {matches.map(m => {
             const res = officialResults.find(r => r.matchId === m.id);
             const at = officialKOTeams[m.id];
-            const pt = resolvePick(m, selPicks);
+            const winner = matchWinner(m);
+            const had = playerHadTeamAtRound(selPicks, winner, m.round);
             const pts = computeKOPts(m, selPicks);
             return (
               <div key={m.id} style={{ borderBottom: "1px solid #f4ebdf", paddingBottom: 6 }}>
@@ -208,8 +233,9 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                   </span>
                   {pts != null && <span style={{ fontSize: 11, fontWeight: 800, color: pts > 0 ? "#2cb551" : "#b9b1a3" }}>+{pts}</span>}
                 </div>
-                <div style={{ fontSize: 11, color: "#7b54f0", fontWeight: 600, marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  Pick: {pt ? <Flag name={pt} size={16} /> : <span style={{ color: "#9aa0ad" }}>—</span>}
+                <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  Winner: {winner ? <Flag name={winner} size={16} /> : <span style={{ color: "#9aa0ad" }}>—</span>}
+                  <span style={{ fontSize: 10, fontWeight: 800, color: had ? "#2cb551" : "#b9b1a3" }}>{had ? "✓ in bracket" : "✗ not in bracket"}</span>
                 </div>
               </div>
             );
@@ -285,6 +311,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
           {matches.map(m => {
             const res = officialResults.find(r => r.matchId === m.id);
             const at = officialKOTeams[m.id];
+            const winner = matchWinner(m);
             return (
               <div key={m.id}>
                 <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, display: "inline-flex", alignItems: "center", gap: 3 }}>
@@ -293,12 +320,12 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                 <table className="tbl rev-tbl" style={{ width: "100%" }}>
                   <tbody>
                     {allPicks.map(({ player: p, picks }) => {
-                      const pt = resolvePick(m, picks);
+                      const had = playerHadTeamAtRound(picks, winner, m.round);
                       const pts = computeKOPts(m, picks);
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                           <td className="tl" style={{ fontSize: 11, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                          <td style={{ fontSize: 11 }}>{pt ? <Flag name={pt} size={18} /> : <span style={{ color: "#9aa0ad" }}>—</span>}</td>
+                          <td style={{ fontSize: 12, fontWeight: 800, color: had ? "#2cb551" : "#b9b1a3" }}>{had ? "✓" : "✗"}</td>
                           <td>{pts != null && <span className="pbadge" style={{ background: pts > 0 ? "#2cb551" : "#f0e8db", color: pts > 0 ? "#fff" : "#9aa0ad" }}>{pts}</span>}</td>
                         </tr>
                       );
