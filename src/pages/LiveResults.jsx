@@ -113,7 +113,7 @@ const CSS = `
 `;
 
 export default function LiveResults() {
-  const [tab, setTab] = useState("groups");
+  const [tab, setTab] = useState("ko");
   const [officialResults, setOfficialResults] = useState([]);
   const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -183,9 +183,9 @@ export default function LiveResults() {
       </div>
 
       <div className="lr-tabs">
+        <button className={`lr-tab${tab === "ko" ? " act" : ""}`} onClick={() => setTab("ko")}>🏆 Knockouts</button>
         <button className={`lr-tab${tab === "groups" ? " act" : ""}`} onClick={() => setTab("groups")}>⚽ Groups</button>
         <button className={`lr-tab${tab === "tables" ? " act" : ""}`} onClick={() => setTab("tables")}>📊 Tables</button>
-        <button className={`lr-tab${tab === "ko" ? " act" : ""}`} onClick={() => setTab("ko")}>🏆 Knockouts</button>
       </div>
 
       {loading && (
