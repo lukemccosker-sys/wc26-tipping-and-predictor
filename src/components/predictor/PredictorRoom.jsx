@@ -117,6 +117,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "a") w = at.away;
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
     }
+    if (m.round === "R32") return 0;
     const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
     const tr = actualRoundReached[pt];
     if (!tr) return 0;
@@ -137,7 +138,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   };
 
   const finalizedGroups = GL.filter(g => calcGroupTable(g, officialResults, groupStandingsOverrides).reduce((s, r) => s + r.pld, 0) >= 12);
-  const koRoundsWithResults = ROUND_ORDER.filter(r => r !== "R32" && KO_MATCHES.some(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null)));
+  const koRoundsWithResults = ROUND_ORDER.filter(r => KO_MATCHES.some(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null)));
   const hasOfficialAwards = AWARD_KEYS.some(k => officialAwards?.[k]);
   const hasAnyRevealed = finalizedGroups.length > 0 || koRoundsWithResults.length > 0;
 
