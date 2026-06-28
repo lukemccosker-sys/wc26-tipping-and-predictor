@@ -325,7 +325,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                           <td className="tl" style={{ fontSize: 11, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                          <td style={{ fontSize: 12, fontWeight: 800, color: had ? "#2cb551" : "#b9b1a3" }}>{had ? "✓" : "✗"}</td>
+                          <td style={{ fontSize: 11 }}>{had ? <Flag name={winner} size={18} /> : <span style={{ color: "#b9b1a3", fontWeight: 800 }}>✗</span>}</td>
                           <td>{pts != null && <span className="pbadge" style={{ background: pts > 0 ? "#2cb551" : "#f0e8db", color: pts > 0 ? "#fff" : "#9aa0ad" }}>{pts}</span>}</td>
                         </tr>
                       );
