@@ -7,6 +7,24 @@ const STAGES = [
   ["all","All"],["group","Groups"],["R32","R32"],["R16","R16"],["QF","QF"],["SF","SF"],["3rd","3rd"],["F","Final"]
 ];
 
+function TipCell({ pred, home, away }) {
+  if (!pred || pred.homeScore == null || pred.awayScore == null) {
+    return <span style={{ color: "#9aa0ad" }}>—</span>;
+  }
+  const isDraw = +pred.homeScore === +pred.awayScore;
+  const penTeam = isDraw && pred.penaltyPick === "h" ? home : isDraw && pred.penaltyPick === "a" ? away : null;
+  return (
+    <span className="rev-pred" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+      <b>{pred.homeScore}–{pred.awayScore}</b>
+      {penTeam && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 800, color: "var(--purple)" }}>
+          <Flag name={penTeam} size={13} />P
+        </span>
+      )}
+    </span>
+  );
+}
+
 function getBestPred(candidates) {
   return candidates.reduce((best, pr) => {
     if (!best) return pr;
@@ -210,7 +228,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
               {filteredPlayers.filter(p => p.pred && p.pred.homeScore != null).map(p => (
                 <tr key={p.id} className={`${player && p.id === player.id ? "melb " : ""}${p.pts === top && top > 0 ? "toprow" : ""}`}>
                   <td className="tl">{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
-                  <td className="rev-pred"><b>{p.pred.homeScore}–{p.pred.awayScore}</b></td>
+                  <td><TipCell pred={p.pred} home={m.home} away={m.away} /></td>
                   <td><span className={`pbadge t-${p.tier}`}>{p.pts}</span></td>
                 </tr>
               ))}
@@ -358,9 +376,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
                                   )}
                                 </td>
                                 <td style={{ fontWeight: 800, fontSize: 13 }}>{r.official.homeScore}–{r.official.awayScore}</td>
-                                <td className="rev-pred">
-                                  {r.pred ? <b>{r.pred.homeScore}–{r.pred.awayScore}</b> : <span style={{ color: "#9aa0ad" }}>—</span>}
-                                </td>
+                                <td><TipCell pred={r.pred} home={r.home} away={r.away} /></td>
                                 <td><span className={`pbadge t-${r.tier}`}>{r.pts}</span></td>
                               </tr>
                             ))}
