@@ -415,6 +415,15 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const pickedTeam = pickedSide === "h" ? userTeams.home : pickedSide === "a" ? userTeams.away : null;
     if (!pickedTeam) continue;
 
+    // R32 match: picking the winner means predicting they reach R16 → award r16 points
+    if (m.round === "R32") {
+      const tr = actualRoundReached[pickedTeam];
+      if (tr && ROUND_ORDER.indexOf(tr) >= ROUND_ORDER.indexOf("R16")) {
+        bracketPts += +s.r16 || 2;
+      }
+      continue;
+    }
+
     // Award points if the picked team actually reached at least this round
     const teamActualRound = actualRoundReached[pickedTeam];
     if (!teamActualRound) continue;

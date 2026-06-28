@@ -84,8 +84,8 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       if (!pickedTeam) return null;
       const teamRound = actualRoundReached[pickedTeam];
       if (!teamRound) return null;
-      if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
-        return +s.r32 || 1;
+      if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf("R16")) {
+        return +s.r16 || 2;
       }
       return 0;
     }
@@ -206,7 +206,6 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
 
   const s = predSettings || {};
   const roundPts = {
-    "R32": +s.r32 || 1,
     "R16": +s.r16 || 2,
     "QF": +s.qf || 4,
     "SF": +s.sf || 6,
@@ -243,7 +242,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R32: <b>{roundPts.R32}pts</b> · R16: <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
+        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R32 win (reach R16): <b>{roundPts.R16}pts</b> · R16 win (reach QF): <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>

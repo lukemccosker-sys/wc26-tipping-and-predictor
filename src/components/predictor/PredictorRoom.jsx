@@ -117,7 +117,13 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "a") w = at.away;
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
     }
-    const rpm = { R32: "r32", R16: "r16", QF: "qf", SF: "sf", F: "final" };
+    if (m.round === "R32") {
+      const tr32 = actualRoundReached[pt];
+      if (!tr32) return 0;
+      if (ROUND_ORDER.indexOf(tr32) >= ROUND_ORDER.indexOf("R16")) return +s.r16 || 2;
+      return 0;
+    }
+    const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
     const tr = actualRoundReached[pt];
     if (!tr) return 0;
     if (ROUND_ORDER.indexOf(tr) >= ROUND_ORDER.indexOf(m.round)) {
