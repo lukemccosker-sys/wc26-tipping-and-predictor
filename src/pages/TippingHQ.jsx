@@ -1318,7 +1318,6 @@ export default function TippingHQ() {
               <button className="step-prompt-btn" onClick={() => setTab("ko")}>Go to Bracket →</button>
             </div>
           )}
-          {/* View toggle */}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
             <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
