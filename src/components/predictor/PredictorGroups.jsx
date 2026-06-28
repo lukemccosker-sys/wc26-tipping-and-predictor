@@ -116,8 +116,14 @@ export default function PredictorGroups({ bracketPred, locked, onPickPos, onPick
     return { pts, earned };
   };
 
+  const s = predSettings || {};
+
   return (
     <div>
+      <div className="ko-rules">
+        🥇 <b>Group stage scoring:</b> Correctly pick 1st place: <b>{+s.g1 || 3}pts</b> · 2nd place: <b>{+s.g2 || 2}pts</b> · Best-3rd qualifier: <b>{+s.third || 2}pts</b>. Plus, any team you pick that qualifies for the knockout stage (as 1st, 2nd, or best-3rd) earns <b>{+s.r32 || 1}pt</b> each.
+      </div>
+
       <div className="pg-progress">
         Groups picked: <b className={groupsDone === 12 ? "ok" : ""}>{groupsDone}/12</b>
         {" · "}

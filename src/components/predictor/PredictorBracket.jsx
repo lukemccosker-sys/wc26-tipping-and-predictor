@@ -230,7 +230,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R16: <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points. Round of 32 picks score 0 — they just unlock later rounds.
+        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R16: <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
