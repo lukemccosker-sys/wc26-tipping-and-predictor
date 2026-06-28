@@ -43,7 +43,7 @@ const CSS = `
 .lr-hdr h1{font-family:'Anton',sans-serif;font-size:clamp(32px,5vw,54px);line-height:.92;margin:4px 0;text-transform:uppercase;}
 .lr-hdr h1 span{color:var(--teal);}
 .lr-sub{font-size:13px;color:var(--muted);margin-top:4px;}
-.lr-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.lr-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:nowrap;overflow-x:auto;}
 .lr-tab{background:#fff;border:2px solid var(--line2);color:var(--muted);border-radius:999px;padding:9px 18px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;}
 .lr-tab.act{background:linear-gradient(95deg,var(--teal),var(--blue));color:#fff;border-color:transparent;}
 .lr-tab:hover:not(.act){border-color:var(--ink);color:var(--ink);}
