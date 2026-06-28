@@ -670,17 +670,11 @@ export default function TippingHQ() {
     }
   }, [player?.id, tournamentOver]);
 
-  // Auto-switch to Bracket tab when group stage completes
-  useEffect(() => {
-    if (!player) return;
-    const complete = GROUP_MATCHES.every(m => {
-      const r = officialResults.find(r => r.matchId === m.id);
-      return r && r.homeScore != null && r.awayScore != null;
-    });
-    if (complete && mode === "tip" && tab === "groups") {
-      setTab("ko");
-    }
-  }, [player, officialResults, mode, tab]);
+  // Track group stage completion to show a message (instead of auto-switching tabs)
+  const groupStageCompleteMsg = GROUP_MATCHES.every(m => {
+    const r = officialResults.find(r => r.matchId === m.id);
+    return r && r.homeScore != null && r.awayScore != null;
+  });
 
   const handleLogin = (p) => {
     localStorage.setItem("wc_player", JSON.stringify(p));
@@ -1318,6 +1312,12 @@ export default function TippingHQ() {
 
       {mode === "tip" && tab === "groups" && (
         <>
+          {groupStageCompleteMsg && (
+            <div className="step-prompt" style={{ marginTop: 0, marginBottom: 14 }}>
+              <span className="step-prompt-txt">🎉 All 72 group games complete! Please head over to the Bracket page to continue tipping.</span>
+              <button className="step-prompt-btn" onClick={() => setTab("ko")}>Go to Bracket →</button>
+            </div>
+          )}
           {/* View toggle */}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
@@ -1401,13 +1401,6 @@ export default function TippingHQ() {
             </div>
           )}
 
-          {tipCount === totalGroupMatches && (
-            <div className="step-prompt" style={{ marginTop: 16 }}>
-              <span className="step-prompt-txt">🎉 All 72 group tips done! Head to the Bracket tab to tip the knockouts — they unlock once group results are in.</span>
-              <button className="step-prompt-btn" onClick={() => setTab("ko")}>Go to Bracket →</button>
-
-            </div>
-          )}
         </>
       )}
 
