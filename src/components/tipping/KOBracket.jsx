@@ -165,17 +165,9 @@ export default function KOBracket({
             {teamBtn(home, m.id, "home", m.h)}
           </div>
           <div className="gm-score">
-            {isAdmin && adminEditing ? (
-              <ScoreInput value={official?.homeScore} onChange={v => onSetOfficial(m.id, "h", v)} locked={false} active={hasOfficial} />
-            ) : (
-              <ScoreInput value={pred?.homeScore} onChange={v => onSetScore(m.id, "h", v)} locked={locked || !teamsKnown} active={hasTip} />
-            )}
+            <ScoreInput value={pred?.homeScore} onChange={v => onSetScore(m.id, "h", v)} locked={locked || !teamsKnown} active={hasTip} />
             <span className="vs">vs</span>
-            {isAdmin && adminEditing ? (
-              <ScoreInput value={official?.awayScore} onChange={v => onSetOfficial(m.id, "a", v)} locked={false} active={hasOfficial} />
-            ) : (
-              <ScoreInput value={pred?.awayScore} onChange={v => onSetScore(m.id, "a", v)} locked={locked || !teamsKnown} active={hasTip} />
-            )}
+            <ScoreInput value={pred?.awayScore} onChange={v => onSetScore(m.id, "a", v)} locked={locked || !teamsKnown} active={hasTip} />
           </div>
           <div className="gm-team r">
             {teamBtn(away, m.id, "away", m.a)}
