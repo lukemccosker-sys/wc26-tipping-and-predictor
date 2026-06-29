@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import Flag from "@/lib/flags";
 import GroupCard from "@/components/tipping/GroupCard";
-import KickoffView from "@/components/tipping/KickoffView";
 import ResultsView from "@/components/tipping/ResultsView";
 import KOBracket from "@/components/tipping/KOBracket";
 import TipsRoom from "@/components/tipping/TipsRoom";
@@ -411,7 +410,7 @@ export default function TippingHQ() {
   });
   const [mode, setMode] = useState("tip");
   const [tab, setTab] = useState("ko");
-  const [groupView, setGroupView] = useState("kickoff"); // "kickoff" | "group" | "results"
+  const [groupView, setGroupView] = useState("group"); // "group" | "results"
 
   const [ptab, setPtab] = useState("pb");
   const [lbTab, setLbTab] = useState("combined");
@@ -1319,7 +1318,6 @@ export default function TippingHQ() {
             </div>
           )}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            <button className={`chip${groupView === "kickoff" ? " on" : ""}`} onClick={() => setGroupView("kickoff")}>By Kick-off</button>
             <button className={`chip${groupView === "group" ? " on" : ""}`} onClick={() => setGroupView("group")}>By Group</button>
           </div>
 
@@ -1339,14 +1337,7 @@ export default function TippingHQ() {
               });
             if (!nextUntipped) return null;
             const goToMatch = () => {
-              if (groupView !== "kickoff") {
-                setGroupView("kickoff");
-                setTimeout(() => {
-                  document.getElementById(`match-${nextUntipped.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 100);
-              } else {
-                document.getElementById(`match-${nextUntipped.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
+              document.getElementById(`match-${nextUntipped.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
             };
             return (
               <button onClick={goToMatch} style={{ display: "block", margin: "0 0 12px", textDecoration: "none", border: "none", background: "none", padding: 0, width: "100%", cursor: "pointer", font: "inherit" }}>
@@ -1357,39 +1348,24 @@ export default function TippingHQ() {
             );
           })()}
 
-          {groupView === "kickoff" ? (
-            <KickoffView
-              predictions={predictions}
-              officialResults={officialResults}
-              kickoffs={kickoffs}
-              onSetScore={onSetScore}
-              isAdmin={isAdmin}
-              adminEditing={adminEditing}
-              onSetOfficial={onSetOfficial}
-              onClearOfficial={onClearOfficial}
-              player={player}
-              poolSettings={poolSettings}
-            />
-          ) : (
-            <div className="groups-grid">
-              {GL.map(L => (
-                <GroupCard
-                  key={L}
-                  group={L}
-                  predictions={predictions}
-                  officialResults={officialResults}
-                  kickoffs={kickoffs}
-                  onSetScore={onSetScore}
-                  isAdmin={isAdmin}
-                  adminEditing={adminEditing}
-                  onSetOfficial={onSetOfficial}
-                  onClearOfficial={onClearOfficial}
-                  player={player}
-                  poolSettings={poolSettings}
-                />
-              ))}
-            </div>
-          )}
+          <div className="groups-grid">
+            {GL.map(L => (
+              <GroupCard
+                key={L}
+                group={L}
+                predictions={predictions}
+                officialResults={officialResults}
+                kickoffs={kickoffs}
+                onSetScore={onSetScore}
+                isAdmin={isAdmin}
+                adminEditing={adminEditing}
+                onSetOfficial={onSetOfficial}
+                onClearOfficial={onClearOfficial}
+                player={player}
+                poolSettings={poolSettings}
+              />
+            ))}
+          </div>
 
         </>
       )}
