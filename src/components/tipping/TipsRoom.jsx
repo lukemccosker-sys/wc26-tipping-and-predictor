@@ -132,8 +132,8 @@ export default function TipsRoom({ players, predictions, officialResults, player
   // Order buckets: matchday 1-3 first, then KO rounds in order
   const koRoundOrder = ["R32","R16","QF","SF","3rd","F"];
   const bucketKeys = [
-    ...[1, 2, 3].map(md => `md-${md}`).filter(k => groupBuckets[k]),
-    ...koRoundOrder.map(r => `ko-${r}`).filter(k => groupBuckets[k]),
+    ...koRoundOrder.slice().reverse().map(r => `ko-${r}`).filter(k => groupBuckets[k]),
+    ...[3, 2, 1].map(md => `md-${md}`).filter(k => groupBuckets[k]),
   ];
 
   // Build all-games view for selected player
@@ -169,14 +169,14 @@ export default function TipsRoom({ players, predictions, officialResults, player
       if (gm) {
         key = `md-${gm.matchday}`;
         label = `Group Stage · Matchday ${gm.matchday}`;
-        order = gm.matchday;
+        order = 20 + (3 - gm.matchday);
         color = MD_COLOR[gm.matchday] || "#12b3a6";
       } else {
         const km = KO_MATCHES.find(m => m.id === r.matchId);
         const round = km?.round || "F";
         key = `ko-${round}`;
         label = ROUND_NAME[round] || round;
-        order = 10 + KO_ROUND_ORDER.indexOf(round);
+        order = KO_ROUND_ORDER.length - 1 - KO_ROUND_ORDER.indexOf(round);
         color = KO_ROUND_COLOR[round] || "#9aa0ad";
       }
       if (!buckets[key]) buckets[key] = { key, label, order, color, tips: [], pts: 0 };

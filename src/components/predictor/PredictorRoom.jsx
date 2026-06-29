@@ -167,7 +167,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   };
 
   const finalizedGroups = GL.filter(g => calcGroupTable(g, officialResults, groupStandingsOverrides).reduce((s, r) => s + r.pld, 0) >= 12);
-  const koRoundsWithResults = ROUND_ORDER.filter(r => KO_MATCHES.some(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null)));
+  const koRoundsWithResults = ROUND_ORDER.filter(r => KO_MATCHES.some(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null))).slice().reverse();
   const hasOfficialAwards = AWARD_KEYS.some(k => officialAwards?.[k]);
   const hasAnyRevealed = finalizedGroups.length > 0 || koRoundsWithResults.length > 0;
 
@@ -373,8 +373,8 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
               <span style={{ fontFamily: "'Anton', sans-serif", fontSize: 22, color: "#7b54f0" }}>{selTotal}pts</span>
             </div>
           </div>
-          {finalizedGroups.map(rSelGroup)}
           {koRoundsWithResults.map(rSelRound)}
+          {finalizedGroups.map(rSelGroup)}
           {hasOfficialAwards && rSelAwards()}
         </>
       )}
@@ -384,7 +384,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       )}
 
       {!selectedPlayer && hasAnyRevealed && (
-        <>{finalizedGroups.map(rAllGroup)}{koRoundsWithResults.map(rAllRound)}</>
+        <>{koRoundsWithResults.map(rAllRound)}{finalizedGroups.map(rAllGroup)}</>
       )}
     </div>
   );

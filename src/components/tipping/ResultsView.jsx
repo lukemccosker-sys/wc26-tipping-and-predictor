@@ -65,8 +65,8 @@ export default function ResultsView({
   }
 
   const bucketKeys = [
-    ...[1, 2, 3].map(md => `md-${md}`).filter(k => buckets[k]),
-    ...KO_ROUND_ORDER.map(r => `ko-${r}`).filter(k => buckets[k]),
+    ...KO_ROUND_ORDER.slice().reverse().map(r => `ko-${r}`).filter(k => buckets[k]),
+    ...[3, 2, 1].map(md => `md-${md}`).filter(k => buckets[k]),
   ];
 
   const teamBtn = (teamName, matchId, side, fallback) => {
