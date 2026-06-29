@@ -10,7 +10,7 @@ function fmtKick(ms) {
 }
 
 export default function ResultsView({
-  predictions, officialResults, kickoffs, player, poolSettings
+  predictions, officialResults, kickoffs, player, poolSettings, koTeams
 }) {
   const [openStats, setOpenStats] = useState({});
 
@@ -39,22 +39,24 @@ export default function ResultsView({
     .filter(m => hasOfficialResult(m.id))
     .sort((a, b) => (kickoffs?.[b.id] || 0) - (kickoffs?.[a.id] || 0));
 
-  const teamBtn = (teamName, matchId, side) => {
+  const teamBtn = (teamName, matchId, side, fallback) => {
     const isOpen = openStats[matchId] === side;
     return (
       <button
-        onClick={() => toggleStats(matchId, side)}
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", textAlign: side === "away" ? "right" : "left" }}
+        onClick={() => teamName && toggleStats(matchId, side)}
+        style={{ background: "none", border: "none", padding: 0, cursor: teamName ? "pointer" : "default", font: "inherit", textAlign: side === "away" ? "right" : "left" }}
       >
-        <span className="tname" style={{ textDecoration: "underline dotted", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
-          <Flag name={teamName} size={16} /><span>{teamName}</span>
+        <span className="tname" style={{ textDecoration: teamName ? "underline dotted" : "none", textUnderlineOffset: 3, textDecorationColor: "rgba(107,116,132,.4)" }}>
+          {teamName ? <><Flag name={teamName} size={16} /><span>{teamName}</span></> : <span style={{ color: "#9aa0ad" }}>{fallback || "TBD"}</span>}
         </span>
-        <span style={{
-          display: "block", fontSize: 9, fontWeight: 800, color: isOpen ? "var(--pink)" : "var(--teal)",
-          letterSpacing: ".04em", textTransform: "uppercase", marginTop: 1, opacity: 0.85
-        }}>
-          {isOpen ? "▲ hide" : "▼ stats"}
-        </span>
+        {teamName && (
+          <span style={{
+            display: "block", fontSize: 9, fontWeight: 800, color: isOpen ? "var(--pink)" : "var(--teal)",
+            letterSpacing: ".04em", textTransform: "uppercase", marginTop: 1, opacity: 0.85
+          }}>
+            {isOpen ? "▲ hide" : "▼ stats"}
+          </span>
+        )}
       </button>
     );
   };
@@ -79,6 +81,9 @@ export default function ResultsView({
         const scored = hasTip ? scoreTip(pred, official, settings) : null;
         const openSide = openStats[m.id];
         const isGroup = !!GROUP_MATCHES.find(x => x.id === m.id);
+        const koData = !isGroup ? koTeams?.[m.id] : null;
+        const homeTeam = isGroup ? m.home : (koData?.home || null);
+        const awayTeam = isGroup ? m.away : (koData?.away || null);
         const stageLabel = isGroup ? `Group ${m.group}` : (m.round || "KO");
 
         return (
@@ -99,7 +104,7 @@ export default function ResultsView({
             </div>
 
             <div className="gm-main gm-locked">
-              <div className="gm-team">{teamBtn(m.home, m.id, "home")}</div>
+              <div className="gm-team">{teamBtn(homeTeam, m.id, "home", isGroup ? null : m.h)}</div>
               <div className="gm-score">
                 <span className="sin ro act">
                   <span className="sin-num">{official.homeScore}</span>
@@ -109,13 +114,14 @@ export default function ResultsView({
                   <span className="sin-num">{official.awayScore}</span>
                 </span>
               </div>
-              <div className="gm-team r">{teamBtn(m.away, m.id, "away")}</div>
+              <div className="gm-team r">{teamBtn(awayTeam, m.id, "away", isGroup ? null : m.a)}</div>
             </div>
 
             {openSide && (
               <TeamStatsPanel
-                team={openSide === "home" ? m.home : m.away}
+                team={openSide === "home" ? homeTeam : awayTeam}
                 officialResults={officialResults}
+                koTeams={koTeams}
               />
             )}
 

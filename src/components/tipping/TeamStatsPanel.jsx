@@ -59,11 +59,11 @@ const OUTCOME_STYLE = {
   L: { bg: "#ff3d7f", color: "#fff" },
 };
 
-export default function TeamStatsPanel({ team, officialResults }) {
+export default function TeamStatsPanel({ team, officialResults, koTeams }) {
   if (!team) return null;
 
-  // Resolve KO teams from official results so we can match the team to KO fixtures
-  const koTeamsMap = buildOfficialKOTeamsFromResults(officialResults, {}, {});
+  // Use parent-provided koTeams (includes admin overrides) or resolve from results
+  const koTeamsMap = koTeams || buildOfficialKOTeamsFromResults(officialResults, {}, {});
   const results = getTeamResults(team, officialResults, koTeamsMap);
   const group = getTeamGroup(team);
 
