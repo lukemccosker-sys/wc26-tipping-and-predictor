@@ -424,6 +424,10 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
       continue;
     }
 
+    // Only score matches that have been played (matches PredictorRoom behavior)
+    const matchRes = officialResults.find(r => r.matchId === m.id);
+    if (!matchRes || matchRes.homeScore == null) continue;
+
     // Award points if the picked team actually reached at least this round
     const teamActualRound = actualRoundReached[pickedTeam];
     if (!teamActualRound) continue;
