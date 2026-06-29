@@ -345,9 +345,10 @@ const CSS = `
 .desk-nav-live.act{color:var(--teal);}
 .mobile-tabnav{display:none;}
 @media (max-width:780px){
-  .mobile-tabnav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .mobile-tabnav{display:flex;gap:4px;margin-bottom:14px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .mobile-tabnav::-webkit-scrollbar{display:none;}
   .kickoff-grid{grid-template-columns:1fr !important;}
-  .mtn-btn{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:2px solid var(--line);color:var(--muted);border-radius:12px;padding:11px 16px;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;font-family:'Anton',sans-serif;text-decoration:none;white-space:nowrap;line-height:1;}
+  .mtn-btn{display:inline-flex;align-items:center;gap:3px;background:var(--panel);border:1.5px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 8px;font-family:'Anton',sans-serif;font-size:10.5px;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;text-decoration:none;white-space:nowrap;line-height:1;flex:1 1 0;min-width:0;justify-content:center;}
   .mtn-btn.act{background:linear-gradient(95deg,var(--pink),var(--orange));color:#fff;border-color:transparent;box-shadow:0 8px 20px -10px rgba(255,61,127,.6);}
   .mtn-live.act{background:linear-gradient(95deg,var(--teal),var(--blue));color:#fff;border-color:transparent;}
   .modeswitch button{font-size:13px;padding:9px 6px;}
@@ -382,10 +383,10 @@ const CSS = `
   .modal-c.kickedit{max-width:none;}
   .kick-row{flex-direction:column;align-items:stretch;gap:6px;}
   .kick-in{width:100%;font-size:16px;padding:9px;}
-  .desk-nav{padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));gap:0;}
-  .desk-nav-btn{padding:6px 8px;min-width:0;flex:1;font-size:10px;}
-  .desk-nav-btn .dnic{font-size:20px;}
-  .desk-nav-live{padding:6px 8px;min-width:0;flex:1;font-size:10px;}
+  .desk-nav{padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));gap:0;flex-wrap:nowrap;}
+  .desk-nav-btn{padding:5px 4px;min-width:0;flex:1;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .desk-nav-btn .dnic{font-size:18px;}
+  .desk-nav-live{padding:5px 4px;min-width:0;flex:1;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .desk-nav-live .dnic{font-size:20px;}
   .desk-nav-sep{display:none;}
 }
