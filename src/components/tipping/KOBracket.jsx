@@ -86,11 +86,19 @@ export default function KOBracket({
     result: poolSettings?.pointsResult ?? 1,
   };
   const idx = ROUND_ORDER.indexOf(round);
-  const matches = KO_MATCHES.filter(m => m.round === round).sort((a, b) => {
+  const allMatches = KO_MATCHES.filter(m => m.round === round).sort((a, b) => {
     const ka = getKickoff(a.id) || Infinity;
     const kb = getKickoff(b.id) || Infinity;
     return ka - kb;
   });
+  // Hide matches that already have an official result (they're in the Results tab)
+  // unless admin is actively editing results
+  const matches = isAdmin && adminEditing
+    ? allMatches
+    : allMatches.filter(m => {
+        const official = getOfficial(m.id);
+        return !(official && official.homeScore != null);
+      });
 
   const goRound = (r) => {
     setRound(r);
