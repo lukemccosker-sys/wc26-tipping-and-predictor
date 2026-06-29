@@ -23,11 +23,13 @@ function getTeamResults(team, officialResults, koTeamsMap) {
     const gf = isHome ? +res.homeScore : +res.awayScore;
     const ga = isHome ? +res.awayScore : +res.homeScore;
     let outcome = gf > ga ? "W" : gf < ga ? "L" : "D";
+    let wonOnPens = false;
     if (outcome === "D" && res.penaltyWinner) {
       const wonPen = (isHome && res.penaltyWinner === "h") || (!isHome && res.penaltyWinner === "a");
       outcome = wonPen ? "W" : "L";
+      wonOnPens = true;
     }
-    results.push({ matchId: m.id, round: null, opponent, gf, ga, outcome });
+    results.push({ matchId: m.id, round: null, opponent, gf, ga, outcome, wonOnPens });
   }
 
   // KO matches — resolve actual teams from official KO teams map
@@ -43,11 +45,13 @@ function getTeamResults(team, officialResults, koTeamsMap) {
     const gf = isHome ? +res.homeScore : +res.awayScore;
     const ga = isHome ? +res.awayScore : +res.homeScore;
     let outcome = gf > ga ? "W" : gf < ga ? "L" : "D";
+    let wonOnPens = false;
     if (outcome === "D" && res.penaltyWinner) {
       const wonPen = (isHome && res.penaltyWinner === "h") || (!isHome && res.penaltyWinner === "a");
       outcome = wonPen ? "W" : "L";
+      wonOnPens = true;
     }
-    results.push({ matchId: m.id, round: m.round, opponent, gf, ga, outcome });
+    results.push({ matchId: m.id, round: m.round, opponent, gf, ga, outcome, wonOnPens });
   }
 
   return results;
@@ -110,8 +114,13 @@ export default function TeamStatsPanel({ team, officialResults, koTeams }) {
                 <span style={{ fontSize: 12, fontWeight: 700, flex: 1, display: "inline-flex", alignItems: "center", gap: 5 }}>
                   vs <Flag name={r.opponent} size={13} /> {r.opponent}
                 </span>
-                <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 16, color: "#222a3d", flexShrink: 0 }}>
-                  {r.gf}–{r.ga}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                  {r.wonOnPens && (
+                    <span style={{ fontSize: 9, fontWeight: 800, color: "#7b54f0", background: "rgba(123,84,240,.12)", borderRadius: 5, padding: "2px 5px" }}>P</span>
+                  )}
+                  <div style={{ fontFamily: "'Anton', sans-serif", fontSize: 16, color: "#222a3d" }}>
+                    {r.gf}–{r.ga}
+                  </div>
                 </div>
               </div>
             ))}

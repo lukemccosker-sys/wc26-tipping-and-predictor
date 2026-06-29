@@ -181,6 +181,7 @@ export default function KOBracket({
           <TeamStatsPanel
             team={openSide === "home" ? home : away}
             officialResults={officialResults}
+            koTeams={koTeams}
           />
         )}
 
