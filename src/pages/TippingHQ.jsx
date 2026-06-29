@@ -1269,7 +1269,7 @@ export default function TippingHQ() {
       {mode === "tip" && (
         <>
           <nav className="tabs">
-            {[["ko","Knockouts","Bracket","🏆",false],["groups","Group Stage","Groups","⚽",false],["results","Results","Results","📊",false],["reveal","Tipping Lab","Tips","👀",false]].map(([k,l,sh,ic,sep]) => (
+            {[["ko","Knockouts","Bracket","🏆",false],["results","Results","Results","📊",false],["reveal","Tipping Lab","Tips","👀",false],["groups","Group Stage","Groups","⚽",false]].map(([k,l,sh,ic,sep]) => (
               <button key={k} className={`tab${tab===k?" act":""}${sep?" sep":""}`} onClick={() => setTab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1278,7 +1278,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["ko","🏆","Bracket"],["groups","⚽","Groups"],["results","📊","Results"],["reveal","👀","Tips Lab"]].map(([k,ic,lbl]) => (
+            {[["ko","🏆","Bracket"],["results","📊","Results"],["reveal","👀","Tips Lab"],["groups","⚽","Groups"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1634,7 +1634,7 @@ export default function TippingHQ() {
       <nav className="desk-nav">
         {mode === "tip" ? (
           <>
-            {[["ko","🏆","Bracket"],["groups","⚽","Groups"],["results","📊","Results"],["reveal","👀","Tips Lab"]].map(([k,ic,lbl]) => (
+            {[["ko","🏆","Bracket"],["results","📊","Results"],["reveal","👀","Tips Lab"],["groups","⚽","Groups"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${tab===k?" act":""}`} onClick={() => setTab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
