@@ -107,6 +107,9 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       if (!winner) return null;
       return winner === pickedTeam ? (+s.third_place || 5) : 0;
     }
+    // Only show earned points if this match has actually been played
+    const matchRes = officialResults?.find(r => r.matchId === m.id);
+    if (!matchRes || matchRes.homeScore == null) return null;
     const teamRound = actualRoundReached[pickedTeam];
     if (!teamRound) return null;
     if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
