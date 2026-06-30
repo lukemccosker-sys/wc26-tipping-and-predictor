@@ -30,7 +30,7 @@ function computeRankChanges(rows, predictions, officialResults, settings, getTot
       const bt = best.created_date ? new Date(best.created_date).getTime() : 0;
       return pt > bt ? p : best;
     }, null);
-    const s = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, latestResult, settings) : null;
+    const s = pred ? scoreTip(pred, latestResult, settings) : null;
     ptsFromLatest[r.id] = s?.pts ?? 0;
   }
 

@@ -146,7 +146,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
       if (!m) continue;
       const candidates = predictions.filter(pr => pr.playerId === selectedPlayer && pr.matchId === res.matchId);
       const pred = getBestPred(candidates);
-      const scored = pred ? scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
+      const scored = pred ? scoreTip(pred, res, settings) : { pts: 0, tier: "miss" };
       const isGrp = !!GROUP_MATCHES.find(g => g.id === res.matchId);
       const koData = !isGrp ? koTeams?.[res.matchId] : null;
       results.push({ matchId: res.matchId, home: isGrp ? m.home : (koData?.home || null), away: isGrp ? m.away : (koData?.away || null), official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
