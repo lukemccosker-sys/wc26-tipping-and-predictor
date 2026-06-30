@@ -87,8 +87,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
     const playerTips = players.map(p => {
       const candidates = predictions.filter(pr => pr.playerId === p.id && pr.matchId === res.matchId);
       const pred = getBestPred(candidates);
-      const fakePred = pred ? { homeScore: pred.homeScore, awayScore: pred.awayScore } : null;
-      const scored = fakePred ? scoreTip(fakePred, { matchId: res.matchId, homeScore: res.homeScore, awayScore: res.awayScore }, settings) : { pts: 0, tier: "miss" };
+      const scored = pred ? scoreTip(pred, res, settings) : { pts: 0, tier: "miss" };
       return { ...p, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" };
     }).sort((a, b) => b.pts - a.pts);
 

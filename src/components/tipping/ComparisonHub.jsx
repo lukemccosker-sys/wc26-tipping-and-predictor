@@ -26,7 +26,7 @@ function buildStats(pid, players, predictions, dedupedResults, allMatches, setti
     const pred = getBestPred(candidates);
     if (!pred || pred.homeScore == null) { miss++; continue; }
     tipped++;
-    const scored = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings);
+    const scored = scoreTip(pred, res, settings);
     pts += scored?.pts ?? 0;
     if (scored?.tier === 'exact') exact++;
     else if (scored?.tier === 'gd') gd++;
@@ -67,7 +67,7 @@ export default function ComparisonHub({ players, predictions, officialResults, s
         const candidates = predictions.filter(pr => pr.playerId === pid && pr.matchId === res.matchId);
         const pred = getBestPred(candidates);
         if (!pred || pred.homeScore == null) return { tip: null, pts: 0, tier: "miss" };
-        const scored = scoreTip({ homeScore: pred.homeScore, awayScore: pred.awayScore }, { homeScore: res.homeScore, awayScore: res.awayScore }, settings);
+        const scored = scoreTip(pred, res, settings);
         return { tip: `${pred.homeScore}–${pred.awayScore}`, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" };
       });
 
