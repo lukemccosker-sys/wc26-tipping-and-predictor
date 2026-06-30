@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Flag from "@/lib/flags";
-import { GL, KO_MATCHES, ROUND_ORDER, ROUND_NAME, DEFAULT_PRED_SETTINGS } from "@/lib/wc2026data";
+import { GL, KO_MATCHES, ROUND_ORDER, ROUND_NAME, DEFAULT_PRED_SETTINGS, DEFAULT_KICKOFFS } from "@/lib/wc2026data";
 import { calcGroupTable, buildOfficialKOTeamsFromResults, buildPredKOTeams, buildActualRoundReached } from "@/lib/scoring";
 
 const KO_COLOR = { R16: "#ff7a2f", QF: "#12b3a6", SF: "#2f8bff", "3rd": "#f0a400", F: "#7b54f0" };
@@ -211,7 +211,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   };
 
   const rSelRound = (round) => {
-    const matches = KO_MATCHES.filter(m => m.round === round && officialResults.some(res => res.matchId === m.id && res.homeScore != null));
+    const matches = KO_MATCHES.filter(m => m.round === round && officialResults.some(res => res.matchId === m.id && res.homeScore != null)).sort((a, b) => (DEFAULT_KICKOFFS[b.id] || 0) - (DEFAULT_KICKOFFS[a.id] || 0));
     const key = `sr-${round}`;
     const color = KO_COLOR[round] || "#9aa0ad";
     let rp = 0;
@@ -302,7 +302,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   };
 
   const rAllRound = (round) => {
-    const matches = KO_MATCHES.filter(m => m.round === round && officialResults.some(res => res.matchId === m.id && res.homeScore != null));
+    const matches = KO_MATCHES.filter(m => m.round === round && officialResults.some(res => res.matchId === m.id && res.homeScore != null)).sort((a, b) => (DEFAULT_KICKOFFS[b.id] || 0) - (DEFAULT_KICKOFFS[a.id] || 0));
     const key = `ar-${round}`;
     const color = KO_COLOR[round] || "#9aa0ad";
     return (

@@ -44,7 +44,7 @@ export default function ResultsView({
   const allMatches = [...GROUP_MATCHES, ...KO_MATCHES];
   const finished = allMatches
     .filter(m => hasOfficialResult(m.id))
-    .sort((a, b) => (kickoffs?.[a.id] || 0) - (kickoffs?.[b.id] || 0));
+    .sort((a, b) => (kickoffs?.[b.id] || 0) - (kickoffs?.[a.id] || 0));
 
   // Build buckets: matchday for group stage, round for KO
   const buckets = {};

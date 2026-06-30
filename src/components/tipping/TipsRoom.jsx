@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Flag from "@/lib/flags";
-import { GROUP_MATCHES, KO_MATCHES, ROUND_NAME, scoreTip } from "@/lib/wc2026data";
+import { GROUP_MATCHES, KO_MATCHES, ROUND_NAME, scoreTip, DEFAULT_KICKOFFS } from "@/lib/wc2026data";
 import ComparisonHub from "./ComparisonHub";
 
 const STAGES = [
@@ -106,7 +106,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
       players: playerTips,
     });
   }
-  revealed.sort((a, b) => a.id.localeCompare(b.id));
+  revealed.sort((a, b) => (DEFAULT_KICKOFFS[b.id] || 0) - (DEFAULT_KICKOFFS[a.id] || 0));
 
   // Group the revealed matches
   // For group stage: bucket by matchday (1/2/3); for KO: bucket by round
@@ -151,7 +151,7 @@ export default function TipsRoom({ players, predictions, officialResults, player
       const koData = !isGrp ? koTeams?.[res.matchId] : null;
       results.push({ matchId: res.matchId, home: isGrp ? m.home : (koData?.home || null), away: isGrp ? m.away : (koData?.away || null), official: res, pred, pts: scored?.pts ?? 0, tier: scored?.tier ?? "miss" });
     }
-    results.sort((a, b) => a.matchId.localeCompare(b.matchId));
+    results.sort((a, b) => (DEFAULT_KICKOFFS[b.matchId] || 0) - (DEFAULT_KICKOFFS[a.matchId] || 0));
     return results;
   })() : [];
   const playerTotal = playerAllTips.reduce((s, r) => s + r.pts, 0);
