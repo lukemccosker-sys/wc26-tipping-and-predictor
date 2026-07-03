@@ -415,10 +415,9 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     const pickedTeam = pickedSide === "h" ? userTeams.home : pickedSide === "a" ? userTeams.away : null;
     if (!pickedTeam) continue;
 
-    // R32 match: only score if the match has been played (matches PredictorRoom behavior)
+    // R32: team-centric — award if the picked team won their R32 match and reached R16,
+    // regardless of which bracket slot they were placed in
     if (m.round === "R32") {
-      const r32Res = officialResults.find(r => r.matchId === m.id);
-      if (!r32Res || r32Res.homeScore == null) continue;
       const tr = actualRoundReached[pickedTeam];
       if (tr && ROUND_ORDER.indexOf(tr) >= ROUND_ORDER.indexOf("R16")) {
         bracketPts += +s.r16 || 2;
