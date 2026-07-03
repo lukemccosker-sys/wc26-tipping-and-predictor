@@ -101,14 +101,11 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     return side === "h" ? ut.home : side === "a" ? ut.away : null;
   };
 
-  // Did the player have `team` anywhere in their bracket at this round?
-  const playerHadTeamAtRound = (picks, team, round) => {
-    if (!picks || !team) return false;
-    const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
-    return KO_MATCHES.filter(m => m.round === round).some(m => {
-      const ut = kt[m.id];
-      return ut && (ut.home === team || ut.away === team);
-    });
+  // Did the player pick this team to PROGRESS (advance) from this match/round?
+  const playerPickedWinner = (picks, m, winner) => {
+    if (!picks || !winner) return false;
+    if (m.round === "R32") return playerPickedTeamToAdvanceR32(picks, winner);
+    return resolvePick(m, picks) === winner;
   };
 
   // Actual winner of a KO match from official results
@@ -237,7 +234,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
             const res = officialResults.find(r => r.matchId === m.id);
             const at = officialKOTeams[m.id];
             const winner = matchWinner(m);
-            const had = playerHadTeamAtRound(selPicks, winner, m.round);
+            const picked = playerPickedWinner(selPicks, m, winner);
             const pts = computeKOPts(m, selPicks);
             return (
               <div key={m.id} style={{ borderBottom: "1px solid #f4ebdf", paddingBottom: 6 }}>
@@ -249,7 +246,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 600, marginTop: 2, display: "inline-flex", alignItems: "center", gap: 4 }}>
                   Winner: {winner ? <Flag name={winner} size={16} /> : <span style={{ color: "#9aa0ad" }}>—</span>}
-                  <span style={{ fontSize: 10, fontWeight: 800, color: had ? "#2cb551" : "#b9b1a3" }}>{had ? "✓ in bracket" : "✗ not in bracket"}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: picked ? "#2cb551" : "#b9b1a3" }}>{picked ? "✓ picked to progress" : "✗ didn't pick"}</span>
                 </div>
               </div>
             );
@@ -334,9 +331,9 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                 <table className="tbl rev-tbl" style={{ width: "100%" }}>
                   <tbody>
                     {allPicks.map(({ player: p, picks }) => {
-                      const had = playerHadTeamAtRound(picks, winner, m.round);
+                      const picked = playerPickedWinner(picks, m, winner);
                       const pts = computeKOPts(m, picks);
-                      if (!had || !pts || pts === 0) return null;
+                      if (!picked || !pts || pts === 0) return null;
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                           <td className="tl" style={{ fontSize: 11, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
