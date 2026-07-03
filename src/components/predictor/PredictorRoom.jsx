@@ -111,6 +111,21 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     });
   };
 
+  // Did the player PICK `team` to advance from any match at this round?
+  // (team-centric: regardless of which specific match slot they placed them in)
+  const playerPickedWinnerToAdvance = (picks, team, round) => {
+    if (!picks || !team) return false;
+    const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
+    return KO_MATCHES.filter(m => m.round === round).some(m => {
+      const ut = kt[m.id];
+      if (!ut) return false;
+      const side = picks.ap[m.id];
+      if (side === "h" && ut.home === team) return true;
+      if (side === "a" && ut.away === team) return true;
+      return false;
+    });
+  };
+
   // Actual winner of a KO match from official results
   const matchWinner = (m) => {
     const res = officialResults.find(r => r.matchId === m.id);
@@ -142,9 +157,11 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
     }
     if (m.round === "R32") {
-      const tr32 = actualRoundReached[pt];
-      if (!tr32) return 0;
-      if (ROUND_ORDER.indexOf(tr32) >= ROUND_ORDER.indexOf("R16")) return +s.r16 || 2;
+      // Team-centric: check if the player picked the actual match winner to advance
+      // from ANY R32 match in their bracket (not just this specific match slot)
+      const w = matchWinner(m);
+      if (!w) return null; // match not played yet
+      if (playerPickedWinnerToAdvance(picks, w, "R32")) return +s.r16 || 2;
       return 0;
     }
     const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
