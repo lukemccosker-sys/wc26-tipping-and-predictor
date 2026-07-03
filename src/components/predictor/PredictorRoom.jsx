@@ -128,13 +128,6 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   const computeKOPts = (m, picks) => {
     const pt = resolvePick(m, picks);
     if (!pt) return null;
-    // R32: team-centric — check if picked team reached R16, regardless of slot
-    if (m.round === "R32") {
-      const tr32 = actualRoundReached[pt];
-      if (!tr32) return 0;
-      if (ROUND_ORDER.indexOf(tr32) >= ROUND_ORDER.indexOf("R16")) return +s.r16 || 2;
-      return 0;
-    }
     const res = officialResults.find(r => r.matchId === m.id);
     if (!res || res.homeScore == null) return null;
     if (m.round === "3rd") {
@@ -147,6 +140,12 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "h") w = at.home;
       else if (res.penaltyWinner === "a") w = at.away;
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
+    }
+    if (m.round === "R32") {
+      const tr32 = actualRoundReached[pt];
+      if (!tr32) return 0;
+      if (ROUND_ORDER.indexOf(tr32) >= ROUND_ORDER.indexOf("R16")) return +s.r16 || 2;
+      return 0;
     }
     const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
     const tr = actualRoundReached[pt];
@@ -180,10 +179,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     let t = 0;
     finalizedGroups.forEach(g => { t += computeGroupPts(g, selPicks).pts; });
     koRoundsWithResults.forEach(r => {
-      const roundMatches = r === "R32"
-        ? KO_MATCHES.filter(m => m.round === "R32")
-        : KO_MATCHES.filter(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null));
-      roundMatches.forEach(m => {
+      KO_MATCHES.filter(m => m.round === r && officialResults.some(res => res.matchId === m.id && res.homeScore != null)).forEach(m => {
         const p = computeKOPts(m, selPicks); if (p != null) t += p;
       });
     });
@@ -219,11 +215,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     const key = `sr-${round}`;
     const color = KO_COLOR[round] || "#9aa0ad";
     let rp = 0;
-    if (round === "R32") {
-      KO_MATCHES.filter(m => m.round === "R32").forEach(m => { const p = computeKOPts(m, selPicks); if (p != null) rp += p; });
-    } else {
-      matches.forEach(m => { const p = computeKOPts(m, selPicks); if (p != null) rp += p; });
-    }
+    matches.forEach(m => { const p = computeKOPts(m, selPicks); if (p != null) rp += p; });
     return (
       <Section key={key} title={ROUND_NAME[round]} subtitle={`${matches.length} ${matches.length === 1 ? "match" : "matches"} played`} color={color} pts={rp} isOpen={!!expanded[key]} onToggle={() => toggle(key)}>
         <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -232,7 +224,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
             const at = officialKOTeams[m.id];
             const winner = matchWinner(m);
             const had = playerHadTeamAtRound(selPicks, winner, m.round);
-            const pts = m.round === "R32" ? (had ? (+s.r16 || 2) : 0) : computeKOPts(m, selPicks);
+            const pts = computeKOPts(m, selPicks);
             return (
               <div key={m.id} style={{ borderBottom: "1px solid #f4ebdf", paddingBottom: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -329,7 +321,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                   <tbody>
                     {allPicks.map(({ player: p, picks }) => {
                       const had = playerHadTeamAtRound(picks, winner, m.round);
-                      const pts = m.round === "R32" ? (had ? (+s.r16 || 2) : 0) : computeKOPts(m, picks);
+                      const pts = computeKOPts(m, picks);
                       if (!had || !pts || pts === 0) return null;
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
