@@ -125,11 +125,31 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     return null;
   };
 
+  const playerPickedTeamToAdvanceR32 = (picks, team) => {
+    if (!picks || !team) return false;
+    const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
+    for (const km of KO_MATCHES) {
+      if (km.round !== "R32") continue;
+      const ut = kt[km.id];
+      if (!ut) continue;
+      const side = picks.ap[km.id];
+      const pickedTeam = side === "h" ? ut.home : side === "a" ? ut.away : null;
+      if (pickedTeam === team) return true;
+    }
+    return false;
+  };
+
   const computeKOPts = (m, picks) => {
-    const pt = resolvePick(m, picks);
-    if (!pt) return null;
     const res = officialResults.find(r => r.matchId === m.id);
     if (!res || res.homeScore == null) return null;
+    if (m.round === "R32") {
+      const winner = matchWinner(m);
+      if (!winner) return null;
+      if (playerPickedTeamToAdvanceR32(picks, winner)) return +s.r16 || 2;
+      return 0;
+    }
+    const pt = resolvePick(m, picks);
+    if (!pt) return null;
     if (m.round === "3rd") {
       const at = officialKOTeams[m.id];
       if (!at) return null;
@@ -140,12 +160,6 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "h") w = at.home;
       else if (res.penaltyWinner === "a") w = at.away;
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
-    }
-    if (m.round === "R32") {
-      const tr32 = actualRoundReached[pt];
-      if (!tr32) return 0;
-      if (ROUND_ORDER.indexOf(tr32) >= ROUND_ORDER.indexOf("R16")) return +s.r16 || 2;
-      return 0;
     }
     const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
     const tr = actualRoundReached[pt];
