@@ -489,13 +489,19 @@ export default function TippingHQ() {
   const predLocked = Date.now() >= firstKickoff && !player?.predictorOverride;
 
   const fetchAll = useCallback(async () => {
-    const [pl, pr, or_, bp, ps] = await Promise.all([
-      base44.entities.Player.list(),
-      base44.entities.Prediction.list(),
-      base44.entities.OfficialResult.list(),
-      base44.entities.BracketPrediction.list(),
-      base44.entities.PoolSettings.list(),
-    ]);
+    let pl, pr, or_, bp, ps;
+    try {
+      [pl, pr, or_, bp, ps] = await Promise.all([
+        base44.entities.Player.list(),
+        base44.entities.Prediction.list(),
+        base44.entities.OfficialResult.list(),
+        base44.entities.BracketPrediction.list(),
+        base44.entities.PoolSettings.list(),
+      ]);
+    } catch (err) {
+      console.error("Network error fetching data:", err);
+      return;
+    }
     setPlayers(pl || []);
     // Merge DB predictions with optimistic (unsaved) ones to avoid losing user input
     // when the 30s poll or initial load fires during the 400ms debounce save window
