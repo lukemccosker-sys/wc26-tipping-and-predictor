@@ -158,13 +158,23 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "a") w = at.away;
       return w ? (w === pt ? (+s.third_place || 5) : 0) : null;
     }
-    const rpm = { R16: "r16", QF: "qf", SF: "sf", F: "final" };
     const tr = actualRoundReached[pt];
     if (!tr) return 0;
-    if (ROUND_ORDER.indexOf(tr) >= ROUND_ORDER.indexOf(m.round)) {
-      let pts = +s[rpm[m.round]] || 0;
-      if (m.round === "F" && ROUND_ORDER.indexOf(tr) > ROUND_ORDER.indexOf("F")) pts += +s.champ || 12;
-      return pts;
+    if (m.round === "F") {
+      const at = officialKOTeams[m.id];
+      if (!at) return 0;
+      const fh = +res.homeScore, fa = +res.awayScore;
+      let fWinner = null;
+      if (fh > fa) fWinner = at.home;
+      else if (fh < fa) fWinner = at.away;
+      else if (res.penaltyWinner === "h") fWinner = at.home;
+      else if (res.penaltyWinner === "a") fWinner = at.away;
+      return fWinner && fWinner === pt ? (+s.champ || 12) : 0;
+    }
+    if (ROUND_ORDER.indexOf(tr) > ROUND_ORDER.indexOf(m.round)) {
+      const nextRpm = { R16: "qf", QF: "sf", SF: "final" };
+      const key = nextRpm[m.round];
+      return key ? (+s[key] || 0) : 0;
     }
     return 0;
   };

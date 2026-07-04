@@ -425,20 +425,34 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
       continue;
     }
 
-    // Only score matches that have been played (matches PredictorRoom behavior)
+    // Only score matches that have been played
     const matchRes = officialResults.find(r => r.matchId === m.id);
     if (!matchRes || matchRes.homeScore == null) continue;
 
-    // Award points if the picked team actually reached at least this round
+    // Award points if the picked team won this match (advanced to the next round)
     const teamActualRound = actualRoundReached[pickedTeam];
     if (!teamActualRound) continue;
-    if (ROUND_ORDER.indexOf(teamActualRound) >= ROUND_ORDER.indexOf(m.round)) {
-      const key = roundPtsMap[m.round];
-      if (key && s[key]) bracketPts += +s[key];
-      // Extra champion bonus if they won the Final
-      if (m.round === "F" && ROUND_ORDER.indexOf(teamActualRound) > ROUND_ORDER.indexOf("F")) {
-        bracketPts += +s.champ || 12;
+
+    if (m.round === "F") {
+      // Final: award champion points if the picked team won the final
+      const finalTeams = officialKOTeams[m.id];
+      if (finalTeams) {
+        const fh = +matchRes.homeScore, fa = +matchRes.awayScore;
+        let fWinner = null;
+        if (fh > fa) fWinner = finalTeams.home;
+        else if (fh < fa) fWinner = finalTeams.away;
+        else if (matchRes.penaltyWinner === "h") fWinner = finalTeams.home;
+        else if (matchRes.penaltyWinner === "a") fWinner = finalTeams.away;
+        if (fWinner && fWinner === pickedTeam) bracketPts += +s.champ || 12;
       }
+      continue;
+    }
+
+    // For R16, QF, SF: award next-round points if the team advanced past this round
+    if (ROUND_ORDER.indexOf(teamActualRound) > ROUND_ORDER.indexOf(m.round)) {
+      const nextRoundPtsMap = { R16: "qf", QF: "sf", SF: "final" };
+      const key = nextRoundPtsMap[m.round];
+      if (key && s[key]) bracketPts += +s[key];
     }
   }
 
