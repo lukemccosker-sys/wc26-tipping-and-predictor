@@ -90,7 +90,6 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       return 0;
     }
     const s = predSettings || {};
-    const roundPtsMap = { R16: "r16", QF: "qf", SF: "sf", F: "final", "3rd": "third_place" };
     const pickedSide = localPicks[m.id];
     const pickedTeam = pickedSide === "h" ? (koTeams?.[m.id]?.home) : pickedSide === "a" ? (koTeams?.[m.id]?.away) : null;
     if (!pickedTeam) return null;
@@ -112,10 +111,24 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
     if (!matchRes || matchRes.homeScore == null) return null;
     const teamRound = actualRoundReached[pickedTeam];
     if (!teamRound) return null;
-    if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
-      return +s[roundPtsMap[m.round]] || 0;
+    if (m.round === "F") {
+      const at = officialKOTeams?.[m.id];
+      if (!at) return null;
+      const fh = +matchRes.homeScore, fa = +matchRes.awayScore;
+      let fWinner = null;
+      if (fh > fa) fWinner = at.home;
+      else if (fh < fa) fWinner = at.away;
+      else if (matchRes.penaltyWinner === "h") fWinner = at.home;
+      else if (matchRes.penaltyWinner === "a") fWinner = at.away;
+      return fWinner && fWinner === pickedTeam ? (+s.champ || 12) : 0;
     }
-    return null;
+    // Award next-round points if the team advanced past this round
+    if (ROUND_ORDER.indexOf(teamRound) > ROUND_ORDER.indexOf(m.round)) {
+      const nextRoundPtsMap = { R16: "qf", QF: "sf", SF: "final" };
+      const key = nextRoundPtsMap[m.round];
+      return key ? (+s[key] || 0) : 0;
+    }
+    return 0;
   };
 
   const idx = ROUND_ORDER.indexOf(round);
