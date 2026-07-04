@@ -90,6 +90,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       return 0;
     }
     const s = predSettings || {};
+    const roundPtsMap = { R16: "r16", QF: "qf", SF: "sf", F: "final", "3rd": "third_place" };
     const pickedSide = localPicks[m.id];
     const pickedTeam = pickedSide === "h" ? (koTeams?.[m.id]?.home) : pickedSide === "a" ? (koTeams?.[m.id]?.away) : null;
     if (!pickedTeam) return null;
@@ -111,24 +112,10 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
     if (!matchRes || matchRes.homeScore == null) return null;
     const teamRound = actualRoundReached[pickedTeam];
     if (!teamRound) return null;
-    if (m.round === "F") {
-      const at = officialKOTeams?.[m.id];
-      if (!at) return null;
-      const fh = +matchRes.homeScore, fa = +matchRes.awayScore;
-      let fWinner = null;
-      if (fh > fa) fWinner = at.home;
-      else if (fh < fa) fWinner = at.away;
-      else if (matchRes.penaltyWinner === "h") fWinner = at.home;
-      else if (matchRes.penaltyWinner === "a") fWinner = at.away;
-      return fWinner && fWinner === pickedTeam ? (+s.champ || 12) : 0;
+    if (ROUND_ORDER.indexOf(teamRound) >= ROUND_ORDER.indexOf(m.round)) {
+      return +s[roundPtsMap[m.round]] || 0;
     }
-    // Award next-round points if the team advanced past this round
-    if (ROUND_ORDER.indexOf(teamRound) > ROUND_ORDER.indexOf(m.round)) {
-      const nextRoundPtsMap = { R16: "qf", QF: "sf", SF: "final" };
-      const key = nextRoundPtsMap[m.round];
-      return key ? (+s[key] || 0) : 0;
-    }
-    return 0;
+    return null;
   };
 
   const idx = ROUND_ORDER.indexOf(round);
@@ -258,7 +245,7 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       </div>
 
       <div className="ko-rules">
-        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R32 win (reach R16): <b>{roundPts.R16}pts</b> · R16 win (reach QF): <b>{roundPts.QF}pts</b> · QF win (reach SF): <b>{roundPts.SF}pts</b> · SF win (reach Final): <b>{roundPts.F}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final winner (champion): <b>{champBonus}pts</b>.
+        🏆 <b>Bracket scoring:</b> Points are awarded per correct pick based on how far the team actually progresses — R32 win (reach R16): <b>{roundPts.R16}pts</b> · R16 win (reach QF): <b>{roundPts.R16}pts</b> · QF: <b>{roundPts.QF}pts</b> · SF: <b>{roundPts.SF}pts</b> · 3rd Place: <b>{roundPts["3rd"]}pts</b> · Final: <b>{roundPts.F}pts</b>. Pick the <b>champion</b> correctly for a <b>+{champBonus}pt</b> bonus on top of the Final points.
       </div>
 
       <div className="ko-grid">{matches.map(renderMatch)}</div>
