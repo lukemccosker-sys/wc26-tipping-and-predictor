@@ -105,6 +105,7 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
   const playerPickedWinner = (picks, m, winner) => {
     if (!picks || !winner) return false;
     if (m.round === "R32") return playerPickedTeamToAdvanceR32(picks, winner);
+    if (m.round === "R16") return playerPickedTeamToAdvanceR16(picks, winner);
     return resolvePick(m, picks) === winner;
   };
 
@@ -127,6 +128,20 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
     const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
     for (const km of KO_MATCHES) {
       if (km.round !== "R32") continue;
+      const ut = kt[km.id];
+      if (!ut) continue;
+      const side = picks.ap[km.id];
+      const pickedTeam = side === "h" ? ut.home : side === "a" ? ut.away : null;
+      if (pickedTeam === team) return true;
+    }
+    return false;
+  };
+
+  const playerPickedTeamToAdvanceR16 = (picks, team) => {
+    if (!picks || !team) return false;
+    const kt = buildPredKOTeams(picks.gp, picks.tp, picks.ap);
+    for (const km of KO_MATCHES) {
+      if (km.round !== "R16") continue;
       const ut = kt[km.id];
       if (!ut) continue;
       const side = picks.ap[km.id];
