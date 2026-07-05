@@ -259,8 +259,8 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
             const res = officialResults.find(r => r.matchId === m.id);
             const at = officialKOTeams[m.id];
             const winner = matchWinner(m);
-            const picked = playerPickedWinner(selPicks, m, winner);
             const pts = computeKOPts(m, selPicks);
+            const picked = pts != null && pts > 0;
             return (
               <div key={m.id} style={{ borderBottom: "1px solid #f4ebdf", paddingBottom: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -356,9 +356,8 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
                 <table className="tbl rev-tbl" style={{ width: "100%" }}>
                   <tbody>
                     {allPicks.map(({ player: p, picks }) => {
-                      const picked = playerPickedWinner(picks, m, winner);
                       const pts = computeKOPts(m, picks);
-                      if (!picked || !pts || pts === 0) return null;
+                      if (!pts || pts === 0) return null;
                       return (
                         <tr key={p.id} className={player && p.id === player.id ? "melb" : ""}>
                           <td className="tl" style={{ fontSize: 11, fontWeight: 600 }}>{p.name}{player && p.id === player.id ? " (you)" : ""}</td>
