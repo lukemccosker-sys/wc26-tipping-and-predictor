@@ -8,6 +8,7 @@ import ChangePinCard from "@/components/admin/ChangePinCard";
 import ResultOverrideTool from "@/components/admin/ResultOverrideTool";
 import GroupStandingsOverride from "@/components/admin/GroupStandingsOverride";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import PhotoCropModal from "@/components/PhotoCropModal";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -19,6 +20,7 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
   const [photoLoading, setPhotoLoading] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
   const fileRefs = useRef({});
 
   useEffect(() => {
@@ -127,6 +129,11 @@ export default function AdminPanel() {
     } finally {
       setPhotoLoading(null);
     }
+  };
+
+  const handlePhotoInput = (p, file) => {
+    if (!file) return;
+    setPendingPhoto({ file, player: p });
   };
 
   const removePhoto = async (p) => {
@@ -332,7 +339,7 @@ export default function AdminPanel() {
                   type="file"
                   accept="image/*"
                   style={{ display: "none" }}
-                  onChange={e => { if (e.target.files?.[0]) changePhoto(p, e.target.files[0]); e.target.value = ""; }}
+                  onChange={e => { if (e.target.files?.[0]) handlePhotoInput(p, e.target.files[0]); e.target.value = ""; }}
                 />
                 <button
                   onClick={() => fileRefs.current[p.id]?.click()}
@@ -390,6 +397,17 @@ export default function AdminPanel() {
           ))
         )}
       </div>
+      {pendingPhoto && (
+        <PhotoCropModal
+          file={pendingPhoto.file}
+          onConfirm={async (croppedFile) => {
+            const p = pendingPhoto.player;
+            setPendingPhoto(null);
+            await changePhoto(p, croppedFile);
+          }}
+          onCancel={() => setPendingPhoto(null)}
+        />
+      )}
     </div>
   );
 }
