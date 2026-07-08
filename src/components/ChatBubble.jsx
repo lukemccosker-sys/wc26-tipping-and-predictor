@@ -189,19 +189,19 @@ export default function ChatBubble({ player, players }) {
           position: "fixed",
           bottom: 0,
           right: 0,
-          zIndex: 9000,
+          zIndex: 10001,
           width: "100%",
           maxWidth: 420,
           height: "100vh",
-          maxHeight: 600,
+          maxHeight: "calc(100vh - 70px - env(safe-area-inset-bottom, 0px))",
+          marginBottom: "calc(66px + env(safe-area-inset-bottom, 0px))",
           display: "flex",
           flexDirection: "column",
           background: "#fff7ee",
-          borderRadius: "16px 16px 0 0",
+          borderRadius: "16px",
           boxShadow: "0 -8px 40px -10px rgba(80,40,20,.35)",
           border: "1px solid #efe3d2",
           overflow: "hidden",
-          "@media (maxWidth: 780px)": { maxWidth: "100%", height: "100vh", maxHeight: "none", borderRadius: 0 },
         }}>
           {/* Header */}
           <div style={{
