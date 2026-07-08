@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 export default function AdminPlayerManager({ players, onRefresh }) {
   const [renaming, setRenaming] = useState(null);
   const [newName, setNewName] = useState("");
   const [resettingPin, setResettingPin] = useState(null);
   const [newPin, setNewPin] = useState("");
+  const [photoLoading, setPhotoLoading] = useState(null);
+  const fileRefs = useRef({});
 
   const renamePlayer = async (p) => {
     if (!newName.trim()) return;
@@ -20,6 +23,26 @@ export default function AdminPlayerManager({ players, onRefresh }) {
     await base44.entities.Player.update(p.id, { pin: newPin });
     setResettingPin(null);
     setNewPin("");
+    onRefresh();
+  };
+
+  const changePhoto = async (p, file) => {
+    if (!file) return;
+    setPhotoLoading(p.id);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Player.update(p.id, { profilePhoto: file_url });
+      onRefresh();
+    } catch (err) {
+      console.error("Failed to upload photo:", err);
+    } finally {
+      setPhotoLoading(null);
+    }
+  };
+
+  const removePhoto = async (p) => {
+    if (!window.confirm(`Remove ${p.name}'s profile photo?`)) return;
+    await base44.entities.Player.update(p.id, { profilePhoto: null });
     onRefresh();
   };
 
@@ -73,7 +96,8 @@ export default function AdminPlayerManager({ players, onRefresh }) {
             </div>
           ) : (
             <>
-              <span className="manage-name">
+              <span className="manage-name" style={{ gap: 8 }}>
+                <PlayerAvatar player={p} size={28} />
                 {p.name}
                 {p.isAdmin && <span className="lb-crown">👑</span>}
               </span>
@@ -90,6 +114,24 @@ export default function AdminPlayerManager({ players, onRefresh }) {
                   >
                     {p.predictorOverride ? "🔓 Predictor open" : "🔒 Predictor locked"}
                   </button>
+                )}
+                <input
+                  ref={el => fileRefs.current[p.id] = el}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={e => { if (e.target.files?.[0]) changePhoto(p, e.target.files[0]); e.target.value = ""; }}
+                />
+                <button
+                  className="mbtn"
+                  disabled={photoLoading === p.id}
+                  onClick={() => fileRefs.current[p.id]?.click()}
+                  title="Change profile photo"
+                >
+                  {photoLoading === p.id ? "⏳" : "📷 Photo"}
+                </button>
+                {p.profilePhoto && (
+                  <button className="mbtn del" onClick={() => removePhoto(p)} title="Remove profile photo">🗑 Photo</button>
                 )}
                 <button className="mbtn" onClick={() => { setRenaming(p); setNewName(p.name); }}>✎ Rename</button>
                 {p.isAdmin ? (
