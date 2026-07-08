@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import Flag from "@/lib/flags";
+import PlayerAvatar from "@/components/PlayerAvatar";
 import { GROUP_MATCHES, KO_MATCHES, scoreTip } from "@/lib/wc2026data";
 
 // ── Rank change helper ────────────────────────────────────────────────────────
-// Computes { [playerId]: rankChange } by comparing current rank to rank before the single most-recently entered result
 function computeRankChanges(rows, predictions, officialResults, settings, getTotal) {
   if (!predictions || !officialResults || officialResults.length === 0) return {};
 
-  // Find the single most recently entered result (by updated_date or created_date)
   const scored = officialResults.filter(r => r.homeScore != null && r.awayScore != null);
   if (scored.length === 0) return {};
 
@@ -18,7 +17,6 @@ function computeRankChanges(rows, predictions, officialResults, settings, getTot
     return rt > bt ? r : best;
   });
 
-  // For each player, compute how many pts they got from that single result
   const ptsFromLatest = {};
   for (const r of rows) {
     const candidates = predictions.filter(p => p.playerId === r.id && p.matchId === latestResult.matchId);
@@ -34,13 +32,11 @@ function computeRankChanges(rows, predictions, officialResults, settings, getTot
     ptsFromLatest[r.id] = s?.pts ?? 0;
   }
 
-  // Rank before = sort by (total - ptsFromLatest), using same tiebreakers as main leaderboard
   const before = rows.map(r => ({ id: r.id, beforeTotal: getTotal(r) - (ptsFromLatest[r.id] || 0) }));
   before.sort((a, b) => b.beforeTotal - a.beforeTotal);
   const rankBefore = {};
   before.forEach((r, i) => { rankBefore[r.id] = i + 1; });
 
-  // rankChange = rankBefore - rankNow (positive = moved up)
   const changes = {};
   rows.forEach((r, i) => {
     changes[r.id] = (rankBefore[r.id] || rows.length) - (i + 1);
@@ -65,7 +61,7 @@ function RankBadge({ change }) {
 }
 
 // ── Shared Podium ─────────────────────────────────────────────────────────────
-function Podium({ rows, getPoints, getSubLabel, color }) {
+function Podium({ rows, getPoints, getSubLabel, color, playerMap }) {
   if (rows.length === 0) return null;
   const order = [1, 0, 2];
   const configs = [
@@ -84,6 +80,7 @@ function Podium({ rows, getPoints, getSubLabel, color }) {
           const sub = getSubLabel ? getSubLabel(r) : null;
           return (
             <div key={r.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flex: isFirst ? "0 0 100px" : "0 0 84px" }}>
+              <PlayerAvatar player={playerMap?.[r.id]} size={isFirst ? 44 : 36} style={{ marginBottom: 2 }} />
               <div style={{ fontWeight: 800, fontSize: isFirst ? 13 : 12, textAlign: "center", color: "#222a3d", maxWidth: isFirst ? 100 : 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
               <div style={{ fontWeight: 900, fontSize: isFirst ? 17 : 14, color }}>{getPoints(r)}pts</div>
               <div style={{ width: "100%", height: cfg.height, background: cfg.bg, borderRadius: "10px 10px 0 0", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2, boxShadow: "0 8px 20px -8px rgba(0,0,0,.25)" }}>
@@ -99,7 +96,7 @@ function Podium({ rows, getPoints, getSubLabel, color }) {
 }
 
 // ── Tipping Leaderboard ───────────────────────────────────────────────────────
-function TippingLB({ leaderboard, player, rankChanges }) {
+function TippingLB({ leaderboard, player, rankChanges, playerMap }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🎯 Tipping</div>
@@ -116,6 +113,7 @@ function TippingLB({ leaderboard, player, rankChanges }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
+                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
                 {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges[r.id]} />
               </td>
@@ -127,7 +125,7 @@ function TippingLB({ leaderboard, player, rankChanges }) {
           ))}
         </tbody>
       </table>
-      <Podium rows={leaderboard} getPoints={r => r.total || 0} getSubLabel={r => `${r.counts?.exact||0}✓ ${r.counts?.gd||0}GD ${r.counts?.result||0}W`} color="var(--pink)" />
+      <Podium rows={leaderboard} getPoints={r => r.total || 0} getSubLabel={r => `${r.counts?.exact||0}✓ ${r.counts?.gd||0}GD ${r.counts?.result||0}W`} color="var(--pink)" playerMap={playerMap} />
       {player && (() => {
         const me = leaderboard.find(r => r.id === player.id);
         if (!me) return null;
@@ -148,7 +146,7 @@ function TippingLB({ leaderboard, player, rankChanges }) {
 }
 
 // ── Predictor Leaderboard ─────────────────────────────────────────────────────
-function PredictorLB({ predLB, player, rankChanges }) {
+function PredictorLB({ predLB, player, rankChanges, playerMap }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🔮 Predictor</div>
@@ -165,6 +163,7 @@ function PredictorLB({ predLB, player, rankChanges }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
+                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
                 {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges?.[r.id]} />
               </td>
@@ -176,13 +175,13 @@ function PredictorLB({ predLB, player, rankChanges }) {
           ))}
         </tbody>
       </table>
-      <Podium rows={predLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.groupPts||0}G ${r.bracketPts||0}B ${r.awardPts||0}A`} color="var(--blue)" />
+      <Podium rows={predLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.groupPts||0}G ${r.bracketPts||0}B ${r.awardPts||0}A`} color="var(--blue)" playerMap={playerMap} />
     </div>
   );
 }
 
 // ── Combined Leaderboard ──────────────────────────────────────────────────────
-function CombinedLB({ combinedLB, player, rankChanges }) {
+function CombinedLB({ combinedLB, player, rankChanges, playerMap }) {
   return (
     <div className="card pad">
       <div className="gtitle" style={{ marginBottom: 6 }}>🌟 Combined</div>
@@ -199,6 +198,7 @@ function CombinedLB({ combinedLB, player, rankChanges }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
+                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
                 {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges[r.id]} />
               </td>
@@ -209,13 +209,15 @@ function CombinedLB({ combinedLB, player, rankChanges }) {
           ))}
         </tbody>
       </table>
-      <Podium rows={combinedLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.tippingTotal}tip + ${r.predictorTotal}pred`} color="var(--purple)" />
+      <Podium rows={combinedLB} getPoints={r => r.total || 0} getSubLabel={r => `${r.tippingTotal}tip + ${r.predictorTotal}pred`} color="var(--purple)" playerMap={playerMap} />
     </div>
   );
 }
 
 // ── Predicted Champions panel (used in Predictor tab) ────────────────────────
-export function PredictedChampions({ predLB, player }) {
+export function PredictedChampions({ predLB, player, players }) {
+  const playerMap = {};
+  (players || []).forEach(p => { playerMap[p.id] = p; });
   return (
     <div className="card pad" style={{ marginTop: 14 }}>
       <div className="gtitle" style={{ marginBottom: 6, fontSize: 17 }}>🏆 Predicted Champions</div>
@@ -224,7 +226,10 @@ export function PredictedChampions({ predLB, player }) {
         {predLB.length === 0 && <div className="muted2">No picks yet.</div>}
         {predLB.map(r => (
           <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 0", borderBottom: "1px solid #f4ebdf" }}>
-            <span style={{ fontWeight: 700, fontSize: 13.5 }}>{r.name}{player && r.id === player.id ? " (you)" : ""}{r.isAdmin ? " 👑" : ""}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 13.5 }}>
+              <PlayerAvatar player={playerMap[r.id]} size={24} style={{ verticalAlign: "middle" }} />
+              {r.name}{player && r.id === player.id ? " (you)" : ""}{r.isAdmin ? " 👑" : ""}
+            </span>
             {r.champion
               ? <span style={{ display: "flex", alignItems: "center", gap: 7, fontWeight: 800, fontSize: 13.5 }}><Flag name={r.champion} size={18} />{r.champion}</span>
               : <span style={{ fontSize: 12.5, color: "var(--muted)", fontStyle: "italic" }}>— not predicted yet</span>}
@@ -236,8 +241,11 @@ export function PredictedChampions({ predLB, player }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, onRefresh, loading, predictions, officialResults, settings, tippingRankChanges, predictorRankChanges, combinedRankChanges, tab, setTab }) {
+export default function AllLeaderboards({ leaderboard, predLB, combinedLB, player, players, onRefresh, loading, predictions, officialResults, settings, tippingRankChanges, predictorRankChanges, combinedRankChanges, tab, setTab }) {
   const lbTab = tab || "tip";
+
+  const playerMap = {};
+  (players || []).forEach(p => { playerMap[p.id] = p; });
 
   const tabs = [
     { k: "combined", label: "🌟 Combined" },
@@ -271,9 +279,9 @@ export default function AllLeaderboards({ leaderboard, predLB, combinedLB, playe
         )}
       </div>
 
-      {lbTab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} />}
-      {lbTab === "pred" && <PredictorLB predLB={predLB} player={player} rankChanges={predictorRankChanges} />}
-      {lbTab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} />}
+      {lbTab === "tip" && <TippingLB leaderboard={leaderboard} player={player} rankChanges={tippingRankChanges} playerMap={playerMap} />}
+      {lbTab === "pred" && <PredictorLB predLB={predLB} player={player} rankChanges={predictorRankChanges} playerMap={playerMap} />}
+      {lbTab === "combined" && <CombinedLB combinedLB={combinedLB} player={player} rankChanges={combinedRankChanges} playerMap={playerMap} />}
     </div>
   );
 }

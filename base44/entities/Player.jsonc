@@ -15,6 +15,9 @@
     "predictorOverride": {
       "type": "boolean",
       "default": false
+    },
+    "profilePhoto": {
+      "type": "string"
     }
   },
   "required": [

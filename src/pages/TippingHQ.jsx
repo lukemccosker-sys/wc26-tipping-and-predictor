@@ -25,6 +25,7 @@ import {
 import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, buildPredictorLeaderboard, buildCombinedLeaderboard } from "@/lib/scoring";
 import AllLeaderboards, { PredictedChampions } from "@/components/AllLeaderboards";
 import usePullToRefresh from "@/lib/usePullToRefresh";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -49,6 +50,8 @@ const CSS = `
 .hdr h1 span{color:var(--pink);}
 .idtag{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .idtag b{color:var(--ink);}
+.avatar-btn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.avatar-cam{position:absolute;bottom:-3px;right:-3px;background:var(--ink);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.25);}
 .badge-admin{background:linear-gradient(95deg,var(--gold),var(--orange));color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 9px;}
 .hdr-r{display:flex;gap:16px;align-items:center;}
 .ptotal{background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;border-radius:18px;padding:10px 20px;text-align:center;box-shadow:0 14px 30px -12px rgba(123,84,240,.6);transition:background .3s;}
@@ -439,6 +442,7 @@ export default function TippingHQ() {
   const playerRef = useRef(player);
   const bracketRef = useRef(null); // tracks latest bracket data for optimistic updates
   const bracketSaveTimer = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Keep playerRef in sync
   useEffect(() => { playerRef.current = player; }, [player]);
@@ -695,6 +699,19 @@ export default function TippingHQ() {
     await flushPendingSaves();
     localStorage.removeItem("wc_player");
     setPlayer(null);
+  };
+
+  const onUploadPhoto = async (file) => {
+    if (!file) return;
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Player.update(player.id, { profilePhoto: file_url });
+      const updated = { ...playerRef.current, profilePhoto: file_url };
+      localStorage.setItem("wc_player", JSON.stringify(updated));
+      setPlayer(updated);
+    } catch (err) {
+      console.error("Failed to upload photo:", err);
+    }
   };
 
   if (!player) {
@@ -1216,6 +1233,11 @@ export default function TippingHQ() {
           <div className="kick">FIFA WORLD CUP 26 · 🇺🇸 🇨🇦 🇲🇽</div>
           <h1>TIPPING <span>HQ</span></h1>
           <div className="idtag">
+            <button onClick={() => fileInputRef.current?.click()} className="avatar-btn" title="Upload profile photo">
+              <PlayerAvatar player={player} size={34} />
+              <span className="avatar-cam">📷</span>
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { onUploadPhoto(e.target.files?.[0]); e.target.value = ""; }} />
             Playing as <b>{player.name}</b>
             {isAdmin && <span className="badge-admin">👑 ADMIN</span>}
           </div>
@@ -1415,6 +1437,7 @@ export default function TippingHQ() {
           leaderboard={leaderboard}
           predLB={predLB}
           combinedLB={combinedLB}
+          players={players}
           player={player}
           onRefresh={handleRefresh}
           loading={loading}
@@ -1514,7 +1537,7 @@ export default function TippingHQ() {
           )}
 
           {ptab === "pc" && (
-            <PredictedChampions predLB={predLB} player={player} />
+            <PredictedChampions predLB={predLB} players={players} player={player} />
           )}
 
           {ptab === "pa" && (
