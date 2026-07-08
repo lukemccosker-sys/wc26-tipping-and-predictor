@@ -26,6 +26,7 @@ import { computePlayerScore, buildLeaderboard, buildOfficialKOTeamsFromResults, 
 import AllLeaderboards, { PredictedChampions } from "@/components/AllLeaderboards";
 import usePullToRefresh from "@/lib/usePullToRefresh";
 import PlayerAvatar from "@/components/PlayerAvatar";
+import PhotoCropModal from "@/components/PhotoCropModal";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -432,6 +433,7 @@ export default function TippingHQ() {
   const [poolSettings, setPoolSettings] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resultNotification, setResultNotification] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
   const [suggestionKey, setSuggestionKey] = useState(0);
   const [predictorResetKey, setPredictorResetKey] = useState(0);
 
@@ -1237,7 +1239,7 @@ export default function TippingHQ() {
               <PlayerAvatar player={player} size={34} />
               <span className="avatar-cam">📷</span>
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { onUploadPhoto(e.target.files?.[0]); e.target.value = ""; }} />
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { if (e.target.files?.[0]) setPendingPhoto(e.target.files[0]); e.target.value = ""; }} />
             Playing as <b>{player.name}</b>
             {isAdmin && <span className="badge-admin">👑 ADMIN</span>}
           </div>
@@ -1643,6 +1645,14 @@ export default function TippingHQ() {
             localStorage.setItem(`wc_help_seen_${player.id}`, "1");
             setShowHelp(false);
           }}
+        />
+      )}
+
+      {pendingPhoto && (
+        <PhotoCropModal
+          file={pendingPhoto}
+          onConfirm={async (file) => { setPendingPhoto(null); await onUploadPhoto(file); }}
+          onCancel={() => setPendingPhoto(null)}
         />
       )}
 
