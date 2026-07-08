@@ -11,9 +11,14 @@ export default function ScoreInput({ value, onChange, locked, active }) {
 
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
-  // Sync from parent only when not mid-edit
+  // Sync from parent only when not mid-edit; also clear isPending early when
+  // the external value matches our local value (save confirmed by DB)
   useEffect(() => {
     const ext = toNum(value);
+    if (isPending.current && ext === localRef.current) {
+      isPending.current = false;
+      return;
+    }
     if (!isPending.current && ext !== localRef.current) {
       localRef.current = ext;
       setLocal(ext);
@@ -29,7 +34,7 @@ export default function ScoreInput({ value, onChange, locked, active }) {
     clearTimeout(pendingTimer.current);
     pendingTimer.current = setTimeout(() => {
       isPending.current = false;
-    }, 800);
+    }, 2500);
   };
 
   const inc = () => {

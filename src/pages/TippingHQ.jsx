@@ -835,19 +835,23 @@ export default function TippingHQ() {
     // Debounce DB save — wait 400ms after last interaction before persisting
     clearTimeout(saveTimers.current[matchId]);
     saveTimers.current[matchId] = setTimeout(async () => {
-      // Clear timer ref immediately so realtime events can flow and we don't permanently block updates
-      delete saveTimers.current[matchId];
       // If a save is already in-flight, skip — a retry will be triggered after it completes
       if (savingRef.current[matchId]) return;
+      // Set saving flag BEFORE clearing timer so there's no gap where both are false
+      // (a gap would let background fetches wipe the optimistic prediction)
+      savingRef.current[matchId] = true;
+      delete saveTimers.current[matchId];
 
       const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-      if (!pred || pred.homeScore == null || pred.awayScore == null) return;
+      if (!pred || pred.homeScore == null || pred.awayScore == null) {
+        savingRef.current[matchId] = false;
+        return;
+      }
 
       // Snapshot the values being saved so we can detect changes made during the save
       const savedHomeScore = pred.homeScore;
       const savedAwayScore = pred.awayScore;
 
-      savingRef.current[matchId] = true;
       try {
         // Re-read pred from ref at save time (may have been updated by a prior save or background fetch)
         const latestPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
@@ -884,8 +888,41 @@ export default function TippingHQ() {
           });
         }
       } catch (err) {
-        // Save failed — leave optimistic state in place so the user's input isn't lost
+        // Save failed — schedule a retry so the user's input isn't silently lost
         console.error("Failed to save prediction:", err);
+        savingRef.current[matchId] = false;
+        saveTimers.current[matchId] = setTimeout(async () => {
+          if (savingRef.current[matchId]) return;
+          savingRef.current[matchId] = true;
+          delete saveTimers.current[matchId];
+          try {
+            const retryPred0 = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+            if (!retryPred0 || retryPred0.homeScore == null || retryPred0.awayScore == null) return;
+            const ko0 = kickoffs[matchId];
+            const statusField0 = (ko0 && Date.now() >= ko0) ? 'final' : 'draft';
+            if (retryPred0.id) {
+              await base44.entities.Prediction.update(retryPred0.id, { homeScore: retryPred0.homeScore, awayScore: retryPred0.awayScore, penaltyPick: retryPred0.penaltyPick || null, status: statusField0 });
+            } else {
+              const saved0 = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred0.homeScore, awayScore: retryPred0.awayScore, penaltyPick: retryPred0.penaltyPick || null, status: statusField0 });
+              setPredictions(prev => {
+                let f0 = false;
+                let n0 = prev.map(p => {
+                  if (p.playerId === player.id && p.matchId === matchId && !p.id) { f0 = true; return { ...p, id: saved0.id }; }
+                  if (p.id === saved0.id) { f0 = true; return saved0; }
+                  return p;
+                });
+                if (!f0) { n0 = [...n0, saved0]; }
+                predictionsRef.current = n0;
+                return n0;
+              });
+            }
+          } catch (err2) {
+            console.error("Retry save also failed:", err2);
+          } finally {
+            savingRef.current[matchId] = false;
+          }
+        }, 1500);
+        return;
       } finally {
         savingRef.current[matchId] = false;
       }
@@ -895,9 +932,9 @@ export default function TippingHQ() {
       if (afterSave && afterSave.homeScore != null && afterSave.awayScore != null &&
           (afterSave.homeScore !== savedHomeScore || afterSave.awayScore !== savedAwayScore)) {
         saveTimers.current[matchId] = setTimeout(async () => {
-          delete saveTimers.current[matchId];
           if (savingRef.current[matchId]) return;
           savingRef.current[matchId] = true;
+          delete saveTimers.current[matchId];
           try {
             const retryPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
             if (!retryPred || retryPred.homeScore == null || retryPred.awayScore == null) return;
