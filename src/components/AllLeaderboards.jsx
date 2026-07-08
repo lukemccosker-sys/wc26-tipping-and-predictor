@@ -114,7 +114,7 @@ function TippingLB({ leaderboard, player, rankChanges, playerMap }) {
               <td className="pos">{i + 1}</td>
               <td className="tl">
                 <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                {r.name}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges[r.id]} />
               </td>
               <td className="pts">{r.total || 0}</td>
@@ -164,7 +164,7 @@ function PredictorLB({ predLB, player, rankChanges, playerMap }) {
               <td className="pos">{i + 1}</td>
               <td className="tl">
                 <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                {r.name}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges?.[r.id]} />
               </td>
               <td>{r.groupPts || 0}</td>
@@ -199,7 +199,7 @@ function CombinedLB({ combinedLB, player, rankChanges, playerMap }) {
               <td className="pos">{i + 1}</td>
               <td className="tl">
                 <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{r.isAdmin && <span className="lb-crown">👑</span>}{player && r.id === player.id && " (you)"}
+                {r.name}{player && r.id === player.id && " (you)"}
                 <RankBadge change={rankChanges[r.id]} />
               </td>
               <td className="pts" style={{ color: "#7b54f0", fontWeight: 900 }}>{r.total}</td>
@@ -228,7 +228,7 @@ export function PredictedChampions({ predLB, player, players }) {
           <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 0", borderBottom: "1px solid #f4ebdf" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 13.5 }}>
               <PlayerAvatar player={playerMap[r.id]} size={24} style={{ verticalAlign: "middle" }} />
-              {r.name}{player && r.id === player.id ? " (you)" : ""}{r.isAdmin ? " 👑" : ""}
+              {r.name}{player && r.id === player.id ? " (you)" : ""}
             </span>
             {r.champion
               ? <span style={{ display: "flex", alignItems: "center", gap: 7, fontWeight: 800, fontSize: 13.5 }}><Flag name={r.champion} size={18} />{r.champion}</span>
