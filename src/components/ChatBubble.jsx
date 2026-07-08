@@ -344,7 +344,7 @@ export default function ChatBubble({ player, players }) {
                 border: "2px solid #efe3d2",
                 borderRadius: 12,
                 padding: "10px 14px",
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: 500,
                 fontFamily: "inherit",
                 background: "#fff7ee",
