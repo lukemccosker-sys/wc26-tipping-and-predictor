@@ -27,7 +27,7 @@ export default function ChatBubble({ player, players }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [wasOpen, setWasOpen] = useState(false);
+  const lastSeenDate = useRef(null);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -41,7 +41,12 @@ export default function ChatBubble({ player, players }) {
   const loadMessages = useCallback(async () => {
     try {
       const msgs = await base44.entities.ChatMessage.list("-created_date", 100);
-      setMessages(msgs || []);
+      const sorted = (msgs || []).slice().sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      setMessages(sorted);
+      // Set the "last seen" timestamp to the latest message so only newer messages count as unread
+      if (sorted.length > 0 && !lastSeenDate.current) {
+        lastSeenDate.current = sorted[sorted.length - 1].created_date;
+      }
     } catch (err) {
       console.error("Failed to load chat messages:", err);
     }
@@ -70,26 +75,30 @@ export default function ChatBubble({ player, players }) {
     return () => unsub();
   }, [player, loadMessages]);
 
-  // Track unread count
+  // Track unread count — count messages from other players newer than lastSeenDate
   useEffect(() => {
     if (open) {
+      // Mark all current messages as seen
+      const latest = messages.length > 0
+        ? messages[messages.length - 1].created_date
+        : new Date().toISOString();
+      lastSeenDate.current = latest;
       setUnreadCount(0);
-      setWasOpen(true);
-      // Focus input when opening
+    } else if (lastSeenDate.current) {
+      const count = messages.filter(m =>
+        m.playerId !== player.id &&
+        new Date(m.created_date) > new Date(lastSeenDate.current)
+      ).length;
+      setUnreadCount(count);
+    }
+  }, [messages, open, player.id]);
+
+  // Focus input when opening
+  useEffect(() => {
+    if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
-    } else if (wasOpen) {
-      setWasOpen(false);
     }
   }, [open]);
-
-  // Increment unread when new message arrives and panel is closed
-  const lastMsgCount = useRef(0);
-  useEffect(() => {
-    if (messages.length > lastMsgCount.current && !open && lastMsgCount.current > 0) {
-      setUnreadCount(c => c + (messages.length - lastMsgCount.current));
-    }
-    lastMsgCount.current = messages.length;
-  }, [messages, open]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
