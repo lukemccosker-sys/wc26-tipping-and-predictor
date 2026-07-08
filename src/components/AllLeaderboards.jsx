@@ -80,8 +80,10 @@ function Podium({ rows, getPoints, getSubLabel, color, playerMap }) {
           const sub = getSubLabel ? getSubLabel(r) : null;
           return (
             <div key={r.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flex: isFirst ? "0 0 100px" : "0 0 84px" }}>
-              <PlayerAvatar player={playerMap?.[r.id]} size={isFirst ? 44 : 36} style={{ marginBottom: 2 }} />
-              <div style={{ fontWeight: 800, fontSize: isFirst ? 13 : 12, textAlign: "center", color: "#222a3d", maxWidth: isFirst ? 100 : 84, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "center" }}>
+                <PlayerAvatar player={playerMap?.[r.id]} size={isFirst ? 36 : 30} />
+                <div style={{ fontWeight: 800, fontSize: isFirst ? 13 : 12, textAlign: "left", color: "#222a3d", maxWidth: isFirst ? 72 : 56, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+              </div>
               <div style={{ fontWeight: 900, fontSize: isFirst ? 17 : 14, color }}>{getPoints(r)}pts</div>
               <div style={{ width: "100%", height: cfg.height, background: cfg.bg, borderRadius: "10px 10px 0 0", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2, boxShadow: "0 8px 20px -8px rgba(0,0,0,.25)" }}>
                 <div style={{ fontSize: isFirst ? 20 : 17 }}>{cfg.label}</div>
