@@ -553,17 +553,7 @@ export default function TippingHQ() {
 
   const { pullDistance, refreshing } = usePullToRefresh(handleRefresh);
 
-  // On load, verify stored player still exists in DB — if removed, kick back to login
-  useEffect(() => {
-    if (!player) return;
-    base44.entities.Player.list().then(all => {
-      const stillExists = (all || []).some(p => p.id === player.id);
-      if (!stillExists) {
-        localStorage.removeItem("wc_player");
-        setPlayer(null);
-      }
-    });
-  }, []);
+  // Player existence is checked via realtime subscription (delete event) and fetchAll sync
 
   useEffect(() => {
     if (!player) return;
@@ -664,8 +654,8 @@ export default function TippingHQ() {
     const handleBeforeUnload = () => { flushPendingSaves(); };
     window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // Fallback poll every 30s
-    const t = setInterval(fetchAll, 30000);
+    // Fallback poll every 2 minutes (realtime subscriptions handle live updates)
+    const t = setInterval(fetchAll, 120000);
     return () => {
       unsubPlayers();
       unsubPred();
