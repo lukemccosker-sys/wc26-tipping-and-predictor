@@ -27,6 +27,7 @@ import AllLeaderboards, { PredictedChampions } from "@/components/AllLeaderboard
 import usePullToRefresh from "@/lib/usePullToRefresh";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import PhotoCropModal from "@/components/PhotoCropModal";
+import ChatBubble from "@/components/ChatBubble";
 
 // ---- CSS Styles ----
 const CSS = `
@@ -1668,6 +1669,8 @@ export default function TippingHQ() {
         />
       )}
     </div>
+
+      <ChatBubble player={player} players={players} />
 
       {/* Bottom nav rendered OUTSIDE .wc to avoid overflow:hidden stacking context trapping fixed positioning */}
       <nav className="desk-nav">

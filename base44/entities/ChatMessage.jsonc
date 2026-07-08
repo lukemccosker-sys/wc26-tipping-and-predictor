@@ -1,0 +1,20 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "playerId": {
+      "type": "string"
+    },
+    "playerName": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "playerId",
+    "playerName",
+    "message"
+  ]
+}
