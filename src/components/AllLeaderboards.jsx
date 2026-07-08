@@ -115,9 +115,11 @@ function TippingLB({ leaderboard, player, rankChanges, playerMap }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
-                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{player && r.id === player.id && " (you)"}
-                <RankBadge change={rankChanges[r.id]} />
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <PlayerAvatar player={playerMap?.[r.id]} size={22} />
+                  <span>{r.name}{player && r.id === player.id && " (you)"}</span>
+                  <RankBadge change={rankChanges[r.id]} />
+                </div>
               </td>
               <td className="pts">{r.total || 0}</td>
               <td>{r.counts?.exact || 0}</td>
@@ -165,9 +167,11 @@ function PredictorLB({ predLB, player, rankChanges, playerMap }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
-                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{player && r.id === player.id && " (you)"}
-                <RankBadge change={rankChanges?.[r.id]} />
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <PlayerAvatar player={playerMap?.[r.id]} size={22} />
+                  <span>{r.name}{player && r.id === player.id && " (you)"}</span>
+                  <RankBadge change={rankChanges?.[r.id]} />
+                </div>
               </td>
               <td>{r.groupPts || 0}</td>
               <td>{r.bracketPts || 0}</td>
@@ -200,9 +204,11 @@ function CombinedLB({ combinedLB, player, rankChanges, playerMap }) {
             <tr key={r.id} className={player && r.id === player.id ? "melb" : ""}>
               <td className="pos">{i + 1}</td>
               <td className="tl">
-                <PlayerAvatar player={playerMap?.[r.id]} size={22} style={{ marginRight: 7, verticalAlign: "middle" }} />
-                {r.name}{player && r.id === player.id && " (you)"}
-                <RankBadge change={rankChanges[r.id]} />
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <PlayerAvatar player={playerMap?.[r.id]} size={22} />
+                  <span>{r.name}{player && r.id === player.id && " (you)"}</span>
+                  <RankBadge change={rankChanges[r.id]} />
+                </div>
               </td>
               <td className="pts" style={{ color: "#7b54f0", fontWeight: 900 }}>{r.total}</td>
               <td style={{ color: "#ff3d7f" }}>{r.tippingTotal}</td>
@@ -229,8 +235,8 @@ export function PredictedChampions({ predLB, player, players }) {
         {predLB.map(r => (
           <div key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 0", borderBottom: "1px solid #f4ebdf" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 13.5 }}>
-              <PlayerAvatar player={playerMap[r.id]} size={24} style={{ verticalAlign: "middle" }} />
-              {r.name}{player && r.id === player.id ? " (you)" : ""}
+              <PlayerAvatar player={playerMap[r.id]} size={24} />
+              <span>{r.name}{player && r.id === player.id ? " (you)" : ""}</span>
             </span>
             {r.champion
               ? <span style={{ display: "flex", alignItems: "center", gap: 7, fontWeight: 800, fontSize: 13.5 }}><Flag name={r.champion} size={18} />{r.champion}</span>
