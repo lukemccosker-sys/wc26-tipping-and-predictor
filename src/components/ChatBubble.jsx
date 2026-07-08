@@ -109,11 +109,18 @@ export default function ChatBubble({ player, players }) {
     }
   }, [messages, open, player.id]);
 
-  // Focus input when opening
+  // Cleanup body scroll lock when chat closes
   useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (!open) return;
+    return () => {
+      if (window.__chatScrollPos != null) {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, window.__chatScrollPos);
+        window.__chatScrollPos = null;
+      }
+    };
   }, [open]);
 
   // Auto-scroll to bottom on new messages
@@ -351,8 +358,23 @@ export default function ChatBubble({ player, players }) {
                 color: "#222a3d",
                 outline: "none",
               }}
-              onFocus={e => e.target.style.borderColor = "#7b54f0"}
-              onBlur={e => e.target.style.borderColor = "#efe3d2"}
+              onFocus={e => {
+                e.target.style.borderColor = "#7b54f0";
+                window.__chatScrollPos = window.scrollY;
+                document.body.style.position = "fixed";
+                document.body.style.top = `-${window.__chatScrollPos}px`;
+                document.body.style.width = "100%";
+              }}
+              onBlur={e => {
+                e.target.style.borderColor = "#efe3d2";
+                document.body.style.position = "";
+                document.body.style.top = "";
+                document.body.style.width = "";
+                if (window.__chatScrollPos != null) {
+                  window.scrollTo(0, window.__chatScrollPos);
+                  window.__chatScrollPos = null;
+                }
+              }}
             />
             <button
               onClick={handleSend}
