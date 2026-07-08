@@ -104,11 +104,10 @@ export default function ChatBubble({ player, players }) {
     setLoading(true);
     setInput("");
     try {
-      const censored = censorMessage(trimmed);
       await base44.entities.ChatMessage.create({
         playerId: player.id,
         playerName: player.name,
-        message: censored,
+        message: trimmed,
       });
     } catch (err) {
       console.error("Failed to send message:", err);
