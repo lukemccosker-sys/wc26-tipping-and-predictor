@@ -510,6 +510,13 @@ export default function TippingHQ() {
       return;
     }
     setPlayers(pl || []);
+    // Sync current player's data from DB (ensures profilePhoto and other fields are fresh)
+    const freshMe = (pl || []).find(p => p.id === playerRef.current?.id);
+    if (freshMe) {
+      const updated = { ...playerRef.current, ...freshMe };
+      localStorage.setItem("wc_player", JSON.stringify(updated));
+      setPlayer(updated);
+    }
     // Merge DB predictions with optimistic (unsaved) ones to avoid losing user input
     // when the 30s poll or initial load fires during the 400ms debounce save window
     setPredictions(prev => {
