@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { calcGroupTable } from "@/lib/scoring";
 import { KO_MATCHES, GL } from "@/lib/wc2026data";
@@ -7,6 +7,7 @@ import TipOverrideTool from "@/components/admin/TipOverrideTool";
 import ChangePinCard from "@/components/admin/ChangePinCard";
 import ResultOverrideTool from "@/components/admin/ResultOverrideTool";
 import GroupStandingsOverride from "@/components/admin/GroupStandingsOverride";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 export default function AdminPanel() {
   const [player, setPlayer] = useState(() => {
@@ -17,6 +18,8 @@ export default function AdminPanel() {
   const [officialResults, setOfficialResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(null);
+  const fileRefs = useRef({});
 
   useEffect(() => {
     if (!player || !player.isAdmin) return; // don't load data for non-admins
@@ -111,6 +114,24 @@ export default function AdminPanel() {
     ]);
     setPlayers(prev => prev.filter(x => x.id !== p.id));
     setRemoving(null);
+  };
+
+  const changePhoto = async (p, file) => {
+    if (!file) return;
+    setPhotoLoading(p.id);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Player.update(p.id, { profilePhoto: file_url });
+    } catch (err) {
+      console.error("Failed to upload photo:", err);
+    } finally {
+      setPhotoLoading(null);
+    }
+  };
+
+  const removePhoto = async (p) => {
+    if (!window.confirm(`Remove ${p.name}'s profile photo?`)) return;
+    await base44.entities.Player.update(p.id, { profilePhoto: null });
   };
 
   // Access gates — rendered after all hooks
@@ -300,11 +321,42 @@ export default function AdminPanel() {
           sortedPlayers.map(p => (
             <div className="ap-player-row" key={p.id}>
               <span className="ap-name">
+                <PlayerAvatar player={p} size={32} />
                 {p.name}
                 {p.isAdmin && <span className="ap-badge">👑 Admin</span>}
                 {p.id === player.id && <span className="ap-you">You</span>}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <input
+                  ref={el => fileRefs.current[p.id] = el}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={e => { if (e.target.files?.[0]) changePhoto(p, e.target.files[0]); e.target.value = ""; }}
+                />
+                <button
+                  onClick={() => fileRefs.current[p.id]?.click()}
+                  disabled={photoLoading === p.id}
+                  style={{
+                    background: "#fff", border: "1.5px solid #efe3d2", color: "#222a3d",
+                    borderRadius: 9, padding: "7px 13px", fontSize: 12.5, fontWeight: 800,
+                    cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap"
+                  }}
+                  title="Change profile photo"
+                >
+                  {photoLoading === p.id ? "⏳" : "📷 Photo"}
+                </button>
+                {p.profilePhoto && (
+                  <button
+                    onClick={() => removePhoto(p)}
+                    style={{
+                      background: "#fff0f2", border: "1.5px solid #ff3d7f", color: "#ff3d7f",
+                      borderRadius: 9, padding: "7px 13px", fontSize: 12.5, fontWeight: 800,
+                      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap"
+                    }}
+                    title="Remove profile photo"
+                  >🗑 Photo</button>
+                )}
                 {!p.isAdmin && (
                   <button
                     onClick={async () => {
