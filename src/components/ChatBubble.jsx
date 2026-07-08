@@ -298,7 +298,7 @@ export default function ChatBubble({ player, players }) {
                       {msg.message}
                     </div>
                     <div style={{ fontSize: 9, color: "#b9b1a3", fontWeight: 600, padding: "2px 4px 0" }}>
-                      {new Date(msg.created_date).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(msg.created_date).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit", timeZone: "Australia/Sydney" })}
                     </div>
                   </div>
                 </div>
