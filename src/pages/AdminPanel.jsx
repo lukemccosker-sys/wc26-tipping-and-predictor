@@ -193,6 +193,9 @@ export default function AdminPanel() {
         .lock-knob.on::after { left: 27px; }
         .ap-section-title { font-family: 'Anton', sans-serif; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 4px; color: #222a3d; }
         .ap-section-sub { font-size: 12.5px; color: #6c7384; font-weight: 600; margin-bottom: 16px; }
+        .modal { position: fixed; inset: 0; background: rgba(40,30,20,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .modal-c { background: #fff; border: 1px solid #efe3d2; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: 0 30px 70px -28px rgba(0,0,0,.5); }
+        .muted2 { color: #6c7384; font-size: 12px; margin: 4px 0 10px; }
       `}</style>
 
       <div style={{ marginBottom: 24 }}>
