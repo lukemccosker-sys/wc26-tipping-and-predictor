@@ -145,9 +145,9 @@ export default function ChatBubble({ player, players }) {
           onClick={() => setOpen(true)}
           style={{
             position: "fixed",
-            bottom: `calc(80px + env(safe-area-inset-bottom, 0px))`,
+            bottom: `calc(90px + env(safe-area-inset-bottom, 0px))`,
             right: 18,
-            zIndex: 9000,
+            zIndex: 10001,
             width: 56,
             height: 56,
             borderRadius: "50%",
