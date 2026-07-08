@@ -21,6 +21,22 @@ function censorMessage(text) {
   return result;
 }
 
+function formatAEST(dateStr) {
+  if (!dateStr) return "";
+  let d = new Date(dateStr);
+  // If the date string has no timezone indicator, treat it as UTC
+  if (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+") && !/\d{2}:\d{2}\s*$/.test(dateStr.slice(-9))) {
+    d = new Date(dateStr + "Z");
+  }
+  if (isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-AU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Australia/Sydney"
+  }).format(d);
+}
+
 export default function ChatBubble({ player, players }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -298,7 +314,7 @@ export default function ChatBubble({ player, players }) {
                       {msg.message}
                     </div>
                     <div style={{ fontSize: 9, color: "#b9b1a3", fontWeight: 600, padding: "2px 4px 0" }}>
-                      {new Date(msg.created_date).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit", timeZone: "Australia/Sydney" })}
+                      {formatAEST(msg.created_date)}
                     </div>
                   </div>
                 </div>
