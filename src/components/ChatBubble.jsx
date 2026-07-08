@@ -2,6 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import PlayerAvatar from "@/components/PlayerAvatar";
 
+// Inject pulse keyframes once
+const PULSE_STYLE = document.createElement("style");
+PULSE_STYLE.textContent = `
+@keyframes chatPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,61,127,.7), 0 8px 24px -6px rgba(123,84,240,.6); }
+  70% { box-shadow: 0 0 0 16px rgba(255,61,127,0), 0 8px 24px -6px rgba(123,84,240,.6); }
+  100% { box-shadow: 0 0 0 0 rgba(255,61,127,0), 0 8px 24px -6px rgba(123,84,240,.6); }
+}`;
+document.head.appendChild(PULSE_STYLE);
+
 // Simple profanity filter — replaces bad words with asterisks
 const BAD_WORDS = [
   "fuck","shit","cunt","bitch","asshole","bastard","dick","pussy","wanker",
@@ -178,7 +188,10 @@ export default function ChatBubble({ player, players }) {
             background: "linear-gradient(135deg, #ff3d7f, #7b54f0)",
             color: "#fff",
             cursor: "pointer",
-            boxShadow: "0 8px 24px -6px rgba(123,84,240,.6)",
+            boxShadow: unreadCount > 0
+              ? "0 0 0 0 rgba(255,61,127,.7), 0 8px 24px -6px rgba(123,84,240,.6)"
+              : "0 8px 24px -6px rgba(123,84,240,.6)",
+            animation: unreadCount > 0 ? "chatPulse 1.4s ease-in-out infinite" : "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -193,20 +206,21 @@ export default function ChatBubble({ player, players }) {
           {unreadCount > 0 && (
             <span style={{
               position: "absolute",
-              top: -4,
-              right: -4,
+              top: -6,
+              right: -6,
               background: "#ff3d7f",
               color: "#fff",
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 900,
               borderRadius: "50%",
-              minWidth: 20,
-              height: 20,
+              minWidth: 22,
+              height: 22,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               padding: "0 5px",
-              border: "2px solid #fff",
+              border: "3px solid #fff7ee",
+              boxShadow: "0 2px 8px rgba(255,61,127,.5)",
             }}>
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
