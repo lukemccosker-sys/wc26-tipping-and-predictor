@@ -441,8 +441,7 @@ export default function TippingHQ() {
   // Refs must be declared before any early returns (Rules of Hooks)
   const predictionsRef = useRef([]);
   const saveTimers = useRef({});
-  const savingRef = useRef({}); // tracks in-flight saves per matchId to prevent duplicate creates
-  const recentlySavedRef = useRef({}); // 5s cooldown after save completes to ignore stale realtime events
+  const savingMatch = useRef({}); // simple per-match flag: true while a save is in-flight
   const playerRef = useRef(player);
   const bracketRef = useRef(null); // tracks latest bracket data for optimistic updates
   const bracketSaveTimer = useRef(null);
@@ -463,8 +462,6 @@ export default function TippingHQ() {
     const flushPromises = pending.map(matchId => {
       clearTimeout(timers[matchId]);
       delete timers[matchId];
-      // Skip if already being saved
-      if (savingRef.current[matchId]) return;
       const currentPlayer = playerRef.current;
       if (!currentPlayer) return;
       const pred = predictionsRef.current.find(p => p.playerId === currentPlayer.id && p.matchId === matchId);
@@ -522,19 +519,12 @@ export default function TippingHQ() {
     // when the 30s poll or initial load fires during the 400ms debounce save window
     setPredictions(prev => {
       const dbList = pr || [];
-      // Keep the current user's optimistic predictions that have a pending debounce save or in-flight save
-      const pending = prev.filter(p =>
-        p.playerId === playerRef.current?.id &&
-        (saveTimers.current[p.matchId] || savingRef.current[p.matchId] || (recentlySavedRef.current[p.matchId] && Date.now() - recentlySavedRef.current[p.matchId] < 5000))
-      );
-      const pendingIds = new Set(pending.map(p => p.id).filter(Boolean));
-      const pendingMatchKeys = new Set(pending.map(p => `${p.playerId}_${p.matchId}`));
-      // DB predictions, excluding any that have a pending optimistic version
-      const fromDb = dbList.filter(dp =>
-        !pendingIds.has(dp.id) &&
-        !pendingMatchKeys.has(`${dp.playerId}_${dp.matchId}`)
-      );
-      const merged = [...fromDb, ...pending];
+      // Keep all of the current user's local predictions — they're always newer than DB
+      const myLocal = prev.filter(p => p.playerId === playerRef.current?.id);
+      const myMatchKeys = new Set(myLocal.map(p => `${p.playerId}_${p.matchId}`));
+      // Use DB predictions for everyone else
+      const fromDb = dbList.filter(dp => !myMatchKeys.has(`${dp.playerId}_${dp.matchId}`));
+      const merged = [...fromDb, ...myLocal];
       predictionsRef.current = merged;
       return merged;
     });
@@ -583,22 +573,17 @@ export default function TippingHQ() {
     });
 
     const unsubPred = base44.entities.Prediction.subscribe((event) => {
-      // Skip if a save is in-flight OR a debounce timer is pending for this match
-      // (our optimistic state is newer than whatever the realtime event carries)
-      const matchId = event.data?.matchId;
-      const isBusy = matchId && (savingRef.current[matchId] || saveTimers.current[matchId] || (recentlySavedRef.current[matchId] && Date.now() - recentlySavedRef.current[matchId] < 5000));
+      // Skip create/update echoes for the current user's own predictions —
+      // the optimistic local state is always newer
+      if ((event.type === "create" || event.type === "update") && event.data?.playerId === player.id) return;
       if (event.type === "create") {
-        if (isBusy) return;
         setPredictions(prev => {
           if (prev.some(p => p.id === event.id)) return prev;
-          const hasOptimistic = prev.some(p => !p.id && p.playerId === player.id && p.matchId === matchId);
-          if (hasOptimistic) return prev;
           const next = [...prev.filter(p => p.id !== event.id), event.data];
           predictionsRef.current = next;
           return next;
         });
       } else if (event.type === "update") {
-        if (isBusy) return;
         setPredictions(prev => {
           const next = prev.map(p => p.id === event.id ? event.data : p);
           predictionsRef.current = next;
@@ -805,7 +790,7 @@ export default function TippingHQ() {
   const onSetScore = (matchId, side, value) => {
     const field = side === "h" ? "homeScore" : "awayScore";
 
-    // Update local state immediately for responsive UI, and sync ref at the same time
+    // Update local state immediately (optimistic)
     setPredictions(prev => {
       let next;
       const existing = prev.find(p => p.playerId === player.id && p.matchId === matchId);
@@ -813,7 +798,6 @@ export default function TippingHQ() {
         next = prev.map(p => {
           if (p.playerId !== player.id || p.matchId !== matchId) return p;
           const updated = { ...p, [field]: value };
-          // Clear penalty pick if the tip is no longer a draw
           const newHome = field === "homeScore" ? value : existing.homeScore;
           const newAway = field === "awayScore" ? value : existing.awayScore;
           if (newHome != null && newAway != null && +newHome !== +newAway) {
@@ -828,143 +812,63 @@ export default function TippingHQ() {
           awayScore: side === "a" ? value : null
         }];
       }
-      // Keep ref in sync immediately so debounced save uses latest value
       predictionsRef.current = next;
       return next;
     });
 
-    // Debounce DB save — wait 400ms after last interaction before persisting
+    // Debounce DB save — wait 400ms after last click, then save the final value
     clearTimeout(saveTimers.current[matchId]);
-    saveTimers.current[matchId] = setTimeout(async () => {
-      // If a save is already in-flight, skip — a retry will be triggered after it completes
-      if (savingRef.current[matchId]) return;
-      // Set saving flag BEFORE clearing timer so there's no gap where both are false
-      // (a gap would let background fetches wipe the optimistic prediction)
-      savingRef.current[matchId] = true;
+    const doSave = async () => {
       delete saveTimers.current[matchId];
-
-      const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-      if (!pred || pred.homeScore == null || pred.awayScore == null) {
-        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
+      // If a previous save is still in-flight, retry shortly
+      if (savingMatch.current[matchId]) {
+        saveTimers.current[matchId] = setTimeout(doSave, 200);
         return;
       }
+      const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+      if (!pred || pred.homeScore == null || pred.awayScore == null) return;
 
-      // Snapshot the values being saved so we can detect changes made during the save
-      const savedHomeScore = pred.homeScore;
-      const savedAwayScore = pred.awayScore;
+      const ko = kickoffs[matchId];
+      const statusField = ko && Date.now() >= ko ? 'final' : 'draft';
 
+      savingMatch.current[matchId] = true;
       try {
-        // Re-read pred from ref at save time (may have been updated by a prior save or background fetch)
-        const latestPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-        if (!latestPred || latestPred.homeScore == null || latestPred.awayScore == null) return;
-        // Mark as final if match has already kicked off (locked), otherwise draft
-        const ko = kickoffs[matchId];
-        const isFinal = ko && Date.now() >= ko;
-        const statusField = isFinal ? 'final' : 'draft';
-        if (latestPred.id) {
-          await base44.entities.Prediction.update(latestPred.id, { homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, penaltyPick: latestPred.penaltyPick || null, status: statusField });
+        if (pred.id) {
+          await base44.entities.Prediction.update(pred.id, { homeScore: pred.homeScore, awayScore: pred.awayScore, penaltyPick: pred.penaltyPick || null, status: statusField });
         } else {
-          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: latestPred.homeScore, awayScore: latestPred.awayScore, penaltyPick: latestPred.penaltyPick || null, status: statusField });
-          // Upsert: if the optimistic record (no id) still exists, attach the id while preserving
-          // any newer edits the user made during the save. If it was lost (e.g. from a background
-          // fetch replacing state), add the saved record so the tip is never blanked out.
+          const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: pred.homeScore, awayScore: pred.awayScore, penaltyPick: pred.penaltyPick || null, status: statusField });
           setPredictions(prev => {
-            let found = false;
-            let next = prev.map(p => {
-              if (p.playerId === player.id && p.matchId === matchId && !p.id) {
-                found = true;
-                return { ...p, id: saved.id };
-              }
-              if (p.id === saved.id) {
-                found = true;
-                return saved;
-              }
-              return p;
-            });
-            if (!found) {
-              next = [...next, saved];
-            }
+            const next = prev.map(p => (p.playerId === player.id && p.matchId === matchId && !p.id) ? { ...p, id: saved.id } : p);
             predictionsRef.current = next;
             return next;
           });
         }
       } catch (err) {
-        // Save failed — schedule a retry so the user's input isn't silently lost
         console.error("Failed to save prediction:", err);
-        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
-        saveTimers.current[matchId] = setTimeout(async () => {
-          if (savingRef.current[matchId]) return;
-          savingRef.current[matchId] = true;
-          delete saveTimers.current[matchId];
+        // Retry once after 1.5s
+        setTimeout(async () => {
+          const retryPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
+          if (!retryPred || retryPred.homeScore == null || retryPred.awayScore == null) return;
           try {
-            const retryPred0 = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-            if (!retryPred0 || retryPred0.homeScore == null || retryPred0.awayScore == null) return;
-            const ko0 = kickoffs[matchId];
-            const statusField0 = (ko0 && Date.now() >= ko0) ? 'final' : 'draft';
-            if (retryPred0.id) {
-              await base44.entities.Prediction.update(retryPred0.id, { homeScore: retryPred0.homeScore, awayScore: retryPred0.awayScore, penaltyPick: retryPred0.penaltyPick || null, status: statusField0 });
+            if (retryPred.id) {
+              await base44.entities.Prediction.update(retryPred.id, { homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField });
             } else {
-              const saved0 = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred0.homeScore, awayScore: retryPred0.awayScore, penaltyPick: retryPred0.penaltyPick || null, status: statusField0 });
+              const saved = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField });
               setPredictions(prev => {
-                let f0 = false;
-                let n0 = prev.map(p => {
-                  if (p.playerId === player.id && p.matchId === matchId && !p.id) { f0 = true; return { ...p, id: saved0.id }; }
-                  if (p.id === saved0.id) { f0 = true; return saved0; }
-                  return p;
-                });
-                if (!f0) { n0 = [...n0, saved0]; }
-                predictionsRef.current = n0;
-                return n0;
+                const next = prev.map(p => (p.playerId === player.id && p.matchId === matchId && !p.id) ? { ...p, id: saved.id } : p);
+                predictionsRef.current = next;
+                return next;
               });
             }
           } catch (err2) {
             console.error("Retry save also failed:", err2);
-          } finally {
-            savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
           }
         }, 1500);
-        return;
       } finally {
-        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
+        savingMatch.current[matchId] = false;
       }
-
-      // Retry: if the user made changes while the save was in-flight, schedule another save
-      const afterSave = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-      if (afterSave && afterSave.homeScore != null && afterSave.awayScore != null &&
-          (afterSave.homeScore !== savedHomeScore || afterSave.awayScore !== savedAwayScore)) {
-        saveTimers.current[matchId] = setTimeout(async () => {
-          if (savingRef.current[matchId]) return;
-          savingRef.current[matchId] = true;
-          delete saveTimers.current[matchId];
-          try {
-            const retryPred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
-            if (!retryPred || retryPred.homeScore == null || retryPred.awayScore == null) return;
-            const ko2 = kickoffs[matchId];
-            const statusField2 = (ko2 && Date.now() >= ko2) ? 'final' : 'draft';
-            if (retryPred.id) {
-              await base44.entities.Prediction.update(retryPred.id, { homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField2 });
-            } else {
-              const saved2 = await base44.entities.Prediction.create({ playerId: player.id, matchId, homeScore: retryPred.homeScore, awayScore: retryPred.awayScore, penaltyPick: retryPred.penaltyPick || null, status: statusField2 });
-              setPredictions(prev => {
-                let f = false;
-                let n = prev.map(p => {
-                  if (p.playerId === player.id && p.matchId === matchId && !p.id) { f = true; return { ...p, id: saved2.id }; }
-                  if (p.id === saved2.id) { f = true; return saved2; }
-                  return p;
-                });
-                if (!f) { n = [...n, saved2]; }
-                predictionsRef.current = n;
-                return n;
-              });
-            }
-          } catch (err) {
-            console.error("Retry save failed:", err);
-          } finally {
-            savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
-          }
-        }, 200);
-      }
-    }, 400);
+    };
+    saveTimers.current[matchId] = setTimeout(doSave, 400);
   };
 
   // Commit official result (both scores at once) — triggers notification banner for all users
@@ -996,15 +900,11 @@ export default function TippingHQ() {
       return next;
     });
 
-    // Guard against realtime overwrites during the save
     if (existing.id) {
-      savingRef.current[matchId] = true;
       try {
         await base44.entities.Prediction.update(existing.id, { penaltyPick: newPick });
       } catch (err) {
         console.error("Failed to save penalty pick:", err);
-      } finally {
-        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
       }
     }
   };
@@ -1032,13 +932,10 @@ export default function TippingHQ() {
       return true;
     });
 
-    // Clear ALL pending debounced saves and in-flight save flags
+    // Clear ALL pending debounced saves
     Object.keys(saveTimers.current).forEach(matchId => {
       clearTimeout(saveTimers.current[matchId]);
       delete saveTimers.current[matchId];
-    });
-    Object.keys(savingRef.current).forEach(matchId => {
-      savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
     });
 
     // Delete records from DB (only those with an id), one by one to ensure reliability
