@@ -442,6 +442,7 @@ export default function TippingHQ() {
   const predictionsRef = useRef([]);
   const saveTimers = useRef({});
   const savingRef = useRef({}); // tracks in-flight saves per matchId to prevent duplicate creates
+  const recentlySavedRef = useRef({}); // 5s cooldown after save completes to ignore stale realtime events
   const playerRef = useRef(player);
   const bracketRef = useRef(null); // tracks latest bracket data for optimistic updates
   const bracketSaveTimer = useRef(null);
@@ -524,7 +525,7 @@ export default function TippingHQ() {
       // Keep the current user's optimistic predictions that have a pending debounce save or in-flight save
       const pending = prev.filter(p =>
         p.playerId === playerRef.current?.id &&
-        (saveTimers.current[p.matchId] || savingRef.current[p.matchId])
+        (saveTimers.current[p.matchId] || savingRef.current[p.matchId] || (recentlySavedRef.current[p.matchId] && Date.now() - recentlySavedRef.current[p.matchId] < 5000))
       );
       const pendingIds = new Set(pending.map(p => p.id).filter(Boolean));
       const pendingMatchKeys = new Set(pending.map(p => `${p.playerId}_${p.matchId}`));
@@ -585,7 +586,7 @@ export default function TippingHQ() {
       // Skip if a save is in-flight OR a debounce timer is pending for this match
       // (our optimistic state is newer than whatever the realtime event carries)
       const matchId = event.data?.matchId;
-      const isBusy = matchId && (savingRef.current[matchId] || saveTimers.current[matchId]);
+      const isBusy = matchId && (savingRef.current[matchId] || saveTimers.current[matchId] || (recentlySavedRef.current[matchId] && Date.now() - recentlySavedRef.current[matchId] < 5000));
       if (event.type === "create") {
         if (isBusy) return;
         setPredictions(prev => {
@@ -844,7 +845,7 @@ export default function TippingHQ() {
 
       const pred = predictionsRef.current.find(p => p.playerId === player.id && p.matchId === matchId);
       if (!pred || pred.homeScore == null || pred.awayScore == null) {
-        savingRef.current[matchId] = false;
+        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
         return;
       }
 
@@ -890,7 +891,7 @@ export default function TippingHQ() {
       } catch (err) {
         // Save failed — schedule a retry so the user's input isn't silently lost
         console.error("Failed to save prediction:", err);
-        savingRef.current[matchId] = false;
+        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
         saveTimers.current[matchId] = setTimeout(async () => {
           if (savingRef.current[matchId]) return;
           savingRef.current[matchId] = true;
@@ -919,12 +920,12 @@ export default function TippingHQ() {
           } catch (err2) {
             console.error("Retry save also failed:", err2);
           } finally {
-            savingRef.current[matchId] = false;
+            savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
           }
         }, 1500);
         return;
       } finally {
-        savingRef.current[matchId] = false;
+        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
       }
 
       // Retry: if the user made changes while the save was in-flight, schedule another save
@@ -959,7 +960,7 @@ export default function TippingHQ() {
           } catch (err) {
             console.error("Retry save failed:", err);
           } finally {
-            savingRef.current[matchId] = false;
+            savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
           }
         }, 200);
       }
@@ -1003,7 +1004,7 @@ export default function TippingHQ() {
       } catch (err) {
         console.error("Failed to save penalty pick:", err);
       } finally {
-        savingRef.current[matchId] = false;
+        savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
       }
     }
   };
@@ -1037,7 +1038,7 @@ export default function TippingHQ() {
       delete saveTimers.current[matchId];
     });
     Object.keys(savingRef.current).forEach(matchId => {
-      savingRef.current[matchId] = false;
+      savingRef.current[matchId] = false; recentlySavedRef.current[matchId] = Date.now();
     });
 
     // Delete records from DB (only those with an id), one by one to ensure reliability
