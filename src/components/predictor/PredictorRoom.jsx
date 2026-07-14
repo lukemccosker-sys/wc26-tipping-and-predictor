@@ -186,8 +186,12 @@ export default function PredictorRoom({ players, bracketPredictions, officialRes
       else if (res.penaltyWinner === "a") fWinner = at.away;
       return fWinner && fWinner === pt ? (+s.champ || 12) : 0;
     }
+    if (m.round === "SF") {
+      if (tr === "F") return +s.final || 0;
+      return 0;
+    }
     if (ROUND_ORDER.indexOf(tr) > ROUND_ORDER.indexOf(m.round)) {
-      const nextRpm = { R16: "qf", QF: "sf", SF: "final" };
+      const nextRpm = { R16: "qf", QF: "sf" };
       const key = nextRpm[m.round];
       return key ? (+s[key] || 0) : 0;
     }

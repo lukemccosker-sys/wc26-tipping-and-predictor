@@ -449,8 +449,12 @@ export function computePredictorScore(bracketPred, officialResults, predSettings
     }
 
     // For R16, QF, SF: award next-round points if the team advanced past this round
-    if (ROUND_ORDER.indexOf(teamActualRound) > ROUND_ORDER.indexOf(m.round)) {
-      const nextRoundPtsMap = { R16: "qf", QF: "sf", SF: "final" };
+    // SF special case: "3rd" is a consolation match (SF losers), not advancement to the Final —
+    // only award finalist points if the team actually reached "F"
+    if (m.round === "SF") {
+      if (teamActualRound === "F") bracketPts += +s.final || 0;
+    } else if (ROUND_ORDER.indexOf(teamActualRound) > ROUND_ORDER.indexOf(m.round)) {
+      const nextRoundPtsMap = { R16: "qf", QF: "sf" };
       const key = nextRoundPtsMap[m.round];
       if (key && s[key]) bracketPts += +s[key];
     }

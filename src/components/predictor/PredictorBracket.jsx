@@ -123,8 +123,13 @@ export default function PredictorBracket({ bracketPred, locked, koTeams, onPickA
       return fWinner && fWinner === pickedTeam ? (+s.champ || 12) : 0;
     }
     // Award next-round points if the team advanced past this round
+    // SF special case: "3rd" is a consolation match (SF losers), not advancement to the Final
+    if (m.round === "SF") {
+      if (teamRound === "F") return +s.final || 0;
+      return 0;
+    }
     if (ROUND_ORDER.indexOf(teamRound) > ROUND_ORDER.indexOf(m.round)) {
-      const nextRoundPtsMap = { R16: "qf", QF: "sf", SF: "final" };
+      const nextRoundPtsMap = { R16: "qf", QF: "sf" };
       const key = nextRoundPtsMap[m.round];
       return key ? (+s[key] || 0) : 0;
     }
