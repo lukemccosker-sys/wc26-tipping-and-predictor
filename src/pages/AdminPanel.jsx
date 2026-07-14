@@ -7,6 +7,7 @@ import TipOverrideTool from "@/components/admin/TipOverrideTool";
 import ChangePinCard from "@/components/admin/ChangePinCard";
 import ResultOverrideTool from "@/components/admin/ResultOverrideTool";
 import GroupStandingsOverride from "@/components/admin/GroupStandingsOverride";
+import AdminBracketViewer from "@/components/admin/AdminBracketViewer";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import PhotoCropModal from "@/components/PhotoCropModal";
 
@@ -17,6 +18,7 @@ export default function AdminPanel() {
   const [players, setPlayers] = useState([]);
   const [poolSettings, setPoolSettings] = useState(null);
   const [officialResults, setOfficialResults] = useState([]);
+  const [bracketPredictions, setBracketPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
   const [photoLoading, setPhotoLoading] = useState(null);
@@ -27,14 +29,16 @@ export default function AdminPanel() {
     if (!player || !player.isAdmin) return; // don't load data for non-admins
     async function load() {
       setLoading(true);
-      const [pl, ps, or_] = await Promise.all([
+      const [pl, ps, or_, bp] = await Promise.all([
         base44.entities.Player.list(),
         base44.entities.PoolSettings.list(),
         base44.entities.OfficialResult.list(),
+        base44.entities.BracketPrediction.list(),
       ]);
       setPlayers(pl || []);
       setPoolSettings(ps?.[0] || null);
       setOfficialResults(or_ || []);
+      setBracketPredictions(bp || []);
       setLoading(false);
     }
     load();
@@ -313,6 +317,13 @@ export default function AdminPanel() {
         <div className="ap-section-title">✏️ Override a Player's Tip</div>
         <div className="ap-section-sub">Manually set or update any player's score prediction for any match. Use the match ID (e.g. GA0, M73).</div>
         <TipOverrideTool players={players} />
+      </div>
+
+      {/* Admin Bracket Viewer */}
+      <div className="ap-card">
+        <div className="ap-section-title">🔮 Predictor Brackets</div>
+        <div className="ap-section-sub">See every player's full predictor picks — groups, knockouts, champion, and awards.</div>
+        <AdminBracketViewer players={players} bracketPredictions={bracketPredictions} />
       </div>
 
       {/* Change PIN */}
