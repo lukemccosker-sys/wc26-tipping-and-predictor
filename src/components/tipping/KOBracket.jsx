@@ -45,7 +45,7 @@ export default function KOBracket({
   onSetScore, onSetPenaltyPick, isAdmin, adminEditing, onSetOfficial, onSetOfficialPen, onClearOfficial,
   player, poolSettings, groupStageComplete
 }) {
-  const [round, setRound] = useState("SF");
+  const [round, setRound] = useState("3rd");
   const [openStats, setOpenStats] = useState({});
   const topRef = useRef(null);
 
