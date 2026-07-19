@@ -640,8 +640,8 @@ export default function TippingHQ() {
     const handleBeforeUnload = () => { flushPendingSaves(); };
     window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // Fallback poll every 2 minutes (realtime subscriptions handle live updates)
-    const t = setInterval(fetchAll, 120000);
+    // Fallback poll every 5 minutes (realtime subscriptions handle live updates)
+    const t = setInterval(fetchAll, 300000);
     return () => {
       unsubPlayers();
       unsubPred();

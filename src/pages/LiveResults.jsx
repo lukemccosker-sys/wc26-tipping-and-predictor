@@ -143,7 +143,7 @@ export default function LiveResults() {
       else setPoolSettings(event.data);
     });
 
-    const t = setInterval(fetchResults, 30000);
+    const t = setInterval(fetchResults, 300000);
     return () => { unsubResults(); unsubSettings(); clearInterval(t); };
   }, [fetchResults]);
 
