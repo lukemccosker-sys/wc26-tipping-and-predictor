@@ -660,12 +660,9 @@ export default function TippingHQ() {
   const AWARD_KEYS = ["boot", "ball", "young", "glove"];
   const tournamentOver = AWARD_KEYS.every(k => officialAwards?.[k]?.trim());
   useEffect(() => {
-    if (!player || !tournamentOver) return;
-    const key = `wc_ceremony_seen_${player.id}`;
-    if (!localStorage.getItem(key)) {
-      setShowCeremony(true);
-    }
-  }, [player?.id, tournamentOver]);
+    if (!player) return;
+    setShowCeremony(true);
+  }, [player?.id]);
 
   // Track group stage completion to show a message (instead of auto-switching tabs)
   const groupStageCompleteMsg = GROUP_MATCHES.every(m => {
@@ -1610,6 +1607,8 @@ export default function TippingHQ() {
           onClose={() => {
             localStorage.setItem(`wc_ceremony_seen_${player.id}`, "1");
             setShowCeremony(false);
+            setMode("lb");
+            setLbTab("combined");
           }}
         />
       )}
