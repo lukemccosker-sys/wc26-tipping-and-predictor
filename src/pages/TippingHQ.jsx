@@ -8,6 +8,7 @@ import TipsRoom from "@/components/tipping/TipsRoom";
 import PredictorGroups from "@/components/predictor/PredictorGroups";
 import PredictorBracket from "@/components/predictor/PredictorBracket";
 import PredictorAwards from "@/components/predictor/PredictorAwards";
+import AwardsLab from "@/components/predictor/AwardsLab";
 import PredictorRoom from "@/components/predictor/PredictorRoom";
 import AdminPlayerManager from "@/components/admin/AdminPlayerManager";
 import KickoffEditor from "@/components/admin/KickoffEditor";
@@ -1253,7 +1254,7 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pb","Bracket","Bracket","🏆"],["pg","Groups","Groups","🥇"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pr","Lab","Lab","🔍"]].map(([k,l,sh,ic]) => (
+            {[["pb","Bracket","Bracket","🏆"],["pg","Groups","Groups","🥇"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pal","Awards Lab","Awards Lab","📋"],["pr","Lab","Lab","🔍"]].map(([k,l,sh,ic]) => (
               <button key={k} className={`tab${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
@@ -1262,7 +1263,7 @@ export default function TippingHQ() {
             ))}
           </nav>
           <nav className="mobile-tabnav">
-            {[["pb","🏆","Bracket"],["pg","🥇","Groups"],["pa","🏅","Awards"],["pc","🌍","Champs"],["pr","🔍","Pred Lab"]].map(([k,ic,lbl]) => (
+            {[["pb","🏆","Bracket"],["pg","🥇","Groups"],["pa","🏅","Awards"],["pc","🌍","Champs"],["pal","📋","Awards Lab"],["pr","🔍","Pred Lab"]].map(([k,ic,lbl]) => (
               <button key={k} className={`mtn-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span>{ic}</span>{lbl}
               </button>
@@ -1500,6 +1501,16 @@ export default function TippingHQ() {
             </>
           )}
 
+          {ptab === "pal" && (
+            <AwardsLab
+              players={players}
+              bracketPredictions={bracketPredictions}
+              officialAwards={officialAwards}
+              player={player}
+              predSettings={predSettings}
+            />
+          )}
+
           {ptab === "pr" && (
             <PredictorRoom
               players={players}
@@ -1642,7 +1653,7 @@ export default function TippingHQ() {
           </>
         ) : (
           <>
-            {[["pb","🏆","Bracket"],["pg","🥇","Groups"],["pa","🏅","Awards"],["pr","🔍","Pred Lab"]].map(([k,ic,lbl]) => (
+            {[["pb","🏆","Bracket"],["pg","🥇","Groups"],["pa","🏅","Awards"],["pal","📋","Awards Lab"],["pr","🔍","Pred Lab"]].map(([k,ic,lbl]) => (
               <button key={k} className={`desk-nav-btn${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="dnic">{ic}</span>{lbl}
               </button>
