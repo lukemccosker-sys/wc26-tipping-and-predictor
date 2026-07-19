@@ -23,7 +23,7 @@ function slotLabel(slot) {
 }
 
 export default function PredictorBracket({ bracketPred, locked, koTeams, onPickAdvance, onGoToAwards, officialResults, predSettings, officialKOTeams }) {
-  const [round, setRound] = useState("3rd");
+  const [round, setRound] = useState("F");
   const topRef = useRef(null);
 
   // Local picks state — source of truth for UI. Syncs from prop only on initial load.
