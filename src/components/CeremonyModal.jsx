@@ -7,7 +7,7 @@ const PODIUM_COLORS = {
   2: { bg: "linear-gradient(135deg,#CD7F32,#A0522D)", border: "#CD7F32", label: "🥉 3rd Place", size: "h-14", order: 3 },
 };
 
-export default function CeremonyModal({ leaderboard, predLB, onClose, player }) {
+export default function CeremonyModal({ leaderboard, predLB, combinedLB, onClose, player }) {
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -29,9 +29,11 @@ export default function CeremonyModal({ leaderboard, predLB, onClose, player }) 
 
   const top3Tip = leaderboard.slice(0, 3);
   const top3Pred = predLB.slice(0, 3);
+  const top3Combined = (combinedLB || []).slice(0, 3);
 
   const tipChamp = top3Tip[0];
   const predChamp = top3Pred[0];
+  const combinedChamp = top3Combined[0];
 
   return (
     <div style={{
@@ -70,9 +72,20 @@ export default function CeremonyModal({ leaderboard, predLB, onClose, player }) 
           <Podium players={top3Pred} currentPlayerId={player?.id} scoreKey="total" />
         </div>
 
+        {/* Combined Podium */}
+        <div style={{ marginTop: 20 }}>
+          <SectionLabel icon="🏅" title="Overall Champions" />
+          <Podium players={top3Combined} currentPlayerId={player?.id} scoreKey="total" />
+        </div>
+
         {/* Champions callout */}
-        {(tipChamp || predChamp) && (
+        {(tipChamp || predChamp || combinedChamp) && (
           <div style={{ marginTop: 20, background: "rgba(255,176,32,.1)", border: "1px solid rgba(255,176,32,.3)", borderRadius: 12, padding: "12px 16px" }}>
+            {combinedChamp && (
+              <div style={{ color: "#2cb551", fontWeight: 800, fontSize: 14, marginBottom: (tipChamp || predChamp) ? 6 : 0 }}>
+                🏅 Overall Champion: <span style={{ color: "#fff" }}>{combinedChamp.name}</span> · {combinedChamp.total} pts
+              </div>
+            )}
             {tipChamp && (
               <div style={{ color: "#FFD700", fontWeight: 800, fontSize: 13, marginBottom: predChamp ? 6 : 0 }}>
                 🎯 Tipping King: <span style={{ color: "#fff" }}>{tipChamp.name}</span> · {tipChamp.total} pts

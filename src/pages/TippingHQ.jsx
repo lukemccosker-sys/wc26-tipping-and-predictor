@@ -1593,6 +1593,7 @@ export default function TippingHQ() {
         <CeremonyModal
           leaderboard={leaderboard}
           predLB={predLB}
+          combinedLB={combinedLB}
           player={player}
           onClose={() => {
             localStorage.setItem(`wc_ceremony_seen_${player.id}`, "1");
