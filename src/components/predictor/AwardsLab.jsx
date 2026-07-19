@@ -16,7 +16,7 @@ function fuzzyMatch(guess, actual) {
   if (!guess || !actual) return false;
   const guessWords = norm(guess).split(/\s+/).filter(Boolean);
   const actualWords = norm(actual).split(/\s+/).filter(Boolean);
-  return guessWords.some(gw => actualWords.some(aw => aw.includes(gw) || gw.includes(aw)));
+  return guessWords.filter(gw => gw.length >= 3).some(gw => actualWords.some(aw => aw.includes(gw) || gw.includes(aw)));
 }
 
 export default function AwardsLab({ players, bracketPredictions, officialAwards, player, predSettings }) {
