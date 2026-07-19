@@ -1176,6 +1176,7 @@ export default function TippingHQ() {
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => { if (e.target.files?.[0]) setPendingPhoto(e.target.files[0]); e.target.value = ""; }} />
             Playing as <b>{player.name}</b>
             {isAdmin && <span className="badge-admin">👑 ADMIN</span>}
+            <button className="mini" onClick={() => setShowCeremony(true)} style={{ fontSize: 10, padding: "3px 8px" }}>🏆 Podiums</button>
           </div>
         </div>
         <div className="hdr-r">
