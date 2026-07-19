@@ -111,7 +111,7 @@ export default function CeremonyModal({ leaderboard, predLB, combinedLB, onClose
             letterSpacing: ".02em"
           }}
         >
-          View Full Results →
+          ← Back to App
         </button>
       </div>
     </div>
