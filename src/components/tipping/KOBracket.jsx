@@ -91,14 +91,8 @@ export default function KOBracket({
     const kb = getKickoff(b.id) || Infinity;
     return ka - kb;
   });
-  // Hide matches that already have an official result (they're in the Results tab)
-  // unless admin is actively editing results
-  const matches = isAdmin && adminEditing
-    ? allMatches
-    : allMatches.filter(m => {
-        const official = getOfficial(m.id);
-        return !(official && official.homeScore != null);
-      });
+  // Show all matches so users can review their tips and scores after results are in
+  const matches = allMatches;
 
   const goRound = (r) => {
     setRound(r);
