@@ -40,7 +40,7 @@ export default function CeremonyModal({ leaderboard, predLB, combinedLB, onClose
       position: "fixed", inset: 0, zIndex: 200,
       background: "radial-gradient(ellipse at 50% 0%,rgba(255,176,32,.22),transparent 60%), radial-gradient(ellipse at 0% 100%,rgba(123,84,240,.2),transparent 60%), rgba(10,8,20,.92)",
       display: "flex", alignItems: "flex-start", justifyContent: "center",
-      padding: "16px", overflowY: "auto", WebkitOverflowScrolling: "touch"
+      padding: "16px 16px 100px", overflowY: "auto", WebkitOverflowScrolling: "touch"
     }}>
       <div style={{
         background: "linear-gradient(160deg,#1a1230,#0d1a2e)",
