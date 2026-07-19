@@ -16,6 +16,7 @@ export default function CeremonyModal({ leaderboard, predLB, combinedLB, onClose
     const fire = (particleRatio, opts) => {
       confetti({
         origin: { y: 0.6 },
+        zIndex: 300,
         ...opts,
         particleCount: Math.floor(200 * particleRatio),
       });
