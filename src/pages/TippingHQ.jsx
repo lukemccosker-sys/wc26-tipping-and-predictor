@@ -1252,7 +1252,7 @@ export default function TippingHQ() {
       {mode === "pred" && (
         <>
           <nav className="tabs">
-            {[["pb","Bracket","Bracket","🏆"],["pg","Groups","Groups","🥇"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pal","Awards Lab","Awards Lab","📋"],["pr","Lab","Lab","🔍"]].map(([k,l,sh,ic]) => (
+            {[["pb","Bracket","Bracket","🏆"],["pg","Groups","Groups","🥇"],["pa","Awards","Awards","🏅"],["pc","Champions","Champs","🌍"],["pal","Awards Lab","Awards Lab","📋"],["pr","Pred Lab","Pred Lab","🔍"]].map(([k,l,sh,ic]) => (
               <button key={k} className={`tab${ptab===k?" act":""}`} onClick={() => setPtab(k)}>
                 <span className="tab-ic">{ic}</span>
                 <span className="tab-full">{l}</span>
